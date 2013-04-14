@@ -25,6 +25,8 @@
         <header id="banner" class="body">
                 <h1><a href="../">Code Arcana </a></h1>
                 <nav><ul>
+                                    <li><a href="http://codearcana.com">Blog</a></li>
+                                    <li><a href="http://codearcana.com">About Me</a></li>
                                                                                                     <li class="active"><a href="../category/performance.html">performance</a></li>
                                     <li ><a href="../category/security.html">security</a></li>
                                 </ul></nav>
@@ -34,7 +36,7 @@
 
                             <aside id="featured" class="body">
                 <article>
-                    <h1 class="entry-title"><a href="../introduction-to-using-profiling-tools.html">Introduction to Using Profiling Tools</a></h1> 
+                    <h1 class="entry-title"><a href="../introduction-to-using-profiling-tools.html">Introduction to Using Profiling&nbsp;Tools</a></h1> 
                     <footer class="post-info">
         <abbr class="published" title="2013-02-26T00:00:00">
                 Tue 26 February 2013
@@ -44,8 +46,8 @@
                 By <a class="url fn" href="../author/alex-reece.html">Alex Reece</a>
         </address>
         <p>In <a href="../category/performance.html">performance</a>. </p>
-<p>tags: <a href="../tag/performance.html">performance</a><a href="../tag/profiling.html">profiling</a></p>
-</footer><!-- /.post-info --><h2>Performance tools</h2>
+<p>tags: <a href="../tag/profiling.html">profiling</a></p>
+</footer><!-- /.post-info --><h2>Performance&nbsp;tools</h2>
 <p>Frequently, we need to identify slow portions of our programs so we can improve performance. There are a number of tools available to profile programs and identify how much time is spent where. The most common of these tools sample the program periodically, recording information to be later analyzed. Typically, they involve a phase spent recording data and a later phase for analyzing it. We will use two common tools to analyze a simple program: Google <code>pprof</code> and Linux <code>perf</code>.</p>
 <h3>Google <code>pprof</code></h3>
 <p>Google <code>pprof</code> is a tool available as part of the Google <a href="https://code.google.com/p/gperftools/"><code>perftools</code></a> package. It is is used with
@@ -55,7 +57,7 @@
 
 
 <p>For any profile linked with <code>libprofiler</code>, setting the environment variable <code>CPUPROFILE</code> enables profiling and specifies the output file. The following command runs <code>./a.out</code> and prints profiling data to <code>out.prof</code>:</p>
-<div class="codehilite"><pre><span class="gp">%</span> <span class="nv">CPUPROFILE</span><span class="o">=</span>out.prof ./a.out
+<div class="codehilite"><pre><span class="gp">%</span> <span class="nv"><span class="caps">CPUPROFILE</span></span><span class="o">=</span>out.prof ./a.out
 </pre></div>
 
 
@@ -74,14 +76,14 @@
 
 <p>See full documentation <a href="https://google-perftools.googlecode.com/svn/trunk/doc/cpuprofile.html">here</a>.</p>
 <h3>Linux <code>perf</code></h3>
-<p>On Linux, the <code>perf</code> system is a powerful tool for analyzing program / system performance. It provides some nice abstractions over tracking hardware counters on different CPUs. It defines a number of events to be tracked and recorded. Run <code>perf list</code> to see a list of the events allowed on your system. </p>
-<p>To use <code>perf</code>, you run: </p>
+<p>On Linux, the <code>perf</code> system is a powerful tool for analyzing program / system performance. It provides some nice abstractions over tracking hardware counters on different CPUs. It defines a number of events to be tracked and recorded. Run <code>perf list</code> to see a list of the events allowed on your&nbsp;system. </p>
+<p>To use <code>perf</code>, you&nbsp;run: </p>
 <div class="codehilite"><pre><span class="gp">%</span> perf stat ./a.out
 <span class="go"> Performance counter stats for &#39;./a.out&#39;:</span>
 
 <span class="go">    3121.725439 task-clock                #    0.997 CPUs utilized          </span>
 <span class="go">             11 context-switches          #    0.000 M/sec                  </span>
-<span class="go">              7 CPU-migrations            #    0.000 M/sec                  </span>
+<span class="go">              7 <span class="caps">CPU</span>-migrations            #    0.000 M/sec                  </span>
 <span class="go">            308 page-faults               #    0.000 M/sec                  </span>
 <span class="go">  9,121,960,506 cycles                    #    2.922 GHz                     [83.32%]</span>
 <span class="go">  5,213,187,548 stalled-cycles-frontend   #   57.15% frontend cycles idle    [83.32%]</span>
@@ -95,28 +97,28 @@
 </pre></div>
 
 
-<p>In addition to <code>perf stat</code>, there quite a few other ways to use perf. Run </p>
+<p>In addition to <code>perf stat</code>, there quite a few other ways to use perf.&nbsp;Run </p>
 <div class="codehilite"><pre><span class="gp">%</span> perf
 </pre></div>
 
 
 <p>to see a list of the commands (you might want to look into <code>perf record</code> and <code>perf annotate</code>). </p>
 <p>For an example of this being used in real life, see this excellent analysis of  <a href="http://thread.gmane.org/gmane.comp.version-control.git/172286">this analysis of a string comparison bottleneck in <code>git gc</code></a></p>
-<h2>Our Investigation</h2>
+<h2>Our&nbsp;Investigation</h2>
 <p>We compile the program with <code>-lprofiler</code> so we can generate output to examine. <code>try_perf.c</code> is a C program that counts the number of even values
 in an array of random numbers. We run with 8 threads that all increment a global
-counter every time they see an even number.</p>
+counter every time they see an even&nbsp;number.</p>
 <div class="codehilite"><pre><span class="gp">%</span> gcc try_perf.c -g -lprofiler -lpthread
-<span class="gp">%</span> <span class="nv">CPUPROFILE</span><span class="o">=</span>a.out.prof ./a.out --num_threads<span class="o">=</span>8
+<span class="gp">%</span> <span class="nv"><span class="caps">CPUPROFILE</span></span><span class="o">=</span>a.out.prof ./a.out --num_threads<span class="o">=</span>8
 </pre></div>
 
 
 <p>We run pprof and get the source code annotated with the number of probes that 
-hit that instruction during the trace (result below trimmed for brevity).</p>
+hit that instruction during the trace (result below trimmed for&nbsp;brevity).</p>
 <div class="codehilite"><pre><span class="gp">%</span> pprof --list<span class="o">=</span>thread_scan a.out a.out.prof
 <span class="go"> ... &lt;snip&gt; ...</span>
 <span class="go">   .      .   60: void* thread_scan(void* void_arg) {</span>
-<span class="go">   .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.</span>
+<span class="go">   .      .   61:    // <span class="caps">TODO</span>(awreece) Copy locally so dont interfere with each other.</span>
 <span class="go">   .      .   62:  thread_arg_t* args = (thread_arg_t*) void_arg;</span>
 <span class="go">   .      .   63:  size_t i;</span>
 <span class="go">   .      .   64: </span>
@@ -130,7 +132,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 </pre></div>
 
 
-<p>The output above is actually misleading: if you look at the assembly (shown below), the instruction immediately after the atomic instruction (the <code>addq   $0x1,-0x8(%rbp)</code> after the <code>lock addq $0x1,(%rax)</code>) gets excess hits that count towards the for loop when they should probably count towards the atomic instruction.</p>
+<p>The output above is actually misleading: if you look at the assembly (shown below), the instruction immediately after the atomic instruction (the <code>addq   $0x1,-0x8(%rbp)</code> after the <code>lock addq $0x1,(%rax)</code>) gets excess hits that count towards the for loop when they should probably count towards the atomic&nbsp;instruction.</p>
 <div class="codehilite"><pre><span class="gp">%</span> pprof --disas<span class="o">=</span>thread_scan a.out a.out.prof
 <span class="go"> ... &lt;snip&gt; ...</span>
 <span class="go">  9    300    68: __sync_fetch_and_add(arg-&gt;num_evens, 1);</span>
@@ -144,13 +146,13 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 
 
 <p>Hrm. Why are we spending a lot of time in <code>lock addq $0x1,(%rax)</code>?</p>
-<p>To understand this, we will use <code>perf</code>. Run: </p>
+<p>To understand this, we will use <code>perf</code>.&nbsp;Run: </p>
 <div class="codehilite"><pre><span class="gp">%</span> perf stat ./a.out
 <span class="go"> Performance counter stats for &#39;./a.out&#39;:</span>
 
 <span class="go">    5793.307952 task-clock                #    2.157 CPUs utilized          </span>
 <span class="go">            589 context-switches          #    0.000 M/sec                  </span>
-<span class="go">             11 CPU-migrations            #    0.000 M/sec                  </span>
+<span class="go">             11 <span class="caps">CPU</span>-migrations            #    0.000 M/sec                  </span>
 <span class="go">          1,974 page-faults               #    0.000 M/sec                  </span>
 <span class="go"> 16,378,904,731 cycles                    #    2.827 GHz                     [83.37%]</span>
 <span class="go"> 10,407,719,950 stalled-cycles-frontend   #   63.54% frontend cycles idle    [83.38%]</span>
@@ -164,7 +166,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 </pre></div>
 
 
-<p>Wow, thats a lot of stalled instructions! The 8 threads are sharing the same counter, generating a lot of memory traffic. We modify the program so they all use their own counter, and then we aggregate at the end (if we do this, we don't need to use the atomic instruction).</p>
+<p>Wow, thats a lot of stalled instructions! The 8 threads are sharing the same counter, generating a lot of memory traffic. We modify the program so they all use their own counter, and then we aggregate at the end (if we do this, we don&#8217;t need to use the atomic&nbsp;instruction).</p>
 <div class="codehilite"><pre><span class="kt">size_t</span> <span class="n">counts</span><span class="p">[</span><span class="n">nthreads</span><span class="p">];</span>
 <span class="kt">size_t</span> <span class="n">num_evens</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 
@@ -173,20 +175,20 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
      <span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">num_evens</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">counts</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
      <span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">input</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">inarray</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="p">(</span><span class="n">size</span> <span class="o">/</span> <span class="n">nthreads</span><span class="p">)];</span>
      <span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">size</span> <span class="o">=</span> <span class="n">size</span> <span class="o">/</span> <span class="n">nthreads</span><span class="p">;</span>
-     <span class="n">pthread_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">threads</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="nb">NULL</span><span class="p">,</span> <span class="n">thread_scan</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+     <span class="n">pthread_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">threads</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="nb"><span class="caps">NULL</span></span><span class="p">,</span> <span class="n">thread_scan</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
  <span class="p">}</span>   
  <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nthreads</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-     <span class="n">pthread_join</span><span class="p">(</span><span class="n">threads</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="nb">NULL</span><span class="p">);</span>
+     <span class="n">pthread_join</span><span class="p">(</span><span class="n">threads</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="nb"><span class="caps">NULL</span></span><span class="p">);</span>
      <span class="n">num_evens</span> <span class="o">+=</span> <span class="n">counts</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
  <span class="p">}</span>
 </pre></div>
 
 
-<p>But that didn't seem to help at all! We still spend most of our time on the increment, even though we aren't using an atomic instruction: </p>
+<p>But that didn&#8217;t seem to help at all! We still spend most of our time on the increment, even though we aren&#8217;t using an atomic&nbsp;instruction: </p>
 <div class="codehilite"><pre><span class="gp">%</span> pprof --list<span class="o">=</span>thread_scan a.out out.prof
 <span class="go">... &lt;snip&gt; ...</span>
 <span class="go">  .      .   60: void* thread_scan(void* void_arg) {</span>
-<span class="go">  .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.</span>
+<span class="go">  .      .   61:    // <span class="caps">TODO</span>(awreece) Copy locally so dont interfere with each other.</span>
 <span class="go">  .      .   62:  thread_arg_t* args = (thread_arg_t*) void_arg;</span>
 <span class="go">  .      .   63:  size_t i;</span>
 <span class="go">  .      .   64: </span>
@@ -200,13 +202,13 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 </pre></div>
 
 
-<p>Why could this be? Lets run <code>perf stat</code> again and see:</p>
+<p>Why could this be? Lets run <code>perf stat</code> again and&nbsp;see:</p>
 <div class="codehilite"><pre><span class="gp">%</span> perf stat ./a.out
 <span class="go"> Performance counter stats for &#39;./a.out&#39;:</span>
 
 <span class="go">      4372.474270 task-clock                #    1.882 CPUs utilized          </span>
 <span class="go">              385 context-switches          #    0.000 M/sec                  </span>
-<span class="go">                9 CPU-migrations            #    0.000 M/sec                  </span>
+<span class="go">                9 <span class="caps">CPU</span>-migrations            #    0.000 M/sec                  </span>
 <span class="go">            1,135 page-faults               #    0.000 M/sec                  </span>
 <span class="go">   12,411,517,583 cycles                    #    2.839 GHz                     [83.26%]</span>
 <span class="go">    6,270,257,100 stalled-cycles-frontend   #   50.52% frontend cycles idle    [83.33%]</span>
@@ -220,12 +222,12 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 </pre></div>
 
 
-<p>What is going on now? We <em>still</em> have a lot of stalled instructions, but all those counters are different. See?</p>
+<p>What is going on now? We <em>still</em> have a lot of stalled instructions, but all those counters are different.&nbsp;See?</p>
 <div class="codehilite"><pre><span class="kt">size_t</span> <span class="n">counts</span><span class="p">[</span><span class="n">nthreads</span><span class="p">];</span>
 </pre></div>
 
 
-<p>Oh, they are all on the same cache line - we're experiencing false sharing. Let us use a thread local counter thats on a different cache line for each thread:</p>
+<p>Oh, they are all on the same cache line - we&#8217;re experiencing false sharing. Let us use a thread local counter thats on a different cache line for each&nbsp;thread:</p>
 <div class="codehilite"><pre><span class="kt">void</span><span class="o">*</span> <span class="nf">thread_scan</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">void_arg</span><span class="p">)</span> <span class="p">{</span>
   <span class="kt">thread_arg_t</span><span class="o">*</span> <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="kt">thread_arg_t</span><span class="o">*</span><span class="p">)</span> <span class="n">void_arg</span><span class="p">;</span>
   <span class="kt">size_t</span> <span class="n">i</span><span class="p">;</span>
@@ -250,11 +252,11 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 </pre></div>
 
 
-<p>And then look at the profile:</p>
+<p>And then look at the&nbsp;profile:</p>
 <div class="codehilite"><pre><span class="gp">%</span> pprof --list<span class="o">=</span>thread_scan a.out out.prof
 <span class="go">... &lt;snip&gt; ...</span>
 <span class="go">  .      .   60: void* thread_scan(void* void_arg) {</span>
-<span class="go">  .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.</span>
+<span class="go">  .      .   61:    // <span class="caps">TODO</span>(awreece) Copy locally so dont interfere with each other.</span>
 <span class="go">  .      .   62:  thread_arg_t* args = (thread_arg_t*) void_arg;</span>
 <span class="go">  .      .   63:  size_t i;</span>
 <span class="go">  .      .   64:  size_t num_evens;</span>
@@ -270,13 +272,13 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 </pre></div>
 
 
-<p>Good, our increment doesn't dominate the function anymore. We look at <code>perf stat</code> and see:</p>
+<p>Good, our increment doesn&#8217;t dominate the function anymore. We look at <code>perf stat</code> and&nbsp;see:</p>
 <div class="codehilite"><pre><span class="gp">%</span> perf stat ./a.out
 <span class="go"> Performance counter stats for &#39;./a.out&#39;:</span>
 
 <span class="go">    2977.781539 task-clock                #    1.472 CPUs utilized          </span>
 <span class="go">            177 context-switches          #    0.000 M/sec                  </span>
-<span class="go">             12 CPU-migrations            #    0.000 M/sec                  </span>
+<span class="go">             12 <span class="caps">CPU</span>-migrations            #    0.000 M/sec                  </span>
 <span class="go">          3,506 page-faults               #    0.001 M/sec                  </span>
 <span class="go">  8,523,367,658 cycles                    #    2.862 GHz                     [83.32%]</span>
 <span class="go">  2,057,253,537 stalled-cycles-frontend   #   24.14% frontend cycles idle    [83.26%]</span>
@@ -290,7 +292,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 </pre></div>
 
 
-<p>Ah, perfect! 30% faster than our original solution and significantly fewer stalled instructions.</p><p>There are <a href="../introduction-to-using-profiling-tools.html#disqus_thread">comments</a>.</p>                </article>
+<p>Ah, perfect! 30% faster than our original solution and significantly fewer stalled&nbsp;instructions.</p><p>There are <a href="../introduction-to-using-profiling-tools.html#disqus_thread">comments</a>.</p>                </article>
                             </aside><!-- /#featured -->
                             <section id="content" class="body">
                     <h1>Other articles</h1>
@@ -302,7 +304,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
                         <li><article class="hentry">    
                 <header>
                     <h1><a href="../analysis-of-a-parallel-memory-allocator.html" rel="bookmark"
-                           title="Permalink to Analysis of a Parallel Memory Allocator">Analysis of a Parallel Memory Allocator</a></h1>
+                           title="Permalink to Analysis of a Parallel Memory Allocator">Analysis of a Parallel Memory&nbsp;Allocator</a></h1>
                 </header>
                 
                 <div class="entry-content">
@@ -315,7 +317,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
                 By <a class="url fn" href="../author/alex-reece.html">Alex Reece</a>
         </address>
         <p>In <a href="../category/performance.html">performance</a>. </p>
-
+<p>tags: <a href="../tag/malloc.html">malloc</a></p>
 </footer><!-- /.post-info -->                I implemented and tested different configurations of a modern parallel memory allocator.
                 <a class="readmore" href="../analysis-of-a-parallel-memory-allocator.html">read more</a>
                 <p>There are <a href="../analysis-of-a-parallel-memory-allocator.html#disqus_thread">comments</a>.</p>                </div><!-- /.entry-content -->

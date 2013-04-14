@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/performance.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2013-02-26T00:00:00+01:00</updated><entry><title>Introduction to Using Profiling Tools</title><link href="http://codearcana.com/introduction-to-using-profiling-tools.html" rel="alternate"></link><updated>2013-02-26T00:00:00+01:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-02-26:introduction-to-using-profiling-tools.html</id><summary type="html">&lt;h2&gt;Performance tools&lt;/h2&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/performance.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2013-02-26T00:00:00-08:00</updated><entry><title>Introduction to Using Profiling Tools</title><link href="http://codearcana.com/introduction-to-using-profiling-tools.html" rel="alternate"></link><updated>2013-02-26T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-02-26:introduction-to-using-profiling-tools.html</id><summary type="html">&lt;h2&gt;Performance&amp;nbsp;tools&lt;/h2&gt;
 &lt;p&gt;Frequently, we need to identify slow portions of our programs so we can improve performance. There are a number of tools available to profile programs and identify how much time is spent where. The most common of these tools sample the program periodically, recording information to be later analyzed. Typically, they involve a phase spent recording data and a later phase for analyzing it. We will use two common tools to analyze a simple program: Google &lt;code&gt;pprof&lt;/code&gt; and Linux &lt;code&gt;perf&lt;/code&gt;.&lt;/p&gt;
 &lt;h3&gt;Google &lt;code&gt;pprof&lt;/code&gt;&lt;/h3&gt;
 &lt;p&gt;Google &lt;code&gt;pprof&lt;/code&gt; is a tool available as part of the Google &lt;a href="https://code.google.com/p/gperftools/"&gt;&lt;code&gt;perftools&lt;/code&gt;&lt;/a&gt; package. It is is used with
@@ -9,7 +9,7 @@
 
 
 &lt;p&gt;For any profile linked with &lt;code&gt;libprofiler&lt;/code&gt;, setting the environment variable &lt;code&gt;CPUPROFILE&lt;/code&gt; enables profiling and specifies the output file. The following command runs &lt;code&gt;./a.out&lt;/code&gt; and prints profiling data to &lt;code&gt;out.prof&lt;/code&gt;:&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; &lt;span class="nv"&gt;CPUPROFILE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;out.prof ./a.out
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; &lt;span class="nv"&gt;&lt;span class="caps"&gt;CPUPROFILE&lt;/span&gt;&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;out.prof ./a.out
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -28,14 +28,14 @@
 
 &lt;p&gt;See full documentation &lt;a href="https://google-perftools.googlecode.com/svn/trunk/doc/cpuprofile.html"&gt;here&lt;/a&gt;.&lt;/p&gt;
 &lt;h3&gt;Linux &lt;code&gt;perf&lt;/code&gt;&lt;/h3&gt;
-&lt;p&gt;On Linux, the &lt;code&gt;perf&lt;/code&gt; system is a powerful tool for analyzing program / system performance. It provides some nice abstractions over tracking hardware counters on different CPUs. It defines a number of events to be tracked and recorded. Run &lt;code&gt;perf list&lt;/code&gt; to see a list of the events allowed on your system. &lt;/p&gt;
-&lt;p&gt;To use &lt;code&gt;perf&lt;/code&gt;, you run: &lt;/p&gt;
+&lt;p&gt;On Linux, the &lt;code&gt;perf&lt;/code&gt; system is a powerful tool for analyzing program / system performance. It provides some nice abstractions over tracking hardware counters on different CPUs. It defines a number of events to be tracked and recorded. Run &lt;code&gt;perf list&lt;/code&gt; to see a list of the events allowed on your&amp;nbsp;system. &lt;/p&gt;
+&lt;p&gt;To use &lt;code&gt;perf&lt;/code&gt;, you&amp;nbsp;run: &lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf stat ./a.out
 &lt;span class="go"&gt; Performance counter stats for &amp;#39;./a.out&amp;#39;:&lt;/span&gt;
 
 &lt;span class="go"&gt;    3121.725439 task-clock                #    0.997 CPUs utilized          &lt;/span&gt;
 &lt;span class="go"&gt;             11 context-switches          #    0.000 M/sec                  &lt;/span&gt;
-&lt;span class="go"&gt;              7 CPU-migrations            #    0.000 M/sec                  &lt;/span&gt;
+&lt;span class="go"&gt;              7 &lt;span class="caps"&gt;CPU&lt;/span&gt;-migrations            #    0.000 M/sec                  &lt;/span&gt;
 &lt;span class="go"&gt;            308 page-faults               #    0.000 M/sec                  &lt;/span&gt;
 &lt;span class="go"&gt;  9,121,960,506 cycles                    #    2.922 GHz                     [83.32%]&lt;/span&gt;
 &lt;span class="go"&gt;  5,213,187,548 stalled-cycles-frontend   #   57.15% frontend cycles idle    [83.32%]&lt;/span&gt;
@@ -49,28 +49,28 @@
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;In addition to &lt;code&gt;perf stat&lt;/code&gt;, there quite a few other ways to use perf. Run &lt;/p&gt;
+&lt;p&gt;In addition to &lt;code&gt;perf stat&lt;/code&gt;, there quite a few other ways to use perf.&amp;nbsp;Run &lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;to see a list of the commands (you might want to look into &lt;code&gt;perf record&lt;/code&gt; and &lt;code&gt;perf annotate&lt;/code&gt;). &lt;/p&gt;
 &lt;p&gt;For an example of this being used in real life, see this excellent analysis of  &lt;a href="http://thread.gmane.org/gmane.comp.version-control.git/172286"&gt;this analysis of a string comparison bottleneck in &lt;code&gt;git gc&lt;/code&gt;&lt;/a&gt;&lt;/p&gt;
-&lt;h2&gt;Our Investigation&lt;/h2&gt;
+&lt;h2&gt;Our&amp;nbsp;Investigation&lt;/h2&gt;
 &lt;p&gt;We compile the program with &lt;code&gt;-lprofiler&lt;/code&gt; so we can generate output to examine. &lt;code&gt;try_perf.c&lt;/code&gt; is a C program that counts the number of even values
 in an array of random numbers. We run with 8 threads that all increment a global
-counter every time they see an even number.&lt;/p&gt;
+counter every time they see an even&amp;nbsp;number.&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; gcc try_perf.c -g -lprofiler -lpthread
-&lt;span class="gp"&gt;%&lt;/span&gt; &lt;span class="nv"&gt;CPUPROFILE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;a.out.prof ./a.out --num_threads&lt;span class="o"&gt;=&lt;/span&gt;8
+&lt;span class="gp"&gt;%&lt;/span&gt; &lt;span class="nv"&gt;&lt;span class="caps"&gt;CPUPROFILE&lt;/span&gt;&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;a.out.prof ./a.out --num_threads&lt;span class="o"&gt;=&lt;/span&gt;8
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;We run pprof and get the source code annotated with the number of probes that 
-hit that instruction during the trace (result below trimmed for brevity).&lt;/p&gt;
+hit that instruction during the trace (result below trimmed for&amp;nbsp;brevity).&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; pprof --list&lt;span class="o"&gt;=&lt;/span&gt;thread_scan a.out a.out.prof
 &lt;span class="go"&gt; ... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
 &lt;span class="go"&gt;   .      .   60: void* thread_scan(void* void_arg) {&lt;/span&gt;
-&lt;span class="go"&gt;   .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.&lt;/span&gt;
+&lt;span class="go"&gt;   .      .   61:    // &lt;span class="caps"&gt;TODO&lt;/span&gt;(awreece) Copy locally so dont interfere with each other.&lt;/span&gt;
 &lt;span class="go"&gt;   .      .   62:  thread_arg_t* args = (thread_arg_t*) void_arg;&lt;/span&gt;
 &lt;span class="go"&gt;   .      .   63:  size_t i;&lt;/span&gt;
 &lt;span class="go"&gt;   .      .   64: &lt;/span&gt;
@@ -84,7 +84,7 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;The output above is actually misleading: if you look at the assembly (shown below), the instruction immediately after the atomic instruction (the &lt;code&gt;addq   $0x1,-0x8(%rbp)&lt;/code&gt; after the &lt;code&gt;lock addq $0x1,(%rax)&lt;/code&gt;) gets excess hits that count towards the for loop when they should probably count towards the atomic instruction.&lt;/p&gt;
+&lt;p&gt;The output above is actually misleading: if you look at the assembly (shown below), the instruction immediately after the atomic instruction (the &lt;code&gt;addq   $0x1,-0x8(%rbp)&lt;/code&gt; after the &lt;code&gt;lock addq $0x1,(%rax)&lt;/code&gt;) gets excess hits that count towards the for loop when they should probably count towards the atomic&amp;nbsp;instruction.&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; pprof --disas&lt;span class="o"&gt;=&lt;/span&gt;thread_scan a.out a.out.prof
 &lt;span class="go"&gt; ... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
 &lt;span class="go"&gt;  9    300    68: __sync_fetch_and_add(arg-&amp;gt;num_evens, 1);&lt;/span&gt;
@@ -98,13 +98,13 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 
 
 &lt;p&gt;Hrm. Why are we spending a lot of time in &lt;code&gt;lock addq $0x1,(%rax)&lt;/code&gt;?&lt;/p&gt;
-&lt;p&gt;To understand this, we will use &lt;code&gt;perf&lt;/code&gt;. Run: &lt;/p&gt;
+&lt;p&gt;To understand this, we will use &lt;code&gt;perf&lt;/code&gt;.&amp;nbsp;Run: &lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf stat ./a.out
 &lt;span class="go"&gt; Performance counter stats for &amp;#39;./a.out&amp;#39;:&lt;/span&gt;
 
 &lt;span class="go"&gt;    5793.307952 task-clock                #    2.157 CPUs utilized          &lt;/span&gt;
 &lt;span class="go"&gt;            589 context-switches          #    0.000 M/sec                  &lt;/span&gt;
-&lt;span class="go"&gt;             11 CPU-migrations            #    0.000 M/sec                  &lt;/span&gt;
+&lt;span class="go"&gt;             11 &lt;span class="caps"&gt;CPU&lt;/span&gt;-migrations            #    0.000 M/sec                  &lt;/span&gt;
 &lt;span class="go"&gt;          1,974 page-faults               #    0.000 M/sec                  &lt;/span&gt;
 &lt;span class="go"&gt; 16,378,904,731 cycles                    #    2.827 GHz                     [83.37%]&lt;/span&gt;
 &lt;span class="go"&gt; 10,407,719,950 stalled-cycles-frontend   #   63.54% frontend cycles idle    [83.38%]&lt;/span&gt;
@@ -118,7 +118,7 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Wow, thats a lot of stalled instructions! The 8 threads are sharing the same counter, generating a lot of memory traffic. We modify the program so they all use their own counter, and then we aggregate at the end (if we do this, we don't need to use the atomic instruction).&lt;/p&gt;
+&lt;p&gt;Wow, thats a lot of stalled instructions! The 8 threads are sharing the same counter, generating a lot of memory traffic. We modify the program so they all use their own counter, and then we aggregate at the end (if we do this, we don&amp;#8217;t need to use the atomic&amp;nbsp;instruction).&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;counts&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;nthreads&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
 &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;num_evens&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 
@@ -127,20 +127,20 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
      &lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="n"&gt;num_evens&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;counts&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
      &lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="n"&gt;input&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;inarray&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="n"&gt;nthreads&lt;/span&gt;&lt;span class="p"&gt;)];&lt;/span&gt;
      &lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="n"&gt;nthreads&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-     &lt;span class="n"&gt;pthread_create&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;threads&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;thread_scan&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+     &lt;span class="n"&gt;pthread_create&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;threads&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="nb"&gt;&lt;span class="caps"&gt;NULL&lt;/span&gt;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;thread_scan&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
  &lt;span class="p"&gt;}&lt;/span&gt;   
  &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;nthreads&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-     &lt;span class="n"&gt;pthread_join&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;threads&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+     &lt;span class="n"&gt;pthread_join&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;threads&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="nb"&gt;&lt;span class="caps"&gt;NULL&lt;/span&gt;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
      &lt;span class="n"&gt;num_evens&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="n"&gt;counts&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
  &lt;span class="p"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;But that didn't seem to help at all! We still spend most of our time on the increment, even though we aren't using an atomic instruction: &lt;/p&gt;
+&lt;p&gt;But that didn&amp;#8217;t seem to help at all! We still spend most of our time on the increment, even though we aren&amp;#8217;t using an atomic&amp;nbsp;instruction: &lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; pprof --list&lt;span class="o"&gt;=&lt;/span&gt;thread_scan a.out out.prof
 &lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
 &lt;span class="go"&gt;  .      .   60: void* thread_scan(void* void_arg) {&lt;/span&gt;
-&lt;span class="go"&gt;  .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.&lt;/span&gt;
+&lt;span class="go"&gt;  .      .   61:    // &lt;span class="caps"&gt;TODO&lt;/span&gt;(awreece) Copy locally so dont interfere with each other.&lt;/span&gt;
 &lt;span class="go"&gt;  .      .   62:  thread_arg_t* args = (thread_arg_t*) void_arg;&lt;/span&gt;
 &lt;span class="go"&gt;  .      .   63:  size_t i;&lt;/span&gt;
 &lt;span class="go"&gt;  .      .   64: &lt;/span&gt;
@@ -154,13 +154,13 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Why could this be? Lets run &lt;code&gt;perf stat&lt;/code&gt; again and see:&lt;/p&gt;
+&lt;p&gt;Why could this be? Lets run &lt;code&gt;perf stat&lt;/code&gt; again and&amp;nbsp;see:&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf stat ./a.out
 &lt;span class="go"&gt; Performance counter stats for &amp;#39;./a.out&amp;#39;:&lt;/span&gt;
 
 &lt;span class="go"&gt;      4372.474270 task-clock                #    1.882 CPUs utilized          &lt;/span&gt;
 &lt;span class="go"&gt;              385 context-switches          #    0.000 M/sec                  &lt;/span&gt;
-&lt;span class="go"&gt;                9 CPU-migrations            #    0.000 M/sec                  &lt;/span&gt;
+&lt;span class="go"&gt;                9 &lt;span class="caps"&gt;CPU&lt;/span&gt;-migrations            #    0.000 M/sec                  &lt;/span&gt;
 &lt;span class="go"&gt;            1,135 page-faults               #    0.000 M/sec                  &lt;/span&gt;
 &lt;span class="go"&gt;   12,411,517,583 cycles                    #    2.839 GHz                     [83.26%]&lt;/span&gt;
 &lt;span class="go"&gt;    6,270,257,100 stalled-cycles-frontend   #   50.52% frontend cycles idle    [83.33%]&lt;/span&gt;
@@ -174,12 +174,12 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;What is going on now? We &lt;em&gt;still&lt;/em&gt; have a lot of stalled instructions, but all those counters are different. See?&lt;/p&gt;
+&lt;p&gt;What is going on now? We &lt;em&gt;still&lt;/em&gt; have a lot of stalled instructions, but all those counters are different.&amp;nbsp;See?&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;counts&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;nthreads&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Oh, they are all on the same cache line - we're experiencing false sharing. Let us use a thread local counter thats on a different cache line for each thread:&lt;/p&gt;
+&lt;p&gt;Oh, they are all on the same cache line - we&amp;#8217;re experiencing false sharing. Let us use a thread local counter thats on a different cache line for each&amp;nbsp;thread:&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nf"&gt;thread_scan&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;void_arg&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
   &lt;span class="kt"&gt;thread_arg_t&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;args&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;thread_arg_t&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;void_arg&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
   &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
@@ -204,11 +204,11 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;And then look at the profile:&lt;/p&gt;
+&lt;p&gt;And then look at the&amp;nbsp;profile:&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; pprof --list&lt;span class="o"&gt;=&lt;/span&gt;thread_scan a.out out.prof
 &lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
 &lt;span class="go"&gt;  .      .   60: void* thread_scan(void* void_arg) {&lt;/span&gt;
-&lt;span class="go"&gt;  .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.&lt;/span&gt;
+&lt;span class="go"&gt;  .      .   61:    // &lt;span class="caps"&gt;TODO&lt;/span&gt;(awreece) Copy locally so dont interfere with each other.&lt;/span&gt;
 &lt;span class="go"&gt;  .      .   62:  thread_arg_t* args = (thread_arg_t*) void_arg;&lt;/span&gt;
 &lt;span class="go"&gt;  .      .   63:  size_t i;&lt;/span&gt;
 &lt;span class="go"&gt;  .      .   64:  size_t num_evens;&lt;/span&gt;
@@ -224,13 +224,13 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Good, our increment doesn't dominate the function anymore. We look at &lt;code&gt;perf stat&lt;/code&gt; and see:&lt;/p&gt;
+&lt;p&gt;Good, our increment doesn&amp;#8217;t dominate the function anymore. We look at &lt;code&gt;perf stat&lt;/code&gt; and&amp;nbsp;see:&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf stat ./a.out
 &lt;span class="go"&gt; Performance counter stats for &amp;#39;./a.out&amp;#39;:&lt;/span&gt;
 
 &lt;span class="go"&gt;    2977.781539 task-clock                #    1.472 CPUs utilized          &lt;/span&gt;
 &lt;span class="go"&gt;            177 context-switches          #    0.000 M/sec                  &lt;/span&gt;
-&lt;span class="go"&gt;             12 CPU-migrations            #    0.000 M/sec                  &lt;/span&gt;
+&lt;span class="go"&gt;             12 &lt;span class="caps"&gt;CPU&lt;/span&gt;-migrations            #    0.000 M/sec                  &lt;/span&gt;
 &lt;span class="go"&gt;          3,506 page-faults               #    0.001 M/sec                  &lt;/span&gt;
 &lt;span class="go"&gt;  8,523,367,658 cycles                    #    2.862 GHz                     [83.32%]&lt;/span&gt;
 &lt;span class="go"&gt;  2,057,253,537 stalled-cycles-frontend   #   24.14% frontend cycles idle    [83.26%]&lt;/span&gt;
@@ -244,13 +244,13 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Ah, perfect! 30% faster than our original solution and significantly fewer stalled instructions.&lt;/p&gt;</summary><category term="performance"></category><category term="profiling"></category></entry><entry><title>Analysis of a Parallel Memory Allocator</title><link href="http://codearcana.com/analysis-of-a-parallel-memory-allocator.html" rel="alternate"></link><updated>2012-05-11T00:00:00+02:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2012-05-11:analysis-of-a-parallel-memory-allocator.html</id><summary type="html">&lt;h1&gt;Background&lt;/h1&gt;
+&lt;p&gt;Ah, perfect! 30% faster than our original solution and significantly fewer stalled&amp;nbsp;instructions.&lt;/p&gt;</summary><category term="profiling"></category></entry><entry><title>Analysis of a Parallel Memory Allocator</title><link href="http://codearcana.com/analysis-of-a-parallel-memory-allocator.html" rel="alternate"></link><updated>2012-05-11T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2012-05-11:analysis-of-a-parallel-memory-allocator.html</id><summary type="html">&lt;h1&gt;Background&lt;/h1&gt;
 &lt;h2&gt;Problem&lt;/h2&gt;
 &lt;p&gt;Many modern programs frequently use dynamic memory allocation. However, modern
 programs increasingly are multithreaded and parallel to take advantage of
 increasingly parallel processors. Unfortunately, this trend conflicts with the
 fact that there is a single heap in most current programs. Consequently,
-research into parallel memory allocators is topical and important.&lt;/p&gt;
+research into parallel memory allocators is topical and&amp;nbsp;important.&lt;/p&gt;
 &lt;h2&gt;Solution?&lt;/h2&gt;
 &lt;p&gt;The simplest solution to ensuring correctness in a multithread memory allocator
 is to use a global lock around the heap. Unfortunately, this has
@@ -261,16 +261,16 @@ some form of the following 3 solutions:
 &lt;li&gt;
 They partition the heap into logical arenas or chunks that handle large 
 portions of the heap. This reduces contention on the global heap and 
-heap data structures.
+heap data&amp;nbsp;structures.
 &lt;/li&gt;
 &lt;li&gt;
-They use fine grained locking on individual slabs or slab classes.
+They use fine grained locking on individual slabs or slab&amp;nbsp;classes.
 &lt;/li&gt;
 &lt;li&gt;
-They use thread local caches to provide a fast path that requires no locks.
+They use thread local caches to provide a fast path that requires no&amp;nbsp;locks.
 &lt;/li&gt;
 &lt;/ul&gt;&lt;/p&gt;
-&lt;h2&gt;Modern memory allocators&lt;/h2&gt;
+&lt;h2&gt;Modern memory&amp;nbsp;allocators&lt;/h2&gt;
 &lt;p&gt;&lt;p&gt;As I understand, the most popular modern parallel mallocs are 
 &lt;a href="https://www.facebook.com/notes/facebook-engineering/scalable-memory-allocation-using-jemalloc/480222803919"&gt;&lt;tt&gt;jemalloc&lt;/tt&gt;&lt;/a&gt;, 
 &lt;a href="http://goog-perftools.sourceforge.net/doc/tcmalloc.html"&gt;&lt;tt&gt;tcmalloc&lt;/tt&gt;&lt;/a&gt;, 
@@ -281,23 +281,23 @@ and &lt;a href="http://www.cs.umass.edu/~emery/pubs/berger-asplos2000.pdf"&gt;&l
 Oracle did some 
 &lt;a href="http://developers.sun.com/solaris/articles/multiproc/multiproc.html"&gt;investigation&lt;/a&gt; 
 and I have taken a look at the internals of jemalloc, tcmalloc, concur, and hoard. 
-As I understand:&lt;/p&gt;
-&lt;ul&gt;&lt;li&gt;&lt;tt&gt;tcmalloc&lt;/tt&gt; uses a global slab allocator with thread local caches to avoid contention&lt;/li&gt;
-    &lt;li&gt;&lt;tt&gt;hoard&lt;/tt&gt; uses different arenas and assigns superblocks to threads to avoid contention&lt;/li&gt;
+As I&amp;nbsp;understand:&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;tt&gt;tcmalloc&lt;/tt&gt; uses a global slab allocator with thread local caches to avoid&amp;nbsp;contention&lt;/li&gt;
+    &lt;li&gt;&lt;tt&gt;hoard&lt;/tt&gt; uses different arenas and assigns superblocks to threads to avoid&amp;nbsp;contention&lt;/li&gt;
     &lt;li&gt;&lt;tt&gt;jemalloc&lt;/tt&gt; uses different arenas and thread local caches to avoid contention
-and uses red black trees and an optimized slab allocator to avoid fragmentation&lt;/li&gt;
-&lt;li&gt;&lt;tt&gt;concur&lt;/tt&gt; uses different arenas and fine grained locking on size classes to avoid contention&lt;/li&gt;
+and uses red black trees and an optimized slab allocator to avoid&amp;nbsp;fragmentation&lt;/li&gt;
+&lt;li&gt;&lt;tt&gt;concur&lt;/tt&gt; uses different arenas and fine grained locking on size classes to avoid&amp;nbsp;contention&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;&lt;/p&gt;
 &lt;p&gt;
 One interesting characteristic of many of these memory allocators is that they
-all tend to allocate memory from the system in chunks of about 1 to 4MB.
-Consequently, they tend to have an overhead of up to 2 to 4MB per arena. Most
-of them justify this overhead by pointing out that 2MB of overhead is minimal
-when the total application footprint can exceed 1GB (in an application such as
-firefox) and it is acceptable for an application to use 2MB of heap when
-modern computers routinely have several GB of RAM.
+all tend to allocate memory from the system in chunks of about 1 to &lt;span class="caps"&gt;4MB&lt;/span&gt;.
+Consequently, they tend to have an overhead of up to 2 to &lt;span class="caps"&gt;4MB&lt;/span&gt; per arena. Most
+of them justify this overhead by pointing out that &lt;span class="caps"&gt;2MB&lt;/span&gt; of overhead is minimal
+when the total application footprint can exceed &lt;span class="caps"&gt;1GB&lt;/span&gt; (in an application such as
+firefox) and it is acceptable for an application to use &lt;span class="caps"&gt;2MB&lt;/span&gt; of heap when
+modern computers routinely have several &lt;span class="caps"&gt;GB&lt;/span&gt; of&amp;nbsp;&lt;span class="caps"&gt;RAM&lt;/span&gt;.
 &lt;/p&gt;&lt;/p&gt;
 &lt;p&gt;
 Another interesting characteristic of these memory allocators is they almost
@@ -305,11 +305,11 @@ never coallesce individual blocks (some do coallesce individual blocks).
 Instead, they use slab allocators and assume
 allocation requests tend be of very similar sizes. In general, this follows
 the general pattern of tolerating a moderate amount of memory overhead to
-increase performance.
+increase&amp;nbsp;performance.
 &lt;/p&gt;
 
 &lt;h1&gt;Approach&lt;/h1&gt;
-&lt;h2&gt;A simple modern memory allocator&lt;/h2&gt;
+&lt;h2&gt;A simple modern memory&amp;nbsp;allocator&lt;/h2&gt;
 &lt;p&gt;&lt;p&gt;
 In order to investigate and analyze the performance of a modern memory
 allocator, I wrote a simplified memory allocator, &lt;tt&gt;ar_malloc&lt;/tt&gt;, that 
@@ -318,9 +318,9 @@ heavily on &lt;tt&gt;jemalloc&lt;/tt&gt; but makes some simplifications. In orde
 the work manageable, &lt;tt&gt;ar_malloc&lt;/tt&gt; makes the assumption that allocation 
 requests are smaller than 1024 bytes. In addition, it uses slabs of a fixed 
 size and never frees memory to the system (&lt;tt&gt;jemalloc&lt;/tt&gt; uses variable sized
-slabs to reduce memory overhead).
+slabs to reduce memory&amp;nbsp;overhead).
 &lt;/p&gt;&lt;/p&gt;
-&lt;h2&gt;Testing a memory allocator ##&lt;/h2&gt;
+&lt;h2&gt;Testing a memory allocator&amp;nbsp;##&lt;/h2&gt;
 &lt;p&gt;&lt;p&gt;
 In order to test &lt;tt&gt;ar_malloc&lt;/tt&gt;, I constructed a test framework (based off a
 test in the &lt;tt&gt;tcmalloc&lt;/tt&gt; codebase) that spawns 
@@ -328,13 +328,13 @@ several threads that each randomly decide to allocate a random sized block or
 free a random block. This does not simulate the effect of actually using the blocks
 and does not simulate a realistic workload, but it is still a useful
 basis for investigation. I ran this test on a 16 core shared memory system and used
-new initialization of malloc for each run to reduce the variance in run time.
+new initialization of malloc for each run to reduce the variance in run&amp;nbsp;time.
 &lt;/p&gt;&lt;/p&gt;
 &lt;h1&gt;Results&lt;/h1&gt;
-&lt;h2&gt;Comparision of &lt;tt&gt;ar_malloc&lt;/tt&gt; to other solutions&lt;/h2&gt;
+&lt;h2&gt;Comparision of &lt;tt&gt;ar_malloc&lt;/tt&gt; to other&amp;nbsp;solutions&lt;/h2&gt;
 &lt;p&gt;&lt;p&gt;
 We compared the performance of &lt;tt&gt;ar_malloc&lt;/tt&gt;, &lt;tt&gt;ar_malloc&lt;/tt&gt; with a global lock, 
-and the libc malloc on the test described in the previous section.
+and the libc malloc on the test described in the previous&amp;nbsp;section.
 &lt;/p&gt;
 &lt;figure&gt;
 &lt;img alt="Run time vs Number of threads" src="https://docs.google.com/spreadsheet/oimg?key=0AjzaNgu-PE5_dDJJUnRCaXZueks1UTlQVXBxYlFsSXc&amp;amp;oid=4&amp;amp;zx=1aneio5en2km" /&gt;
@@ -356,18 +356,18 @@ and the libc malloc on the test described in the previous section.
     &lt;/figcaption&gt;
 &lt;/figure&gt;
 
-&lt;h2&gt;Comparison of different configuration&lt;/h2&gt;
+&lt;h2&gt;Comparison of different&amp;nbsp;configuration&lt;/h2&gt;
 &lt;p&gt;&lt;p&gt;
 I examined several different configurations of &lt;tt&gt;ar_malloc&lt;/tt&gt;, specifically 
 focusing on the number of arenas. We attempted to figure out the effect of and 
-analyze the behavior of using different number of arenas.
+analyze the behavior of using different number of&amp;nbsp;arenas.
 &lt;/p&gt;&lt;/p&gt;
 &lt;figure&gt;
     &lt;img src="https://docs.google.com/spreadsheet/oimg?key=0AjzaNgu-PE5_dDJJUnRCaXZueks1UTlQVXBxYlFsSXc&amp;oid=11&amp;zx=fwaahh94nhlg" /&gt;
 &lt;figcaption&gt;This is a chart of run time vs number of threads for different configurations of &lt;tt&gt;ar_malloc&lt;/tt&gt;.
-    As you can see, there appear to be two curves. We will call the lower one the &amp;quot;no contention&amp;quot; curve and the
-    upper one the &amp;quot;contention&amp;quot; curve. You can see that the performance of a memory allocator moves from the &amp;quot;no contention&amp;quot;
-    curve to the &amp;quot;contention&amp;quot; curve when the number of threads exceeds the number of arenas.
+    As you can see, there appear to be two curves. We will call the lower one the &amp;#8220;no contention&amp;#8221; curve and the
+    upper one the &amp;#8220;contention&amp;#8221; curve. You can see that the performance of a memory allocator moves from the &amp;#8220;no contention&amp;#8221;
+    curve to the &amp;#8220;contention&amp;#8221; curve when the number of threads exceeds the number of arenas.
     &lt;/figcaption&gt;
 &lt;/figure&gt;
 
@@ -375,8 +375,8 @@ analyze the behavior of using different number of arenas.
     &lt;img src="https://docs.google.com/spreadsheet/oimg?key=0AjzaNgu-PE5_dDJJUnRCaXZueks1UTlQVXBxYlFsSXc&amp;oid=13&amp;zx=fhdbihufrx4u" /&gt;
     &lt;figcaption&gt;
     This is a chart of speedup vs number of threads for different configurations of &lt;tt&gt;ar_malloc&lt;/tt&gt;. As you before, there are 
-    two curves: the &amp;quot;no contention&amp;quot; line and the &amp;quot;contention&amp;quot; line. Again, the speedup of a memory allocator
-    moves from the &amp;quot;no contention&amp;quot; line to the &amp;quot;contention&amp;quot; line when the number of threads exceeds the 
+    two curves: the &amp;#8220;no contention&amp;#8221; line and the &amp;#8220;contention&amp;#8221; line. Again, the speedup of a memory allocator
+    moves from the &amp;#8220;no contention&amp;#8221; line to the &amp;#8220;contention&amp;#8221; line when the number of threads exceeds the 
     number of arenas. It is important to note that the speedup is still mostly linear even when the number of arenas is far less
     than number of threads.
     &lt;/figcaption&gt;
@@ -388,18 +388,17 @@ write a modern parallel memory allocator that performs quite favorably
 on random workloads. &lt;tt&gt;ar_malloc&lt;/tt&gt; makes many simplifying assumptions,
 but is just over 2000 lines of code, outperforms libc malloc by a factor
 of 3, and demonstrates linear speedup that seems to scale very well with
-the number of threads.&lt;/p&gt;
-&lt;h1&gt;Further Investigation&lt;/h1&gt;
+the number of&amp;nbsp;threads.&lt;/p&gt;
+&lt;h1&gt;Further&amp;nbsp;Investigation&lt;/h1&gt;
 &lt;p&gt;&lt;p&gt;
-There are several routes for further investigation in parallel memory
-allocators.&lt;/p&gt;
+There are several routes for further investigation in parallel memory&amp;nbsp;allocators.&lt;/p&gt;
 &lt;p&gt;The exisiting test framework allocates random sizes distributed
 uniformly in the range 8, 1024. This almost certainly does not simulate 
 realistic memory allocation patterns. An interesting further exploration could
 use &lt;tt&gt;ar_malloc&lt;/tt&gt; with real programs (either via static linking or LD_PRELOAD) 
-or to investigate the actual memory distribution of a general program. 
+or to investigate the actual memory distribution of a general&amp;nbsp;program. 
 &lt;/p&gt;
 &lt;p&gt;This investigation only examined the effect of different number of arenas.
 A further exploration could examine the effect of thread local caches and fine
 grained locking on the performance of &lt;tt&gt;ar_malloc&lt;/tt&gt;.
-&lt;/p&gt;&lt;/p&gt;</summary></entry></feed>
+&lt;/p&gt;&lt;/p&gt;</summary><category term="malloc"></category></entry></feed>

