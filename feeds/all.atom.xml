@@ -26,7 +26,7 @@
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;See full documentation &lt;a href="https://google-perftools.googlecode.com/svn/trunk/doc/cpuprofile.html"&gt;here&lt;/a&gt;. No seriously, read it.&lt;/p&gt;
+&lt;p&gt;See full documentation &lt;a href="https://google-perftools.googlecode.com/svn/trunk/doc/cpuprofile.html"&gt;here&lt;/a&gt;.&lt;/p&gt;
 &lt;h3&gt;Linux &lt;code&gt;perf&lt;/code&gt;&lt;/h3&gt;
 &lt;p&gt;On Linux, the &lt;code&gt;perf&lt;/code&gt; system is a powerful tool for analyzing program / system performance. It provides some nice abstractions over tracking hardware counters on different CPUs. It defines a number of events to be tracked and recorded. Run &lt;code&gt;perf list&lt;/code&gt; to see a list of the events allowed on your system. &lt;/p&gt;
 &lt;p&gt;To use &lt;code&gt;perf&lt;/code&gt;, you run: &lt;/p&gt;
