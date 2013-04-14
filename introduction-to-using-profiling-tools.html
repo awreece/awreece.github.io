@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <title>Introduction to Using Profiling Tools</title>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="./theme/css/main.css" type="text/css" />
+                <link href="http://codearcana.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Code Arcana Atom Feed" />
+                
+        <!--[if IE]>
+                <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+        <!--[if lte IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="./css/ie.css"/>
+                <script src="./js/IE8.js" type="text/javascript"></script><![endif]-->
+
+        <!--[if lt IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="./css/ie6.css"/><![endif]-->
+
+</head>
+
+<body id="index" class="home">
+<a href="https://github.com/awreece">
+<img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub" />
+</a>
+        <header id="banner" class="body">
+                <h1><a href="./">Code Arcana </a></h1>
+                <nav><ul>
+                                                                                                    <li class="active"><a href="./category/performance.html">performance</a></li>
+                                </ul></nav>
+        </header><!-- /#banner -->
+        <section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="./introduction-to-using-profiling-tools.html" rel="bookmark"
+           title="Permalink to Introduction to Using Profiling Tools">Introduction to Using Profiling Tools</a></h1>
+      <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="awreece">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
+    </header>
+
+    <div class="entry-content">
+      <footer class="post-info">
+        <abbr class="published" title="2013-02-26T00:00:00">
+                Tue 26 February 2013
+        </abbr>
+
+                <address class="vcard author">
+                By <a class="url fn" href="./author/alex-reece.html">Alex Reece</a>
+        </address>
+        <p>In <a href="./category/performance.html">performance</a>. </p>
+<p>tags: <a href="./tag/performance.html">performance</a><a href="./tag/profiling.html">profiling</a></p>
+</footer><!-- /.post-info -->      <h2>Performance tools</h2>
+<p>Frequently, we need to identify slow portions of our programs so we can improve performance. There are a number of tools available to profile programs and identify how much time is spent where. The most common of these tools sample the program periodically, recording information to be later analyzed. Typically, they involve a phase spent recording data and a later phase for analyzing it. We will use two common tools to analyze a simple program: Google <code>pprof</code> and Linux <code>perf</code>.</p>
+<h3>Google <code>pprof</code></h3>
+<p>Google <code>pprof</code> is a tool available as part of the Google <a href="https://code.google.com/p/gperftools/"><code>perftools</code></a> package. It is is used with
+<code>libprofiler</code>, a sampling based profiler that is linked into your binary. There are 3 steps for using <code>pprof</code>: linking it into the binary, generating profile output, and analyzing the output. The following links a binary with <code>libprofiler</code>:</p>
+<div class="codehilite"><pre><span class="gp">%</span> gcc main.c -lprofiler
+</pre></div>
+
+
+<p>For any profile linked with <code>libprofiler</code>, setting the environment variable <code>CPUPROFILE</code> enables profiling and specifies the output file. The following command runs <code>./a.out</code> and prints profiling data to <code>out.prof</code>:</p>
+<div class="codehilite"><pre><span class="gp">%</span> <span class="nv">CPUPROFILE</span><span class="o">=</span>out.prof ./a.out
+</pre></div>
+
+
+<p>We can now analyze this file using <code>pprof</code>. Below, we output the sample counts for all the functions in <code>a.out</code>:</p>
+<div class="codehilite"><pre><span class="gp">%</span> pprof --text ./a.out out.prof
+<span class="go">... &lt;snip&gt; ...</span>
+<span class="go">Total: 311 samples</span>
+<span class="go">  144  46.3%  46.3%      144  46.3% bar</span>
+<span class="go">   95  30.5%  76.8%       95  30.5% foo</span>
+<span class="go">   72  23.2% 100.0%      311 100.0% baz</span>
+<span class="go">    0   0.0% 100.0%      311 100.0% __libc_start_main</span>
+<span class="go">    0   0.0% 100.0%      311 100.0% _start</span>
+<span class="go">    0   0.0% 100.0%      311 100.0% main</span>
+</pre></div>
+
+
+<p>See full documentation <a href="https://google-perftools.googlecode.com/svn/trunk/doc/cpuprofile.html">here</a>. No seriously, read it.</p>
+<h3>Linux <code>perf</code></h3>
+<p>On Linux, the <code>perf</code> system is a powerful tool for analyzing program / system performance. It provides some nice abstractions over tracking hardware counters on different CPUs. It defines a number of events to be tracked and recorded. Run <code>perf list</code> to see a list of the events allowed on your system. </p>
+<p>To use <code>perf</code>, you run: </p>
+<div class="codehilite"><pre><span class="gp">%</span> perf stat ./a.out
+<span class="go"> Performance counter stats for &#39;./a.out&#39;:</span>
+
+<span class="go">    3121.725439 task-clock                #    0.997 CPUs utilized          </span>
+<span class="go">             11 context-switches          #    0.000 M/sec                  </span>
+<span class="go">              7 CPU-migrations            #    0.000 M/sec                  </span>
+<span class="go">            308 page-faults               #    0.000 M/sec                  </span>
+<span class="go">  9,121,960,506 cycles                    #    2.922 GHz                     [83.32%]</span>
+<span class="go">  5,213,187,548 stalled-cycles-frontend   #   57.15% frontend cycles idle    [83.32%]</span>
+<span class="go">    292,952,401 stalled-cycles-backend    #    3.21% backend  cycles idle    [66.68%]</span>
+<span class="go">  5,215,556,086 instructions              #    0.57  insns per cycle        </span>
+<span class="go">                                          #    1.00  stalled cycles per insn [83.35%]</span>
+<span class="go">  1,303,060,483 branches                  #  417.417 M/sec                   [83.35%]</span>
+<span class="go">         66,559 branch-misses             #    0.01% of all branches         [83.33%]</span>
+
+<span class="go">    3.132028707 seconds time elapsed</span>
+</pre></div>
+
+
+<p>In addition to <code>perf stat</code>, there quite a few other ways to use perf. Run </p>
+<div class="codehilite"><pre><span class="gp">%</span> perf
+</pre></div>
+
+
+<p>to see a list of the commands (you might want to look into <code>perf record</code> and <code>perf annotate</code>). </p>
+<p>For an example of this being used in real life, see this excellent analysis of  <a href="http://thread.gmane.org/gmane.comp.version-control.git/172286">this analysis of a string comparison bottleneck in <code>git gc</code></a></p>
+<h2>Our Investigation</h2>
+<p>We compile the program with <code>-lprofiler</code> so we can generate output to examine. <code>try_perf.c</code> is a C program that counts the number of even values
+in an array of random numbers. We run with 8 threads that all increment a global
+counter every time they see an even number.</p>
+<div class="codehilite"><pre><span class="gp">%</span> gcc try_perf.c -g -lprofiler -lpthread
+<span class="gp">%</span> <span class="nv">CPUPROFILE</span><span class="o">=</span>a.out.prof ./a.out --num_threads<span class="o">=</span>8
+</pre></div>
+
+
+<p>We run pprof and get the source code annotated with the number of probes that 
+hit that instruction during the trace (result below trimmed for brevity).</p>
+<div class="codehilite"><pre><span class="gp">%</span> pprof --list<span class="o">=</span>thread_scan a.out a.out.prof
+<span class="go"> ... &lt;snip&gt; ...</span>
+<span class="go">   .      .   60: void* thread_scan(void* void_arg) {</span>
+<span class="go">   .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.</span>
+<span class="go">   .      .   62:  thread_arg_t* args = (thread_arg_t*) void_arg;</span>
+<span class="go">   .      .   63:  size_t i;</span>
+<span class="go">   .      .   64: </span>
+<span class="go"> 303    323   65:  for (i = 0; i &lt; arg-&gt;size; i++) {</span>
+<span class="go">   6     10   66:     uint32_t val = arg-&gt;input[i];</span>
+<span class="go">   6     15   67:   if (val % 2 == 0) {</span>
+<span class="go">   9    300   68:     __sync_fetch_and_add(args-&gt;evens, 1);</span>
+<span class="go">   .      .   69:   }</span>
+<span class="go">   .      .   70:  }</span>
+<span class="go">   .      .   71: }</span>
+</pre></div>
+
+
+<p>The output above is actually misleading: if you look at the assembly (shown below), the instruction immediately after the atomic instruction (the <code>addq   $0x1,-0x8(%rbp)</code> after the <code>lock addq $0x1,(%rax)</code>) gets excess hits that count towards the for loop when they should probably count towards the atomic instruction.</p>
+<div class="codehilite"><pre><span class="gp">%</span> pprof --disas<span class="o">=</span>thread_scan a.out a.out.prof
+<span class="go"> ... &lt;snip&gt; ...</span>
+<span class="go">  9    300    68: __sync_fetch_and_add(arg-&gt;num_evens, 1);</span>
+<span class="go">  4      5      4008a4: mov    -0x10(%rbp),%rax</span>
+<span class="go">  1      5      4008a8: mov    0x10(%rax),%rax</span>
+<span class="go">  4    290      4008ac: lock addq $0x1,(%rax)</span>
+<span class="go">303    320    65: for (i = 0; i &lt; arg-&gt;size; i++) {</span>
+<span class="go">286    287      4008b1: addq   $0x1,-0x8(%rbp)</span>
+<span class="go">  1      2      4008b6: mov    -0x10(%rbp),%rax</span>
+</pre></div>
+
+
+<p>Hrm. Why are we spending a lot of time in <code>lock addq $0x1,(%rax)</code>?</p>
+<p>To understand this, we will use <code>perf</code>. Run: </p>
+<div class="codehilite"><pre><span class="gp">%</span> perf stat ./a.out
+<span class="go"> Performance counter stats for &#39;./a.out&#39;:</span>
+
+<span class="go">    5793.307952 task-clock                #    2.157 CPUs utilized          </span>
+<span class="go">            589 context-switches          #    0.000 M/sec                  </span>
+<span class="go">             11 CPU-migrations            #    0.000 M/sec                  </span>
+<span class="go">          1,974 page-faults               #    0.000 M/sec                  </span>
+<span class="go"> 16,378,904,731 cycles                    #    2.827 GHz                     [83.37%]</span>
+<span class="go"> 10,407,719,950 stalled-cycles-frontend   #   63.54% frontend cycles idle    [83.38%]</span>
+<span class="go">  8,213,634,448 stalled-cycles-backend    #   50.15% backend  cycles idle    [66.65%]</span>
+<span class="go"> 12,070,323,273 instructions              #    0.74  insns per cycle        </span>
+<span class="go">                                          #    0.86  stalled cycles per insn [83.32%]</span>
+<span class="go">  2,428,236,441 branches                  #  419.145 M/sec                   [83.31%]</span>
+<span class="go">     67,558,697 branch-misses             #    2.78% of all branches         [83.35%]</span>
+
+<span class="go">    2.685598183 seconds time elapsed</span>
+</pre></div>
+
+
+<p>Wow, thats a lot of stalled instructions! The 8 threads are sharing the same counter, generating a lot of memory traffic. We modify the program so they all use their own counter, and then we aggregate at the end (if we do this, we don't need to use the atomic instruction).</p>
+<div class="codehilite"><pre><span class="kt">size_t</span> <span class="n">counts</span><span class="p">[</span><span class="n">nthreads</span><span class="p">];</span>
+<span class="kt">size_t</span> <span class="n">num_evens</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+<span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nthreads</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+     <span class="n">counts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+     <span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">num_evens</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">counts</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+     <span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">input</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">inarray</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="p">(</span><span class="n">size</span> <span class="o">/</span> <span class="n">nthreads</span><span class="p">)];</span>
+     <span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">size</span> <span class="o">=</span> <span class="n">size</span> <span class="o">/</span> <span class="n">nthreads</span><span class="p">;</span>
+     <span class="n">pthread_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">threads</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="nb">NULL</span><span class="p">,</span> <span class="n">thread_scan</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+ <span class="p">}</span>   
+ <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nthreads</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+     <span class="n">pthread_join</span><span class="p">(</span><span class="n">threads</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="nb">NULL</span><span class="p">);</span>
+     <span class="n">num_evens</span> <span class="o">+=</span> <span class="n">counts</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+ <span class="p">}</span>
+</pre></div>
+
+
+<p>But that didn't seem to help at all! We still spend most of our time on the increment, even though we aren't using an atomic instruction: </p>
+<div class="codehilite"><pre><span class="gp">%</span> pprof --list<span class="o">=</span>thread_scan a.out out.prof
+<span class="go">... &lt;snip&gt; ...</span>
+<span class="go">  .      .   60: void* thread_scan(void* void_arg) {</span>
+<span class="go">  .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.</span>
+<span class="go">  .      .   62:  thread_arg_t* args = (thread_arg_t*) void_arg;</span>
+<span class="go">  .      .   63:  size_t i;</span>
+<span class="go">  .      .   64: </span>
+<span class="go"> 22     44   65:  for (i = 0; i &lt; args-&gt;size; i++) {</span>
+<span class="go"> 14     25   66:     uint32_t val = args-&gt;input[i];</span>
+<span class="go"> 12     33   67:   if (val % 2 == 0) {</span>
+<span class="go">157    308   68:    *(args-&gt;num_evens) += 1;</span>
+<span class="go">  .      .   69:   }</span>
+<span class="go">  .      .   70:  }</span>
+<span class="go">  .      .   71: }</span>
+</pre></div>
+
+
+<p>Why could this be? Lets run <code>perf stat</code> again and see:</p>
+<div class="codehilite"><pre><span class="gp">%</span> perf stat ./a.out
+<span class="go"> Performance counter stats for &#39;./a.out&#39;:</span>
+
+<span class="go">      4372.474270 task-clock                #    1.882 CPUs utilized          </span>
+<span class="go">              385 context-switches          #    0.000 M/sec                  </span>
+<span class="go">                9 CPU-migrations            #    0.000 M/sec                  </span>
+<span class="go">            1,135 page-faults               #    0.000 M/sec                  </span>
+<span class="go">   12,411,517,583 cycles                    #    2.839 GHz                     [83.26%]</span>
+<span class="go">    6,270,257,100 stalled-cycles-frontend   #   50.52% frontend cycles idle    [83.33%]</span>
+<span class="go">    4,291,405,838 stalled-cycles-backend    #   34.58% backend  cycles idle    [66.78%]</span>
+<span class="go">   12,306,996,386 instructions              #    0.99  insns per cycle        </span>
+<span class="go">                                            #    0.51  stalled cycles per insn [83.39%]</span>
+<span class="go">    2,420,224,187 branches                  #  553.514 M/sec                   [83.40%]</span>
+<span class="go">       69,182,448 branch-misses             #    2.86% of all branches         [83.30%]</span>
+
+<span class="go">      2.323372370 seconds time elapsed</span>
+</pre></div>
+
+
+<p>What is going on now? We <em>still</em> have a lot of stalled instructions, but all those counters are different. See?</p>
+<div class="codehilite"><pre><span class="kt">size_t</span> <span class="n">counts</span><span class="p">[</span><span class="n">nthreads</span><span class="p">];</span>
+</pre></div>
+
+
+<p>Oh, they are all on the same cache line - we're experiencing false sharing. Let us use a thread local counter thats on a different cache line for each thread:</p>
+<div class="codehilite"><pre><span class="kt">void</span><span class="o">*</span> <span class="nf">thread_scan</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">void_arg</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">thread_arg_t</span><span class="o">*</span> <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="kt">thread_arg_t</span><span class="o">*</span><span class="p">)</span> <span class="n">void_arg</span><span class="p">;</span>
+  <span class="kt">size_t</span> <span class="n">i</span><span class="p">;</span>
+  <span class="kt">size_t</span> <span class="n">num_evens</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">args</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">uint32_t</span> <span class="n">val</span> <span class="o">=</span> <span class="n">args</span><span class="o">-&gt;</span><span class="n">input</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">val</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">num_evens</span><span class="o">++</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">num_evens</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="p">...</span> <span class="o">&lt;</span><span class="n">snip</span><span class="o">&gt;</span> <span class="p">...</span>
+
+<span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nthreads</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">size_t</span> <span class="n">count</span><span class="p">;</span>
+  <span class="n">pthread_join</span><span class="p">(</span><span class="n">threads</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="o">&amp;</span><span class="n">count</span><span class="p">);</span>
+  <span class="n">num_evens</span> <span class="o">+=</span> <span class="n">count</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>And then look at the profile:</p>
+<div class="codehilite"><pre><span class="gp">%</span> pprof --list<span class="o">=</span>thread_scan a.out out.prof
+<span class="go">... &lt;snip&gt; ...</span>
+<span class="go">  .      .   60: void* thread_scan(void* void_arg) {</span>
+<span class="go">  .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.</span>
+<span class="go">  .      .   62:  thread_arg_t* args = (thread_arg_t*) void_arg;</span>
+<span class="go">  .      .   63:  size_t i;</span>
+<span class="go">  .      .   64:  size_t num_evens;</span>
+<span class="go">  .      .   65: </span>
+<span class="go">144    292   66:  for (i = 0; i &lt; args-&gt;size; i++) {</span>
+<span class="go"> 14     25   67:     uint32_t val = args-&gt;input[i];</span>
+<span class="go"> 12     33   68:   if (val % 2 == 0) {</span>
+<span class="go"> 13     16   69:    num_evens++;</span>
+<span class="go">  .      .   70:   }</span>
+<span class="go">  .      .   71:  }</span>
+<span class="go">  4      8   72:  return num_evens;</span>
+<span class="go">  .      .   73: }</span>
+</pre></div>
+
+
+<p>Good, our increment doesn't dominate the function anymore. We look at <code>perf stat</code> and see:</p>
+<div class="codehilite"><pre><span class="gp">%</span> perf stat ./a.out
+<span class="go"> Performance counter stats for &#39;./a.out&#39;:</span>
+
+<span class="go">    2977.781539 task-clock                #    1.472 CPUs utilized          </span>
+<span class="go">            177 context-switches          #    0.000 M/sec                  </span>
+<span class="go">             12 CPU-migrations            #    0.000 M/sec                  </span>
+<span class="go">          3,506 page-faults               #    0.001 M/sec                  </span>
+<span class="go">  8,523,367,658 cycles                    #    2.862 GHz                     [83.32%]</span>
+<span class="go">  2,057,253,537 stalled-cycles-frontend   #   24.14% frontend cycles idle    [83.26%]</span>
+<span class="go">    919,272,160 stalled-cycles-backend    #   10.79% backend  cycles idle    [66.70%]</span>
+<span class="go"> 12,067,358,492 instructions              #    1.42  insns per cycle        </span>
+<span class="go">                                          #    0.17  stalled cycles per insn [83.42%]</span>
+<span class="go">  2,454,951,795 branches                  #  824.423 M/sec                   [83.42%]</span>
+<span class="go">     67,544,262 branch-misses             #    2.75% of all branches         [83.42%]</span>
+
+<span class="go">    2.022988074 seconds time elapsed</span>
+</pre></div>
+
+
+<p>Ah, perfect! 30% faster than our original solution and significantly fewer stalled instructions.</p>
+    </div><!-- /.entry-content -->
+    
+  </article>
+</section>
+        <section id="extras" class="body">
+                        <div class="blogroll">
+                        <h2>blogroll</h2>
+                        <ul>
+                                                    <li><a href="http://ppp.cylab.cmu.edu/wordpress/">PPP Blog</a></li>
+                                                    <li><a href="http://www.codinghorror.com/blog/">Coding Horror</a></li>
+                                                    <li><a href="http://blog.regehr.org/">Embedded in Academia</a></li>
+                                                </ul>
+                </div><!-- /.blogroll -->
+                                <div class="social">
+                        <h2>social</h2>
+                        <ul>
+                            <li><a href="http://codearcana.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate">atom feed</a></li>
+                            
+                                                    <li><a href="https://twitter.com/awreece">twitter</a></li>
+                                                    <li><a href="https://github.com/awreece">github</a></li>
+                                                    <li><a href="https://plus.google.com/106589059588263736517/posts">google+</a></li>
+                                                </ul>
+                </div><!-- /.social -->
+                </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+                <address id="about" class="vcard body">
+                Proudly powered by <a href="http://getpelican.com/">Pelican</a>, which takes great advantage of <a href="http://python.org">Python</a>.
+                </address><!-- /#about -->
+
+                <p>The theme is by <a href="http://coding.smashingmagazine.com/2009/08/04/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, thanks!</p>
+        </footer><!-- /#contentinfo -->
+
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-40107691-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+</body>
+</html>

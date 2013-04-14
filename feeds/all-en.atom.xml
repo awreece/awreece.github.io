@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/all-en.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2013-02-26T00:00:00+01:00</updated><entry><title>Introduction to Using Profiling Tools</title><link href="http://codearcana.com/introduction-to-using-profiling-tools.html" rel="alternate"></link><updated>2013-02-26T00:00:00+01:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-02-26:introduction-to-using-profiling-tools.html</id><summary type="html">&lt;h2&gt;Performance tools&lt;/h2&gt;
+&lt;p&gt;Frequently, we need to identify slow portions of our programs so we can improve performance. There are a number of tools available to profile programs and identify how much time is spent where. The most common of these tools sample the program periodically, recording information to be later analyzed. Typically, they involve a phase spent recording data and a later phase for analyzing it. We will use two common tools to analyze a simple program: Google &lt;code&gt;pprof&lt;/code&gt; and Linux &lt;code&gt;perf&lt;/code&gt;.&lt;/p&gt;
+&lt;h3&gt;Google &lt;code&gt;pprof&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;Google &lt;code&gt;pprof&lt;/code&gt; is a tool available as part of the Google &lt;a href="https://code.google.com/p/gperftools/"&gt;&lt;code&gt;perftools&lt;/code&gt;&lt;/a&gt; package. It is is used with
+&lt;code&gt;libprofiler&lt;/code&gt;, a sampling based profiler that is linked into your binary. There are 3 steps for using &lt;code&gt;pprof&lt;/code&gt;: linking it into the binary, generating profile output, and analyzing the output. The following links a binary with &lt;code&gt;libprofiler&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; gcc main.c -lprofiler
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;For any profile linked with &lt;code&gt;libprofiler&lt;/code&gt;, setting the environment variable &lt;code&gt;CPUPROFILE&lt;/code&gt; enables profiling and specifies the output file. The following command runs &lt;code&gt;./a.out&lt;/code&gt; and prints profiling data to &lt;code&gt;out.prof&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; &lt;span class="nv"&gt;CPUPROFILE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;out.prof ./a.out
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We can now analyze this file using &lt;code&gt;pprof&lt;/code&gt;. Below, we output the sample counts for all the functions in &lt;code&gt;a.out&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; pprof --text ./a.out out.prof
+&lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
+&lt;span class="go"&gt;Total: 311 samples&lt;/span&gt;
+&lt;span class="go"&gt;  144  46.3%  46.3%      144  46.3% bar&lt;/span&gt;
+&lt;span class="go"&gt;   95  30.5%  76.8%       95  30.5% foo&lt;/span&gt;
+&lt;span class="go"&gt;   72  23.2% 100.0%      311 100.0% baz&lt;/span&gt;
+&lt;span class="go"&gt;    0   0.0% 100.0%      311 100.0% __libc_start_main&lt;/span&gt;
+&lt;span class="go"&gt;    0   0.0% 100.0%      311 100.0% _start&lt;/span&gt;
+&lt;span class="go"&gt;    0   0.0% 100.0%      311 100.0% main&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;See full documentation &lt;a href="https://google-perftools.googlecode.com/svn/trunk/doc/cpuprofile.html"&gt;here&lt;/a&gt;. No seriously, read it.&lt;/p&gt;
+&lt;h3&gt;Linux &lt;code&gt;perf&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;On Linux, the &lt;code&gt;perf&lt;/code&gt; system is a powerful tool for analyzing program / system performance. It provides some nice abstractions over tracking hardware counters on different CPUs. It defines a number of events to be tracked and recorded. Run &lt;code&gt;perf list&lt;/code&gt; to see a list of the events allowed on your system. &lt;/p&gt;
+&lt;p&gt;To use &lt;code&gt;perf&lt;/code&gt;, you run: &lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf stat ./a.out
+&lt;span class="go"&gt; Performance counter stats for &amp;#39;./a.out&amp;#39;:&lt;/span&gt;
+
+&lt;span class="go"&gt;    3121.725439 task-clock                #    0.997 CPUs utilized          &lt;/span&gt;
+&lt;span class="go"&gt;             11 context-switches          #    0.000 M/sec                  &lt;/span&gt;
+&lt;span class="go"&gt;              7 CPU-migrations            #    0.000 M/sec                  &lt;/span&gt;
+&lt;span class="go"&gt;            308 page-faults               #    0.000 M/sec                  &lt;/span&gt;
+&lt;span class="go"&gt;  9,121,960,506 cycles                    #    2.922 GHz                     [83.32%]&lt;/span&gt;
+&lt;span class="go"&gt;  5,213,187,548 stalled-cycles-frontend   #   57.15% frontend cycles idle    [83.32%]&lt;/span&gt;
+&lt;span class="go"&gt;    292,952,401 stalled-cycles-backend    #    3.21% backend  cycles idle    [66.68%]&lt;/span&gt;
+&lt;span class="go"&gt;  5,215,556,086 instructions              #    0.57  insns per cycle        &lt;/span&gt;
+&lt;span class="go"&gt;                                          #    1.00  stalled cycles per insn [83.35%]&lt;/span&gt;
+&lt;span class="go"&gt;  1,303,060,483 branches                  #  417.417 M/sec                   [83.35%]&lt;/span&gt;
+&lt;span class="go"&gt;         66,559 branch-misses             #    0.01% of all branches         [83.33%]&lt;/span&gt;
+
+&lt;span class="go"&gt;    3.132028707 seconds time elapsed&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;In addition to &lt;code&gt;perf stat&lt;/code&gt;, there quite a few other ways to use perf. Run &lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;to see a list of the commands (you might want to look into &lt;code&gt;perf record&lt;/code&gt; and &lt;code&gt;perf annotate&lt;/code&gt;). &lt;/p&gt;
+&lt;p&gt;For an example of this being used in real life, see this excellent analysis of  &lt;a href="http://thread.gmane.org/gmane.comp.version-control.git/172286"&gt;this analysis of a string comparison bottleneck in &lt;code&gt;git gc&lt;/code&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2&gt;Our Investigation&lt;/h2&gt;
+&lt;p&gt;We compile the program with &lt;code&gt;-lprofiler&lt;/code&gt; so we can generate output to examine. &lt;code&gt;try_perf.c&lt;/code&gt; is a C program that counts the number of even values
+in an array of random numbers. We run with 8 threads that all increment a global
+counter every time they see an even number.&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; gcc try_perf.c -g -lprofiler -lpthread
+&lt;span class="gp"&gt;%&lt;/span&gt; &lt;span class="nv"&gt;CPUPROFILE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;a.out.prof ./a.out --num_threads&lt;span class="o"&gt;=&lt;/span&gt;8
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We run pprof and get the source code annotated with the number of probes that 
+hit that instruction during the trace (result below trimmed for brevity).&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; pprof --list&lt;span class="o"&gt;=&lt;/span&gt;thread_scan a.out a.out.prof
+&lt;span class="go"&gt; ... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
+&lt;span class="go"&gt;   .      .   60: void* thread_scan(void* void_arg) {&lt;/span&gt;
+&lt;span class="go"&gt;   .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.&lt;/span&gt;
+&lt;span class="go"&gt;   .      .   62:  thread_arg_t* args = (thread_arg_t*) void_arg;&lt;/span&gt;
+&lt;span class="go"&gt;   .      .   63:  size_t i;&lt;/span&gt;
+&lt;span class="go"&gt;   .      .   64: &lt;/span&gt;
+&lt;span class="go"&gt; 303    323   65:  for (i = 0; i &amp;lt; arg-&amp;gt;size; i++) {&lt;/span&gt;
+&lt;span class="go"&gt;   6     10   66:     uint32_t val = arg-&amp;gt;input[i];&lt;/span&gt;
+&lt;span class="go"&gt;   6     15   67:   if (val % 2 == 0) {&lt;/span&gt;
+&lt;span class="go"&gt;   9    300   68:     __sync_fetch_and_add(args-&amp;gt;evens, 1);&lt;/span&gt;
+&lt;span class="go"&gt;   .      .   69:   }&lt;/span&gt;
+&lt;span class="go"&gt;   .      .   70:  }&lt;/span&gt;
+&lt;span class="go"&gt;   .      .   71: }&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The output above is actually misleading: if you look at the assembly (shown below), the instruction immediately after the atomic instruction (the &lt;code&gt;addq   $0x1,-0x8(%rbp)&lt;/code&gt; after the &lt;code&gt;lock addq $0x1,(%rax)&lt;/code&gt;) gets excess hits that count towards the for loop when they should probably count towards the atomic instruction.&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; pprof --disas&lt;span class="o"&gt;=&lt;/span&gt;thread_scan a.out a.out.prof
+&lt;span class="go"&gt; ... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
+&lt;span class="go"&gt;  9    300    68: __sync_fetch_and_add(arg-&amp;gt;num_evens, 1);&lt;/span&gt;
+&lt;span class="go"&gt;  4      5      4008a4: mov    -0x10(%rbp),%rax&lt;/span&gt;
+&lt;span class="go"&gt;  1      5      4008a8: mov    0x10(%rax),%rax&lt;/span&gt;
+&lt;span class="go"&gt;  4    290      4008ac: lock addq $0x1,(%rax)&lt;/span&gt;
+&lt;span class="go"&gt;303    320    65: for (i = 0; i &amp;lt; arg-&amp;gt;size; i++) {&lt;/span&gt;
+&lt;span class="go"&gt;286    287      4008b1: addq   $0x1,-0x8(%rbp)&lt;/span&gt;
+&lt;span class="go"&gt;  1      2      4008b6: mov    -0x10(%rbp),%rax&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Hrm. Why are we spending a lot of time in &lt;code&gt;lock addq $0x1,(%rax)&lt;/code&gt;?&lt;/p&gt;
+&lt;p&gt;To understand this, we will use &lt;code&gt;perf&lt;/code&gt;. Run: &lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf stat ./a.out
+&lt;span class="go"&gt; Performance counter stats for &amp;#39;./a.out&amp;#39;:&lt;/span&gt;
+
+&lt;span class="go"&gt;    5793.307952 task-clock                #    2.157 CPUs utilized          &lt;/span&gt;
+&lt;span class="go"&gt;            589 context-switches          #    0.000 M/sec                  &lt;/span&gt;
+&lt;span class="go"&gt;             11 CPU-migrations            #    0.000 M/sec                  &lt;/span&gt;
+&lt;span class="go"&gt;          1,974 page-faults               #    0.000 M/sec                  &lt;/span&gt;
+&lt;span class="go"&gt; 16,378,904,731 cycles                    #    2.827 GHz                     [83.37%]&lt;/span&gt;
+&lt;span class="go"&gt; 10,407,719,950 stalled-cycles-frontend   #   63.54% frontend cycles idle    [83.38%]&lt;/span&gt;
+&lt;span class="go"&gt;  8,213,634,448 stalled-cycles-backend    #   50.15% backend  cycles idle    [66.65%]&lt;/span&gt;
+&lt;span class="go"&gt; 12,070,323,273 instructions              #    0.74  insns per cycle        &lt;/span&gt;
+&lt;span class="go"&gt;                                          #    0.86  stalled cycles per insn [83.32%]&lt;/span&gt;
+&lt;span class="go"&gt;  2,428,236,441 branches                  #  419.145 M/sec                   [83.31%]&lt;/span&gt;
+&lt;span class="go"&gt;     67,558,697 branch-misses             #    2.78% of all branches         [83.35%]&lt;/span&gt;
+
+&lt;span class="go"&gt;    2.685598183 seconds time elapsed&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Wow, thats a lot of stalled instructions! The 8 threads are sharing the same counter, generating a lot of memory traffic. We modify the program so they all use their own counter, and then we aggregate at the end (if we do this, we don't need to use the atomic instruction).&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;counts&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;nthreads&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+&lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;num_evens&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;nthreads&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+     &lt;span class="n"&gt;counts&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+     &lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="n"&gt;num_evens&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;counts&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+     &lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="n"&gt;input&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;inarray&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="n"&gt;nthreads&lt;/span&gt;&lt;span class="p"&gt;)];&lt;/span&gt;
+     &lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="n"&gt;nthreads&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+     &lt;span class="n"&gt;pthread_create&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;threads&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;thread_scan&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+ &lt;span class="p"&gt;}&lt;/span&gt;   
+ &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;nthreads&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+     &lt;span class="n"&gt;pthread_join&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;threads&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+     &lt;span class="n"&gt;num_evens&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="n"&gt;counts&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+ &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;But that didn't seem to help at all! We still spend most of our time on the increment, even though we aren't using an atomic instruction: &lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; pprof --list&lt;span class="o"&gt;=&lt;/span&gt;thread_scan a.out out.prof
+&lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
+&lt;span class="go"&gt;  .      .   60: void* thread_scan(void* void_arg) {&lt;/span&gt;
+&lt;span class="go"&gt;  .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.&lt;/span&gt;
+&lt;span class="go"&gt;  .      .   62:  thread_arg_t* args = (thread_arg_t*) void_arg;&lt;/span&gt;
+&lt;span class="go"&gt;  .      .   63:  size_t i;&lt;/span&gt;
+&lt;span class="go"&gt;  .      .   64: &lt;/span&gt;
+&lt;span class="go"&gt; 22     44   65:  for (i = 0; i &amp;lt; args-&amp;gt;size; i++) {&lt;/span&gt;
+&lt;span class="go"&gt; 14     25   66:     uint32_t val = args-&amp;gt;input[i];&lt;/span&gt;
+&lt;span class="go"&gt; 12     33   67:   if (val % 2 == 0) {&lt;/span&gt;
+&lt;span class="go"&gt;157    308   68:    *(args-&amp;gt;num_evens) += 1;&lt;/span&gt;
+&lt;span class="go"&gt;  .      .   69:   }&lt;/span&gt;
+&lt;span class="go"&gt;  .      .   70:  }&lt;/span&gt;
+&lt;span class="go"&gt;  .      .   71: }&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Why could this be? Lets run &lt;code&gt;perf stat&lt;/code&gt; again and see:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf stat ./a.out
+&lt;span class="go"&gt; Performance counter stats for &amp;#39;./a.out&amp;#39;:&lt;/span&gt;
+
+&lt;span class="go"&gt;      4372.474270 task-clock                #    1.882 CPUs utilized          &lt;/span&gt;
+&lt;span class="go"&gt;              385 context-switches          #    0.000 M/sec                  &lt;/span&gt;
+&lt;span class="go"&gt;                9 CPU-migrations            #    0.000 M/sec                  &lt;/span&gt;
+&lt;span class="go"&gt;            1,135 page-faults               #    0.000 M/sec                  &lt;/span&gt;
+&lt;span class="go"&gt;   12,411,517,583 cycles                    #    2.839 GHz                     [83.26%]&lt;/span&gt;
+&lt;span class="go"&gt;    6,270,257,100 stalled-cycles-frontend   #   50.52% frontend cycles idle    [83.33%]&lt;/span&gt;
+&lt;span class="go"&gt;    4,291,405,838 stalled-cycles-backend    #   34.58% backend  cycles idle    [66.78%]&lt;/span&gt;
+&lt;span class="go"&gt;   12,306,996,386 instructions              #    0.99  insns per cycle        &lt;/span&gt;
+&lt;span class="go"&gt;                                            #    0.51  stalled cycles per insn [83.39%]&lt;/span&gt;
+&lt;span class="go"&gt;    2,420,224,187 branches                  #  553.514 M/sec                   [83.40%]&lt;/span&gt;
+&lt;span class="go"&gt;       69,182,448 branch-misses             #    2.86% of all branches         [83.30%]&lt;/span&gt;
+
+&lt;span class="go"&gt;      2.323372370 seconds time elapsed&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;What is going on now? We &lt;em&gt;still&lt;/em&gt; have a lot of stalled instructions, but all those counters are different. See?&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;counts&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;nthreads&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Oh, they are all on the same cache line - we're experiencing false sharing. Let us use a thread local counter thats on a different cache line for each thread:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nf"&gt;thread_scan&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;void_arg&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="kt"&gt;thread_arg_t&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;args&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;thread_arg_t&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;void_arg&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;num_evens&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+  &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kt"&gt;uint32_t&lt;/span&gt; &lt;span class="n"&gt;val&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;input&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;val&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+      &lt;span class="n"&gt;num_evens&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+  &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;num_evens&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="p"&gt;...&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;snip&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="p"&gt;...&lt;/span&gt;
+
+&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;nthreads&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="n"&gt;pthread_join&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;threads&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+  &lt;span class="n"&gt;num_evens&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;And then look at the profile:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; pprof --list&lt;span class="o"&gt;=&lt;/span&gt;thread_scan a.out out.prof
+&lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
+&lt;span class="go"&gt;  .      .   60: void* thread_scan(void* void_arg) {&lt;/span&gt;
+&lt;span class="go"&gt;  .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.&lt;/span&gt;
+&lt;span class="go"&gt;  .      .   62:  thread_arg_t* args = (thread_arg_t*) void_arg;&lt;/span&gt;
+&lt;span class="go"&gt;  .      .   63:  size_t i;&lt;/span&gt;
+&lt;span class="go"&gt;  .      .   64:  size_t num_evens;&lt;/span&gt;
+&lt;span class="go"&gt;  .      .   65: &lt;/span&gt;
+&lt;span class="go"&gt;144    292   66:  for (i = 0; i &amp;lt; args-&amp;gt;size; i++) {&lt;/span&gt;
+&lt;span class="go"&gt; 14     25   67:     uint32_t val = args-&amp;gt;input[i];&lt;/span&gt;
+&lt;span class="go"&gt; 12     33   68:   if (val % 2 == 0) {&lt;/span&gt;
+&lt;span class="go"&gt; 13     16   69:    num_evens++;&lt;/span&gt;
+&lt;span class="go"&gt;  .      .   70:   }&lt;/span&gt;
+&lt;span class="go"&gt;  .      .   71:  }&lt;/span&gt;
+&lt;span class="go"&gt;  4      8   72:  return num_evens;&lt;/span&gt;
+&lt;span class="go"&gt;  .      .   73: }&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Good, our increment doesn't dominate the function anymore. We look at &lt;code&gt;perf stat&lt;/code&gt; and see:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf stat ./a.out
+&lt;span class="go"&gt; Performance counter stats for &amp;#39;./a.out&amp;#39;:&lt;/span&gt;
+
+&lt;span class="go"&gt;    2977.781539 task-clock                #    1.472 CPUs utilized          &lt;/span&gt;
+&lt;span class="go"&gt;            177 context-switches          #    0.000 M/sec                  &lt;/span&gt;
+&lt;span class="go"&gt;             12 CPU-migrations            #    0.000 M/sec                  &lt;/span&gt;
+&lt;span class="go"&gt;          3,506 page-faults               #    0.001 M/sec                  &lt;/span&gt;
+&lt;span class="go"&gt;  8,523,367,658 cycles                    #    2.862 GHz                     [83.32%]&lt;/span&gt;
+&lt;span class="go"&gt;  2,057,253,537 stalled-cycles-frontend   #   24.14% frontend cycles idle    [83.26%]&lt;/span&gt;
+&lt;span class="go"&gt;    919,272,160 stalled-cycles-backend    #   10.79% backend  cycles idle    [66.70%]&lt;/span&gt;
+&lt;span class="go"&gt; 12,067,358,492 instructions              #    1.42  insns per cycle        &lt;/span&gt;
+&lt;span class="go"&gt;                                          #    0.17  stalled cycles per insn [83.42%]&lt;/span&gt;
+&lt;span class="go"&gt;  2,454,951,795 branches                  #  824.423 M/sec                   [83.42%]&lt;/span&gt;
+&lt;span class="go"&gt;     67,544,262 branch-misses             #    2.75% of all branches         [83.42%]&lt;/span&gt;
+
+&lt;span class="go"&gt;    2.022988074 seconds time elapsed&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Ah, perfect! 30% faster than our original solution and significantly fewer stalled instructions.&lt;/p&gt;</summary><category term="performance"></category><category term="profiling"></category></entry></feed>
