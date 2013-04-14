@@ -244,4 +244,162 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Ah, perfect! 30% faster than our original solution and significantly fewer stalled instructions.&lt;/p&gt;</summary><category term="performance"></category><category term="profiling"></category></entry></feed>
+&lt;p&gt;Ah, perfect! 30% faster than our original solution and significantly fewer stalled instructions.&lt;/p&gt;</summary><category term="performance"></category><category term="profiling"></category></entry><entry><title>Analysis of a Parallel Memory Allocator</title><link href="http://codearcana.com/analysis-of-a-parallel-memory-allocator.html" rel="alternate"></link><updated>2012-05-11T00:00:00+02:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2012-05-11:analysis-of-a-parallel-memory-allocator.html</id><summary type="html">&lt;h1&gt;Background&lt;/h1&gt;
+&lt;h2&gt;Problem&lt;/h2&gt;
+&lt;p&gt;Many modern programs frequently use dynamic memory allocation. However, modern
+programs increasingly are multithreaded and parallel to take advantage of
+increasingly parallel processors. Unfortunately, this trend conflicts with the
+fact that there is a single heap in most current programs. Consequently,
+research into parallel memory allocators is topical and important.&lt;/p&gt;
+&lt;h2&gt;Solution?&lt;/h2&gt;
+&lt;p&gt;The simplest solution to ensuring correctness in a multithread memory allocator
+is to use a global lock around the heap. Unfortunately, this has
+&lt;em&gt;extremely&lt;/em&gt; negative performance consequences and is almost never 
+adopted by modern memory allocators. Modern memory allocators tend to adopt 
+some form of the following 3 solutions:
+&lt;ul&gt;
+&lt;li&gt;
+They partition the heap into logical arenas or chunks that handle large 
+portions of the heap. This reduces contention on the global heap and 
+heap data structures.
+&lt;/li&gt;
+&lt;li&gt;
+They use fine grained locking on individual slabs or slab classes.
+&lt;/li&gt;
+&lt;li&gt;
+They use thread local caches to provide a fast path that requires no locks.
+&lt;/li&gt;
+&lt;/ul&gt;&lt;/p&gt;
+&lt;h2&gt;Modern memory allocators&lt;/h2&gt;
+&lt;p&gt;&lt;p&gt;As I understand, the most popular modern parallel mallocs are 
+&lt;a href="https://www.facebook.com/notes/facebook-engineering/scalable-memory-allocation-using-jemalloc/480222803919"&gt;&lt;tt&gt;jemalloc&lt;/tt&gt;&lt;/a&gt;, 
+&lt;a href="http://goog-perftools.sourceforge.net/doc/tcmalloc.html"&gt;&lt;tt&gt;tcmalloc&lt;/tt&gt;&lt;/a&gt;, 
+&lt;a href="http://www.malloc.de/en/"&gt;&lt;tt&gt;ptmalloc&lt;/tt&gt;&lt;/a&gt;, 
+&lt;a href="https://doors.gracenote.com/developer/open.html"&gt;&lt;tt&gt;concur&lt;/tt&gt;&lt;/a&gt;, 
+&lt;a href="http://www.nedprod.com/programs/portable/nedmalloc/"&gt;&lt;tt&gt;nedmalloc&lt;/tt&gt;&lt;/a&gt;
+and &lt;a href="http://www.cs.umass.edu/~emery/pubs/berger-asplos2000.pdf"&gt;&lt;tt&gt;hoard&lt;/tt&gt;&lt;/a&gt;. 
+Oracle did some 
+&lt;a href="http://developers.sun.com/solaris/articles/multiproc/multiproc.html"&gt;investigation&lt;/a&gt; 
+and I have taken a look at the internals of jemalloc, tcmalloc, concur, and hoard. 
+As I understand:&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;tt&gt;tcmalloc&lt;/tt&gt; uses a global slab allocator with thread local caches to avoid contention&lt;/li&gt;
+    &lt;li&gt;&lt;tt&gt;hoard&lt;/tt&gt; uses different arenas and assigns superblocks to threads to avoid contention&lt;/li&gt;
+    &lt;li&gt;&lt;tt&gt;jemalloc&lt;/tt&gt; uses different arenas and thread local caches to avoid contention
+and uses red black trees and an optimized slab allocator to avoid fragmentation&lt;/li&gt;
+&lt;li&gt;&lt;tt&gt;concur&lt;/tt&gt; uses different arenas and fine grained locking on size classes to avoid contention&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;/p&gt;
+&lt;p&gt;
+One interesting characteristic of many of these memory allocators is that they
+all tend to allocate memory from the system in chunks of about 1 to 4MB.
+Consequently, they tend to have an overhead of up to 2 to 4MB per arena. Most
+of them justify this overhead by pointing out that 2MB of overhead is minimal
+when the total application footprint can exceed 1GB (in an application such as
+firefox) and it is acceptable for an application to use 2MB of heap when
+modern computers routinely have several GB of RAM.
+&lt;/p&gt;&lt;/p&gt;
+&lt;p&gt;
+Another interesting characteristic of these memory allocators is they almost
+never coallesce individual blocks (some do coallesce individual blocks). 
+Instead, they use slab allocators and assume
+allocation requests tend be of very similar sizes. In general, this follows
+the general pattern of tolerating a moderate amount of memory overhead to
+increase performance.
+&lt;/p&gt;
+
+&lt;h1&gt;Approach&lt;/h1&gt;
+&lt;h2&gt;A simple modern memory allocator&lt;/h2&gt;
+&lt;p&gt;&lt;p&gt;
+In order to investigate and analyze the performance of a modern memory
+allocator, I wrote a simplified memory allocator, &lt;tt&gt;ar_malloc&lt;/tt&gt;, that 
+uses many of the modern optimizations. &lt;tt&gt;ar_malloc&lt;/tt&gt; is based quite
+heavily on &lt;tt&gt;jemalloc&lt;/tt&gt; but makes some simplifications. In order to keep 
+the work manageable, &lt;tt&gt;ar_malloc&lt;/tt&gt; makes the assumption that allocation 
+requests are smaller than 1024 bytes. In addition, it uses slabs of a fixed 
+size and never frees memory to the system (&lt;tt&gt;jemalloc&lt;/tt&gt; uses variable sized
+slabs to reduce memory overhead).
+&lt;/p&gt;&lt;/p&gt;
+&lt;h2&gt;Testing a memory allocator ##&lt;/h2&gt;
+&lt;p&gt;&lt;p&gt;
+In order to test &lt;tt&gt;ar_malloc&lt;/tt&gt;, I constructed a test framework (based off a
+test in the &lt;tt&gt;tcmalloc&lt;/tt&gt; codebase) that spawns 
+several threads that each randomly decide to allocate a random sized block or 
+free a random block. This does not simulate the effect of actually using the blocks
+and does not simulate a realistic workload, but it is still a useful
+basis for investigation. I ran this test on a 16 core shared memory system and used
+new initialization of malloc for each run to reduce the variance in run time.
+&lt;/p&gt;&lt;/p&gt;
+&lt;h1&gt;Results&lt;/h1&gt;
+&lt;h2&gt;Comparision of &lt;tt&gt;ar_malloc&lt;/tt&gt; to other solutions&lt;/h2&gt;
+&lt;p&gt;&lt;p&gt;
+We compared the performance of &lt;tt&gt;ar_malloc&lt;/tt&gt;, &lt;tt&gt;ar_malloc&lt;/tt&gt; with a global lock, 
+and the libc malloc on the test described in the previous section.
+&lt;/p&gt;
+&lt;figure&gt;
+&lt;img alt="Run time vs Number of threads" src="https://docs.google.com/spreadsheet/oimg?key=0AjzaNgu-PE5_dDJJUnRCaXZueks1UTlQVXBxYlFsSXc&amp;amp;oid=4&amp;amp;zx=1aneio5en2km" /&gt;
+&lt;figcaption&gt;This is chart of test run time vs number of threads for a global locked malloc, &lt;tt&gt;ar_malloc&lt;/tt&gt;, and libc malloc. As 
+    you can see, the global lock solution is really bad.&lt;/figcaption&gt;
+&lt;/figure&gt;&lt;/p&gt;
+&lt;figure&gt;
+    &lt;img src="https://docs.google.com/spreadsheet/oimg?key=0AjzaNgu-PE5_dDJJUnRCaXZueks1UTlQVXBxYlFsSXc&amp;oid=14&amp;zx=rgpgcr33f1ax" /&gt;
+    &lt;figcaption&gt;This is chart of test run time vs number of threads for &lt;tt&gt;ar_malloc&lt;/tt&gt; and libc malloc. As 
+    you can see, &lt;tt&gt;ar_malloc&lt;/tt&gt; is about 3 times faster than libc for even
+    single threaded execution. &lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;figure&gt;
+    &lt;img src="https://docs.google.com/spreadsheet/oimg?key=0AjzaNgu-PE5_dDJJUnRCaXZueks1UTlQVXBxYlFsSXc&amp;oid=8&amp;zx=ttz2qtfnzo60" /&gt;
+    &lt;figcaption&gt;This is chart of test speedup vs number of threads for &lt;tt&gt;ar_malloc&lt;/tt&gt; and libc malloc. As 
+    you can see, &lt;tt&gt;ar_malloc&lt;/tt&gt; exhibits linear speedup that scales cleanly with
+    the number of threads, whereas libc scales only to about 8 threads. 
+    &lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;h2&gt;Comparison of different configuration&lt;/h2&gt;
+&lt;p&gt;&lt;p&gt;
+I examined several different configurations of &lt;tt&gt;ar_malloc&lt;/tt&gt;, specifically 
+focusing on the number of arenas. We attempted to figure out the effect of and 
+analyze the behavior of using different number of arenas.
+&lt;/p&gt;&lt;/p&gt;
+&lt;figure&gt;
+    &lt;img src="https://docs.google.com/spreadsheet/oimg?key=0AjzaNgu-PE5_dDJJUnRCaXZueks1UTlQVXBxYlFsSXc&amp;oid=11&amp;zx=fwaahh94nhlg" /&gt;
+&lt;figcaption&gt;This is a chart of run time vs number of threads for different configurations of &lt;tt&gt;ar_malloc&lt;/tt&gt;.
+    As you can see, there appear to be two curves. We will call the lower one the &amp;quot;no contention&amp;quot; curve and the
+    upper one the &amp;quot;contention&amp;quot; curve. You can see that the performance of a memory allocator moves from the &amp;quot;no contention&amp;quot;
+    curve to the &amp;quot;contention&amp;quot; curve when the number of threads exceeds the number of arenas.
+    &lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;figure&gt;
+    &lt;img src="https://docs.google.com/spreadsheet/oimg?key=0AjzaNgu-PE5_dDJJUnRCaXZueks1UTlQVXBxYlFsSXc&amp;oid=13&amp;zx=fhdbihufrx4u" /&gt;
+    &lt;figcaption&gt;
+    This is a chart of speedup vs number of threads for different configurations of &lt;tt&gt;ar_malloc&lt;/tt&gt;. As you before, there are 
+    two curves: the &amp;quot;no contention&amp;quot; line and the &amp;quot;contention&amp;quot; line. Again, the speedup of a memory allocator
+    moves from the &amp;quot;no contention&amp;quot; line to the &amp;quot;contention&amp;quot; line when the number of threads exceeds the 
+    number of arenas. It is important to note that the speedup is still mostly linear even when the number of arenas is far less
+    than number of threads.
+    &lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;h1&gt;Conclusion&lt;/h1&gt;
+&lt;p&gt;Over the course of this project, I have demonstrated that it is feasible to 
+write a modern parallel memory allocator that performs quite favorably 
+on random workloads. &lt;tt&gt;ar_malloc&lt;/tt&gt; makes many simplifying assumptions,
+but is just over 2000 lines of code, outperforms libc malloc by a factor
+of 3, and demonstrates linear speedup that seems to scale very well with
+the number of threads.&lt;/p&gt;
+&lt;h1&gt;Further Investigation&lt;/h1&gt;
+&lt;p&gt;&lt;p&gt;
+There are several routes for further investigation in parallel memory
+allocators.&lt;/p&gt;
+&lt;p&gt;The exisiting test framework allocates random sizes distributed
+uniformly in the range 8, 1024. This almost certainly does not simulate 
+realistic memory allocation patterns. An interesting further exploration could
+use &lt;tt&gt;ar_malloc&lt;/tt&gt; with real programs (either via static linking or LD_PRELOAD) 
+or to investigate the actual memory distribution of a general program. 
+&lt;/p&gt;
+&lt;p&gt;This investigation only examined the effect of different number of arenas.
+A further exploration could examine the effect of thread local caches and fine
+grained locking on the performance of &lt;tt&gt;ar_malloc&lt;/tt&gt;.
+&lt;/p&gt;&lt;/p&gt;</summary></entry></feed>
