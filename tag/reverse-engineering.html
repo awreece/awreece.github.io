@@ -4,8 +4,9 @@
         <title>Code Arcana - reverse engineering</title>
         <meta charset="utf-8" />
         <link rel="stylesheet" href="../theme/css/main.css" type="text/css" />
-                <link href="http://codearcana.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Code Arcana Atom Feed" />
-                
+        <link href="../" type="application/atom+xml" rel="alternate" title="Code Arcana ATOM Feed" />
+        
+
         <!--[if IE]>
                 <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
 
@@ -19,25 +20,19 @@
 </head>
 
 <body id="index" class="home">
-<a href="https://github.com/awreece">
-<img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub" />
-</a>
         <header id="banner" class="body">
-                <h1><a href="../">Code Arcana </a></h1>
+                <h1><a href="../index.html">Code Arcana </a></h1>
                 <nav><ul>
                                     <li><a href="http://codearcana.com">Blog</a></li>
                                     <li><a href="http://codearcana.com">About Me</a></li>
-                                                                                                    <li ><a href="../category/performance.html">performance</a></li>
-                                    <li ><a href="../category/security.html">security</a></li>
+                                                                                <li><a href="../">Archives</a></li>
                                 </ul></nav>
         </header><!-- /#banner -->
-                
-            
 
-                            <aside id="featured" class="body">
-                <article>
-                    <h1 class="entry-title"><a href="../pai-mei-on-mac-osx-108.html">Pai Mei on Mac <span class="caps">OSX</span>&nbsp;10.8</a></h1> 
-                    <footer class="post-info">
+                 <section id="content" class="body">
+        <aside id="featured"><article>
+                <h1 class="entry-title"><a href="../pai-mei-on-mac-osx-108.html">Pai Mei on Mac <span class="caps">OSX</span>&nbsp;10.8</a></h1>
+                <footer class="post-info">
         <abbr class="published" title="2012-10-28T00:00:00">
                 Sun 28 October 2012
         </abbr>
@@ -46,8 +41,8 @@
                 By <a class="url fn" href="../author/alex-reece.html">Alex Reece</a>
         </address>
         <p>In <a href="../category/security.html">security</a>. </p>
-<p>tags: <a href="../tag/mac-osx.html">mac osx</a><a href="../tag/reverse-engineering.html">reverse engineering</a></p>
-</footer><!-- /.post-info --><p><a href="https://github.com/OpenRCE/paimei">Pai Mei</a> is an open source windows reverse engineering framework. At one point, it was ported to Mac <span class="caps">OSX</span> but the project is not very actively maintained and the current instructions are quite lacking. This post hopes to offer some guidance and reduce some of the frustration involved in installing Pai Mei on Mac&nbsp;<span class="caps">OSX</span>.</p>
+<p>tags: <a href="../tag/mac-osx.html">mac osx</a><a href="../tag/reverse-engineering.html">reverse engineering</a></p></p></footer><!-- /.post-info --><!-- /.post-info -->
+                <p><a href="https://github.com/OpenRCE/paimei">Pai Mei</a> is an open source windows reverse engineering framework. At one point, it was ported to Mac <span class="caps">OSX</span> but the project is not very actively maintained and the current instructions are quite lacking. This post hopes to offer some guidance and reduce some of the frustration involved in installing Pai Mei on Mac&nbsp;<span class="caps">OSX</span>.</p>
 <h3>Getting the&nbsp;libraries</h3>
 
 <p>The most difficult thing was finding how to get all the packages working. First and foremost, Pai Mei was designed for a 32 bit windows libary so some trickery is required to get it to work in 64 bit mode (which is necessary, because I could not get the latest <tt>wxPython</tt> from Homebrew to work in 32 bit mode). I did not realize at first that there was a way to use Pai Mei in 64 bit mode, so I spent a long time attempting to find universal binaries for wxPython and&nbsp;MySql.</p>
@@ -177,60 +172,55 @@
 </pre></div>
 
 
-<p>After all this, I finally got Pai Mei (barely) working but I suspect I would have had an easier time and more fun just writing it myself&nbsp;;-)</p><p>There are <a href="../pai-mei-on-mac-osx-108.html#disqus_thread">comments</a>.</p>                </article>
-                                    <p class="paginator">
-        Page 1 / 1
-    </p>
-                            </aside><!-- /#featured -->
-                                                </ol><!-- /#posts-list -->
-                        </section><!-- /#content -->
-                    <section id="extras" class="body">
-                        <div class="blogroll">
-                        <h2>blogroll</h2>
+<p>After all this, I finally got Pai Mei (barely) working but I suspect I would have had an easier time and more fun just writing it myself&nbsp;;-)</p>
+        </article></aside><!-- /#featured -->
+            </ol><!-- /#posts-list -->
+</section><!-- /#content -->
+
+        <aside id="sidebar">
+                <div class="widget">
+                        <h2>Categories</h2>
+                        <ul>
+                                                   <li ><a href="../category/performance.html">performance</a></li>
+                                                   <li ><a href="../category/security.html">security</a></li>
+                                                </ul>
+                </div>
+                        <div class="widget blogroll">
+                        <h2>Blogroll</h2>
                         <ul>
                                                     <li><a href="http://ppp.cylab.cmu.edu/wordpress/">PPP Blog</a></li>
                                                     <li><a href="http://www.codinghorror.com/blog/">Coding Horror</a></li>
                                                     <li><a href="http://blog.regehr.org/">Embedded in Academia</a></li>
                                                 </ul>
                 </div><!-- /.blogroll -->
-                                <div class="social">
-                        <h2>social</h2>
+                                <div class="widget social">
+                        <h2>Social</h2>
                         <ul>
-                            <li><a href="http://codearcana.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate">atom feed</a></li>
+                            <li><a href="../" rel="alternate">atom feed</a></li>
                             
                                                     <li><a href="https://twitter.com/awreece">twitter</a></li>
                                                     <li><a href="https://github.com/awreece">github</a></li>
                                                     <li><a href="https://plus.google.com/106589059588263736517/posts">google+</a></li>
                                                 </ul>
                 </div><!-- /.social -->
-                </section><!-- /#extras -->
+                </aside><!-- /#sidebar -->
 
-        <footer id="contentinfo" class="body">
+        <footer id="footer" class="body">
                 <address id="about" class="vcard body">
-                Proudly powered by <a href="http://getpelican.com/">Pelican</a>, which takes great advantage of <a href="http://python.org">Python</a>.
+                Proudly powered by <a href="http://alexis.notmyidea.org/pelican/">pelican</a>, which takes great advantages of <a href="http://python.org">python</a>.
                 </address><!-- /#about -->
 
-                <p>The theme is by <a href="http://coding.smashingmagazine.com/2009/08/04/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, thanks!</p>
-        </footer><!-- /#contentinfo -->
+                <p>The theme is «notmyidea-cms», a modified version of «notmyidea», the default theme.</p>
+        </footer><!-- /#footer -->
 
     <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-40107691-1']);
-    _gaq.push(['_trackPageview']);
-    (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
     </script>
-<script type="text/javascript">
-    var disqus_shortname = 'codearcana';
-    (function () {
-        var s = document.createElement('script'); s.async = true;
-        s.type = 'text/javascript';
-        s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
-        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
-    }());
-</script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-40107691-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
 </body>
 </html>

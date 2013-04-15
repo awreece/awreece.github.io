@@ -4,8 +4,9 @@
         <title>Code Arcana</title>
         <meta charset="utf-8" />
         <link rel="stylesheet" href="./theme/css/main.css" type="text/css" />
-                <link href="http://codearcana.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Code Arcana Atom Feed" />
-                
+        <link href="./" type="application/atom+xml" rel="alternate" title="Code Arcana ATOM Feed" />
+        
+
         <!--[if IE]>
                 <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
 
@@ -19,79 +20,74 @@
 </head>
 
 <body id="index" class="home">
-<a href="https://github.com/awreece">
-<img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub" />
-</a>
         <header id="banner" class="body">
-                <h1><a href="./">Code Arcana </a></h1>
+                <h1><a href="./index.html">Code Arcana </a></h1>
                 <nav><ul>
                                     <li><a href="http://codearcana.com">Blog</a></li>
                                     <li><a href="http://codearcana.com">About Me</a></li>
-                                                                                                    <li ><a href="./category/performance.html">performance</a></li>
-                                    <li ><a href="./category/security.html">security</a></li>
+                                                                                <li><a href="./">Archives</a></li>
                                 </ul></nav>
         </header><!-- /#banner -->
+
         <section id="content" class="body">
 <h1>Archives for Code Arcana</h1>
 
 <dl>
     <dt>Tue 26 February 2013</dt>
-    <dd><a href="./introduction-to-using-profiling-tools.html">Introduction to Using Profiling&nbsp;Tools</a></dd>
+    <dd><a href='introduction-to-using-profiling-tools.html'>Introduction to Using Profiling&nbsp;Tools</a></dd>
     <dt>Sun 28 October 2012</dt>
-    <dd><a href="./pai-mei-on-mac-osx-108.html">Pai Mei on Mac <span class="caps">OSX</span>&nbsp;10.8</a></dd>
+    <dd><a href='pai-mei-on-mac-osx-108.html'>Pai Mei on Mac <span class="caps">OSX</span>&nbsp;10.8</a></dd>
     <dt>Fri 11 May 2012</dt>
-    <dd><a href="./analysis-of-a-parallel-memory-allocator.html">Analysis of a Parallel Memory&nbsp;Allocator</a></dd>
+    <dd><a href='analysis-of-a-parallel-memory-allocator.html'>Analysis of a Parallel Memory&nbsp;Allocator</a></dd>
     <dt>Sun 06 May 2012</dt>
-    <dd><a href="./securing-and-exploiting-go-binaries.html">Securing and Exploiting Go&nbsp;Binaries</a></dd>
+    <dd><a href='securing-and-exploiting-go-binaries.html'>Securing and Exploiting Go&nbsp;Binaries</a></dd>
 </dl>
 </section>
-        <section id="extras" class="body">
-                        <div class="blogroll">
-                        <h2>blogroll</h2>
+
+        <aside id="sidebar">
+                <div class="widget">
+                        <h2>Categories</h2>
+                        <ul>
+                                                   <li ><a href="./category/performance.html">performance</a></li>
+                                                   <li ><a href="./category/security.html">security</a></li>
+                                                </ul>
+                </div>
+                        <div class="widget blogroll">
+                        <h2>Blogroll</h2>
                         <ul>
                                                     <li><a href="http://ppp.cylab.cmu.edu/wordpress/">PPP Blog</a></li>
                                                     <li><a href="http://www.codinghorror.com/blog/">Coding Horror</a></li>
                                                     <li><a href="http://blog.regehr.org/">Embedded in Academia</a></li>
                                                 </ul>
                 </div><!-- /.blogroll -->
-                                <div class="social">
-                        <h2>social</h2>
+                                <div class="widget social">
+                        <h2>Social</h2>
                         <ul>
-                            <li><a href="http://codearcana.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate">atom feed</a></li>
+                            <li><a href="./" rel="alternate">atom feed</a></li>
                             
                                                     <li><a href="https://twitter.com/awreece">twitter</a></li>
                                                     <li><a href="https://github.com/awreece">github</a></li>
                                                     <li><a href="https://plus.google.com/106589059588263736517/posts">google+</a></li>
                                                 </ul>
                 </div><!-- /.social -->
-                </section><!-- /#extras -->
+                </aside><!-- /#sidebar -->
 
-        <footer id="contentinfo" class="body">
+        <footer id="footer" class="body">
                 <address id="about" class="vcard body">
-                Proudly powered by <a href="http://getpelican.com/">Pelican</a>, which takes great advantage of <a href="http://python.org">Python</a>.
+                Proudly powered by <a href="http://alexis.notmyidea.org/pelican/">pelican</a>, which takes great advantages of <a href="http://python.org">python</a>.
                 </address><!-- /#about -->
 
-                <p>The theme is by <a href="http://coding.smashingmagazine.com/2009/08/04/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, thanks!</p>
-        </footer><!-- /#contentinfo -->
+                <p>The theme is «notmyidea-cms», a modified version of «notmyidea», the default theme.</p>
+        </footer><!-- /#footer -->
 
     <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-40107691-1']);
-    _gaq.push(['_trackPageview']);
-    (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
     </script>
-<script type="text/javascript">
-    var disqus_shortname = 'codearcana';
-    (function () {
-        var s = document.createElement('script'); s.async = true;
-        s.type = 'text/javascript';
-        s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
-        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
-    }());
-</script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-40107691-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
 </body>
 </html>
