@@ -24,14 +24,20 @@
                 <h1><a href="../index.html">Code Arcana </a></h1>
                 <nav><ul>
                                     <li><a href="http://codearcana.com">Blog</a></li>
-                                    <li><a href="http://codearcana.com">About Me</a></li>
+                                    <li><a href="http://codearcana.com/about.html">About</a></li>
                                                                                                 </ul></nav>
         </header><!-- /#banner -->
 
-                 <section id="content" class="body">
-        <aside id="featured"><article>
-                <h1 class="entry-title"><a href="../pai-mei-on-mac-osx-108.html">Pai Mei on Mac OSX 10.8</a></h1>
-                <footer class="post-info">
+        <section id="content" class="body">
+ <h1>Recent articles</h1>
+ <hr />
+ <ol id="posts-list" class="hfeed">
+  <li><article class="hentry">
+    <header>
+      <h1><a href="../pai-mei-on-mac-osx-108.html" rel="bookmark" title="Permalink to Pai Mei on Mac OSX 10.8">Pai Mei on Mac OSX 10.8</a></h1>
+    </header>
+
+    <footer class="post-info">
         <abbr class="published" title="2012-10-28T00:00:00">
                 Sun 28 October 2012
         </abbr>
@@ -40,149 +46,18 @@
                 By <a class="url fn" href="../author/alex-reece.html">Alex Reece</a>
         </address>
         <p>In <a href="../category/security.html">security</a>. </p>
-<p>tags: <a href="../tag/mac-osx.html">mac osx</a><a href="../tag/reverse-engineering.html">reverse engineering</a></p></footer><!-- /.post-info --><!-- /.post-info -->
-                <p><a href="https://github.com/OpenRCE/paimei">Pai Mei</a> is an open source windows reverse engineering framework. At one point, it was ported to Mac OSX but the project is not very actively maintained and the current instructions are quite lacking. This post hopes to offer some guidance and reduce some of the frustration involved in installing Pai Mei on Mac OSX.</p>
-<h3>Getting the libraries</h3>
+<p>tags: <a href="../tag/mac-osx.html">mac osx</a><a href="../tag/reverse-engineering.html">reverse engineering</a></p></footer><!-- /.post-info -->
+    <div class="entry-content">
+      <p><a href="https://github.com/OpenRCE/paimei">Pai Mei</a> is an open source windows reverse engineering framework. At one point, it was ported to Mac OSX but the project is not very actively maintained and the current instructions are quite lacking. This post hopes to offer some guidance and reduce some of the frustration involved in installing ...</p>
+    </div><!-- /.entry-content -->
+    <a class="readmore" href="../pai-mei-on-mac-osx-108.html">read more</a>
+  </article></li>
+  <li><article class="hentry">
+    <header>
+      <h1><a href="../securing-and-exploiting-go-binaries.html" rel="bookmark" title="Permalink to Securing and Exploiting Go Binaries">Securing and Exploiting Go Binaries</a></h1>
+    </header>
 
-<p>The most difficult thing was finding how to get all the packages working. First and foremost, Pai Mei was designed for a 32 bit windows libary so some trickery is required to get it to work in 64 bit mode (which is necessary, because I could not get the latest <tt>wxPython</tt> from Homebrew to work in 32 bit mode). I did not realize at first that there was a way to use Pai Mei in 64 bit mode, so I spent a long time attempting to find universal binaries for wxPython and MySql.</p>
-<p>Pai Mei depends on a number of packages:
-<ul>
-    <li><tt>mysql-python</tt>: I installed via <tt>pip install mysql-python</tt>.</li>
-    <li><tt>pydasm</tt>: I installed via <tt>pip install pydasm</tt>.</li>
-        <li><tt>ctypes</tt>: I believe is included by default in Python 2.5 and higher.</li>
-        <li><tt>MySql</tt>: I installed via <tt>brew install mysql --universal</tt> to have a universal binary (downloading from the MySql homepage means you will get a single architecture binary).</li>
-        <li><tt>wxPython</tt>: I installed via <tt>brew install wxmac --universal</tt> and then manually symlinked it into correct location: </p>
-<div class="codehilite"><pre><span class="gp">#</span> ln -s /usr/local/Cellar/wxmac/2.9.4.0/lib/python2.7/site-packages/wx /Library/Python/2.7/site-packages/wx
-<span class="gp">#</span> ln -s /usr/local/Cellar/wxmac/2.9.4.0/lib/python2.7/site-packages/wxPython-2.9.4.0-py2.7.egg-info /Library/Python/2.7/site-packages/wxPython-2.9.4.0-py2.7.egg-info
-</pre></div>
-
-
-<p>(I sincerely hope there is a better way, but I couldn't find one). Note: as of yet, I haven't found a way to get <tt>wxPython</tt> to work in 32 bit python. I'll update the post when I figure that out.</li>
-</ul></p>
-<h3>Installing Pai Mei</h3>
-
-<p>Pai Mei uses the <a href="https://github.com/OpenRCE/pydbg">pydbg</a> library (I believe it is linked incorrectly in the repository as a git submodule). I strongly encourage you <a href="https://github.com/gdbinit/pydbg64">this</a> version of pydbg instead, which is a port to 64 Mac OSX by Charlie Miller and fG. Cloning the repository and installing via instructions in the <tt>MacOSX/README</tt> worked fine for me. Warning: you can only use this library to debug a 32 bit process from 32 bit python and a 64 bit process from 64 bit python: to use 32 bit python, do: </p>
-<div class="codehilite"><pre><span class="gp">$</span> <span class="nv">VERSIONER_PYTHON_PREFER_32_BIT</span><span class="o">=</span>yes /usr/bin/python
-</pre></div>
-
-
-<p>After installing <tt>pydbg64</tt>, I now had a directory tree that looked like:</p>
-<div class="codehilite"><pre><span class="go">pydbg64/</span>
-<span class="go">├── pydbg</span>
-<span class="go">└── ...</span>
-<span class="go">paimei/</span>
-<span class="go">├── pgraph</span>
-<span class="go">├── pida</span>
-<span class="go">├── pydbg</span>
-<span class="go">├── utils</span>
-<span class="go">└── ...</span>
-</pre></div>
-
-
-<p>I deleted the <tt>paimei/pydbg</tt> directory and added a symlink to the <tt>pydbg64/pydbg</tt> directory, then  copied the fat <tt>libmacdll.dylib</tt> from <tt>pydbg64/pydbg/libmacdll.dylib</tt> to <tt>paimei/utils</tt>. This left a directory that looked like this:</p>
-<div class="codehilite"><pre><span class="go">pydbg64/</span>
-<span class="go">├── pydbg</span>
-<span class="go">└── ...</span>
-<span class="go">paimei/</span>
-<span class="go">├── pgraph</span>
-<span class="go">├── pida</span>
-<span class="go">├── pydbg -&gt; ../pydbg64/pydbg</span>
-<span class="go">├── utils</span>
-<span class="go">│   ├── libmacdll.dylib</span>
-<span class="go">│   └── ...</span>
-<span class="go">└── ...</span>
-</pre></div>
-
-
-<p>We now need to install all the Pai Mei packages (<tt>utils</tt>, <tt>pida</tt>, <tt>pgraph</tt>) into the correct place so python can find them.</p>
-<div class="codehilite"><pre><span class="gp">#</span> ln -s /usr/local/paimei/pida /Library/Python/2.7/site-packages/pida
-<span class="gp">#</span> ln -s /usr/local/paimei/pgraph /Library/Python/2.7/site-packages/pgraph
-<span class="gp">#</span> ln -s /usr/local/paimei/utils /Library/Python/2.7/site-packages/utils
-</pre></div>
-
-
-<h3>Running Pai Mei</h3>
-
-<p>Before we can run Pai Mei, we must initialize the database: </p>
-<div class="codehilite"><pre><span class="gp">$</span> python /usr/local/paimei/__setup_mysql.py localhost root rootpassword
-</pre></div>
-
-
-<p>Next, we have to patch a few bugs in Pai Mei (it calls a deprecated function and the MySql modal tries to helpfully destroy itself after successfully connecting to the database, but unfortunately does so before Python is completely done with it).</p>
-<div class="codehilite"><pre><span class="gh">diff --git a/console/PAIMEIconsole.pyw b/console/PAIMEIconsole.pyw</span>
-<span class="gh">index a45cbbf..0fea2ae 100644</span>
-<span class="gd">--- a/console/PAIMEIconsole.pyw</span>
-<span class="gi">+++ b/console/PAIMEIconsole.pyw</span>
-<span class="gu">@@ -82,7 +82,7 @@ class PAIMEIapp (wx.App):</span>
-     &#39;&#39;&#39;
-
-     def OnInit (self):
-<span class="gd">-        wx.InitAllImageHandlers()</span>
-<span class="gi">+#        wx.InitAllImageHandlers()</span>
-
-         splash = PAIMEIsplash()
-         splash.Show()
-<span class="gh">diff --git a/console/support/mysql_connect_dialog.py b/console/support/mysql_connect</span>
-<span class="gh">index 2201521..b641e37 100644</span>
-<span class="gd">--- a/console/support/mysql_connect_dialog.py</span>
-<span class="gi">+++ b/console/support/mysql_connect_dialog.py</span>
-<span class="gu">@@ -104,7 +104,7 @@ class mysql_connect_dialog(wx.Dialog):</span>
-         self.parent.mysql_password = password
-
-         self.mysql_connect(host, username, password)
-<span class="gd">-        self.Destroy()</span>
-<span class="gi">+#       self.Destroy()</span>
-
-     def mysql_connect (self, host, username, password):
-         try:
-<span class="gh">diff --git a/utils/process_stalker.py b/utils/process_stalker.py</span>
-<span class="gh">index 987eec9..32206e4 100644</span>
-<span class="gd">--- a/utils/process_stalker.py</span>
-<span class="gi">+++ b/utils/process_stalker.py</span>
-<span class="gu">@@ -281,11 +283,15 @@ class process_stalker:</span>
-                                 continue
-
-                         basic_blocks.append(bb.ea_start)
-
-                 if last_dll: self.log(&quot;Setting %d breakpoints on basic blocks in %s
-                 else:        self.log(&quot;Setting %d breakpoints on basic blocks in ma
-
-<span class="gd">-                self.pydbg.bp_set(basic_blocks, restore=self.restore)</span>
-<span class="gi">+                for block in basic_blocks:</span>
-<span class="gi">+                       self.pydbg.bp_set(block, restore=self.restore)</span>
-</pre></div>
-
-
-<p>Now, we must make sure that python has the appropriate permisisons to monitor other processes before we can use Pai Mei. Unfortunately, this is not so easy anymore - since Snow Leopard, processes must be code signed in order to escalate privileges (a good writeup <a href="http://os-tres.net/blog/2010/02/17/mac-os-x-and-task-for-pid-mach-call/">here</a>). We could possibly patch pydbg to ask for permissions and sign it to work or disabling some system wide setting, but for now we will just run Pai Mei as root.</p>
-<p>A last disclaimer: the process stalker uses the name of the executable to find which pida module to load. Unfortunately, it truncates the process name, striping the directory, but insists that the name matches the full path to the pida module. I managed to hard code it to just always use the first pida module, but I don't know what the correct solution is. </p>
-<div class="codehilite"><pre><span class="gh">diff --git a/console/modules/_PAIMEIpstalker/ProcessListCtrl.py b/console/modules/_PAIMEIpstalker/ProcessListCtrl.py</span>
-<span class="gh">index b37bd01..63880e3 100644</span>
-<span class="gd">--- a/console/modules/_PAIMEIpstalker/ProcessListCtrl.py</span>
-<span class="gi">+++ b/console/modules/_PAIMEIpstalker/ProcessListCtrl.py</span>
-<span class="gu">@@ -166,7 +166,7 @@ class ProcessListCtrl (wx.ListCtrl, ListCtrlAutoWidthMixin, ColumnSorterMixin):</span>
-             heavy               = self.top.heavy.GetValue(),                \
-             ignore_first_chance = self.top.ignore_first_chance.GetValue(),  \
-             log                 = self.top.msg,                             \
-<span class="gd">-            main                = main,                                     \</span>
-<span class="gi">+            main                = self.top.pida_modules.keys()[0],          \</span>
-             mysql               = self.top.main_frame.mysql,                \
-             pida_modules        = self.top.pida_modules,                    \
-             pydbg               = dbg,                                      \
-</pre></div>
-
-
-<p>After all this, I finally got Pai Mei (barely) working but I suspect I would have had an easier time and more fun just writing it myself ;-)</p>
-        </article></aside><!-- /#featured -->
-                        <h1>Other articles</h1>
-                <hr />
-                    <ol id="posts-list" class="hfeed">
-                        <li><article class="hentry">
-                <header>
-                        <h1><a href="../securing-and-exploiting-go-binaries.html" rel="bookmark" title="Permalink to Securing and Exploiting Go Binaries">Securing and Exploiting Go Binaries</a></h1>
-                </header>
-
-                <div class="entry-content">
-                <footer class="post-info">
+    <footer class="post-info">
         <abbr class="published" title="2012-05-06T00:00:00">
                 Sun 06 May 2012
         </abbr>
@@ -191,12 +66,13 @@
                 By <a class="url fn" href="../author/alex-reece.html">Alex Reece</a>
         </address>
         <p>In <a href="../category/security.html">security</a>. </p>
-<p>tags: <a href="../tag/golang.html">golang</a><a href="../tag/exploitation.html">exploitation</a></p></footer><!-- /.post-info --><!-- /.post-info -->
-                I have spent some time over the past month or so trying to use Go binaries in a secure manner and trying to exploit Go binaries and I thought it would be useful if I talked a little bit about my journey.
-                <a class="readmore" href="../securing-and-exploiting-go-binaries.html">read more</a>
-                </div><!-- /.entry-content -->
-        </article></li>
-    </ol><!-- /#posts-list -->
+<p>tags: <a href="../tag/golang.html">golang</a><a href="../tag/exploitation.html">exploitation</a></p></footer><!-- /.post-info -->
+    <div class="entry-content">
+      I have spent some time over the past month or so trying to use Go binaries in a secure manner and trying to exploit Go binaries and I thought it would be useful if I talked a little bit about my journey.
+    </div><!-- /.entry-content -->
+    <a class="readmore" href="../securing-and-exploiting-go-binaries.html">read more</a>
+  </article></li>
+</ol><!-- /#posts-list -->
 </section><!-- /#content -->
 
         <aside id="sidebar">
@@ -211,19 +87,19 @@
 		    <h2>Tags</h2>
 		    <ul class="cloud">
 						<li class="tag-4">
+			  <a href="../tag/malloc.html">malloc</a>
+			</li>
+						<li class="tag-4">
 			  <a href="../tag/golang.html">golang</a>
+			</li>
+						<li class="tag-4">
+			  <a href="../tag/profiling.html">profiling</a>
 			</li>
 						<li class="tag-4">
 			  <a href="../tag/mac-osx.html">mac osx</a>
 			</li>
 						<li class="tag-4">
 			  <a href="../tag/exploitation.html">exploitation</a>
-			</li>
-						<li class="tag-4">
-			  <a href="../tag/profiling.html">profiling</a>
-			</li>
-						<li class="tag-4">
-			  <a href="../tag/malloc.html">malloc</a>
 			</li>
 						<li class="tag-4">
 			  <a href="../tag/reverse-engineering.html">reverse engineering</a>
@@ -251,13 +127,6 @@
 			                            </ul>
                 </div><!-- /.social -->
                 </aside><!-- /#sidebar -->
-
-        <footer id="footer" class="body">
-                <address id="about" class="vcard body">
-                Proudly powered by <a href="http://alexis.notmyidea.org/pelican/">pelican</a>, which takes great advantages of <a href="http://python.org">python</a>.
-                </address><!-- /#about -->
-        </footer><!-- /#footer -->
-
     <script type="text/javascript">
     var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
     document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
