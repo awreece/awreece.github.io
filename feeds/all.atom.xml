@@ -709,4 +709,86 @@ There are writeups of this problem available by:
 Go binaries are compiled with a lot of debug info, which some people might want to strip. The Go heap is executable and deterministic, making the exploitation of the pCTF Bunyan problem relatively straightforward.
 &lt;/p&gt;
 
-&lt;p&gt;&lt;span style="display:none;"&gt;Writeup by Alex Reece, see me on &lt;a href="https://plus.google.com/106589059588263736517?rel=author"&gt;Google&lt;/a&gt;+.&lt;/span&gt; &lt;/p&gt;</summary><category term="golang"></category><category term="exploitation"></category></entry></feed>
+&lt;p&gt;&lt;span style="display:none;"&gt;Writeup by Alex Reece, see me on &lt;a href="https://plus.google.com/106589059588263736517?rel=author"&gt;Google&lt;/a&gt;+.&lt;/span&gt; &lt;/p&gt;</summary><category term="golang"></category><category term="exploitation"></category></entry><entry><title>CS Theory with Make</title><link href="http://codearcana.com/posts/2012/03/cs-theory-with-make.html" rel="alternate"></link><updated>2012-03-05T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2012-03-05:posts/2012/03/cs-theory-with-make.html</id><summary type="html">&lt;p&gt;eventually provide a constructive proof that the make syntax is turing complete via reduction to μ-recursion.&lt;/p&gt;
+&lt;p&gt;First, we have to construct numbers. I used the representation of numbers as
+unary strings of the character &lt;code&gt;0&lt;/code&gt;: ie, the number 4 is represented by &lt;code&gt;0000&lt;/code&gt;
+(zero being the empty string). We can also compute the successor of a number:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="c"&gt;# If this is called as a make function, $(1) will be replaced with the first&lt;/span&gt;
+&lt;span class="c"&gt;# function argument.&lt;/span&gt;
+&lt;span class="nv"&gt;successor&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; O&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;
+
+&lt;span class="k"&gt;$(&lt;/span&gt;info &lt;span class="k"&gt;$(&lt;/span&gt;call successor,O&lt;span class="k"&gt;))&lt;/span&gt;  &lt;span class="c"&gt;# Outputs &amp;#39;OO&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Life is a lot easier if we can compute predecesser. Luckily, this is pretty
+easy for us too:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nv"&gt;monus_one&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;patsubst O%,%,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;
+
+&lt;span class="k"&gt;$(&lt;/span&gt;info &lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,OO&lt;span class="k"&gt;))&lt;/span&gt;  &lt;span class="c"&gt;# Outputs &amp;#39;0&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now lets actually do computation with this. It is hideous, but we can actually
+compute fibonacci numbers in make:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nv"&gt;fib&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call fib,&lt;span class="k"&gt;$(&lt;/span&gt;call &lt;span class="se"&gt;\&lt;/span&gt;
+  monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;&lt;span class="o"&gt;))&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;call fib,&lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))))&lt;/span&gt;,O&lt;span class="o"&gt;)&lt;/span&gt;,O&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Let me try to break this up a bit. I'll add comments but it will no longer be
+valid make.&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="c"&gt;# fib (n):&lt;/span&gt;
+&lt;span class="nv"&gt;fib&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;, &lt;span class="c"&gt;# If n &amp;gt; 0:&lt;/span&gt;
+          &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;, &lt;span class="c"&gt;# if n - 1 &amp;gt; 0:&lt;/span&gt;
+&lt;span class="c"&gt;              # return fib(n-1) + fib(n-2)&lt;/span&gt;
+              &lt;span class="k"&gt;$(&lt;/span&gt;call fib,&lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)))$(&lt;/span&gt;call fib,&lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;call monus_one, &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))))&lt;/span&gt;
+          ,O&lt;span class="k"&gt;)&lt;/span&gt; &lt;span class="c"&gt;# else: return 1&lt;/span&gt;
+      ,O&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="c"&gt;# else: return 1&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This is pretty fun and all, but we haven't actually done anything that we
+couldn't do with a primitive recursive function. We can easily show that make
+is more powerful than primitive recusion by encoding the &lt;a href="https://en.wikipedia.org/wiki/Ackermann_function"&gt;Ackerman
+function&lt;/a&gt;.&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nv"&gt;ack&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;2&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call ack,&lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call &lt;span class="se"&gt;\&lt;/span&gt;
+  ack,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;2&lt;span class="k"&gt;))&lt;/span&gt;&lt;span class="o"&gt;))&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call ack,&lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;,O&lt;span class="k"&gt;)&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;2&lt;span class="k"&gt;)&lt;/span&gt;O&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;All right, so how far can we take this? As it turns out, there is a class of
+functions that are computable only by a turing complete language:
+&lt;a href="https://en.wikipedia.org/wiki/%CE%9C-recursive_function"&gt;µ-recursive 
+functions&lt;/a&gt;. They are
+the primitive recursive functions with the addition of the minimization (µ)
+operator: µ of f(x) is the minimum x such that f(x)=0. As it turns out, we can
+encode this operator in make:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="c"&gt;# muh f x returns the first number greater than or equal to x such&lt;/span&gt;
+&lt;span class="c"&gt;# that f(x) is true.&lt;/span&gt;
+&lt;span class="nv"&gt;muh&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;call &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;2&lt;span class="k"&gt;))&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;2&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call muh,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,O&lt;span class="k"&gt;$(&lt;/span&gt;2&lt;span class="k"&gt;)))&lt;/span&gt;
+
+&lt;span class="c"&gt;# mu f x returns the first number greater than or equal to 0 such&lt;/span&gt;
+&lt;span class="c"&gt;# that f(x) is true.&lt;/span&gt;
+&lt;span class="nv"&gt;mu&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;call muh,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Wow! There we have it, make is turing complete. As a final piece of fun, here
+is the inverse ackerman function:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nv"&gt;not&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,,O&lt;span class="k"&gt;)&lt;/span&gt;
+
+&lt;span class="c"&gt;# lesseq_template n creates a function lesseq_y that returns y &amp;lt; x&lt;/span&gt;
+&lt;span class="cp"&gt;define lesseq_template&lt;/span&gt;
+  lesseq_&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$$&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;findstring &lt;span class="nv"&gt;$$&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;1&lt;span class="o"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;span class="cp"&gt;endef&lt;/span&gt;
+
+&lt;span class="c"&gt;# geack_template y creates a function geack_y that returns ack(x) &amp;gt; y&lt;/span&gt;
+&lt;span class="cp"&gt;define geack_template&lt;/span&gt;
+  geack_&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;&lt;span class="nb"&gt;eval&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;call lesseq_template,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)))&lt;/span&gt;&lt;span class="se"&gt;\&lt;/span&gt;
+    &lt;span class="nv"&gt;$$&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;call not,&lt;span class="nv"&gt;$$&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;call lesseq_&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="nv"&gt;$$&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;call ack,&lt;span class="nv"&gt;$$&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;1&lt;span class="o"&gt;)&lt;/span&gt;,&lt;span class="nv"&gt;$$&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;1&lt;span class="o"&gt;))))&lt;/span&gt;
+&lt;span class="cp"&gt;endef&lt;/span&gt;
+
+&lt;span class="c"&gt;# invack n: Find the first value x such that ack(x) &amp;gt; n.&lt;/span&gt;
+&lt;span class="nv"&gt;invack&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;&lt;span class="nb"&gt;eval&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;call geack_template,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)))$(&lt;/span&gt;call mu,geack_&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</summary><category term="make"></category><category term="theory"></category></entry></feed>
