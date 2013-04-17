@@ -768,7 +768,7 @@ encode this operator in make:&lt;/p&gt;
 &lt;span class="c"&gt;# that f(x) is true.&lt;/span&gt;
 &lt;span class="nv"&gt;muh&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;call &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;2&lt;span class="k"&gt;))&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;2&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call muh,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,O&lt;span class="k"&gt;$(&lt;/span&gt;2&lt;span class="k"&gt;)))&lt;/span&gt;
 
-&lt;span class="c"&gt;# mu f x returns the first number greater than or equal to 0 such&lt;/span&gt;
+&lt;span class="c"&gt;# mu f returns the first number greater than or equal to 0 such&lt;/span&gt;
 &lt;span class="c"&gt;# that f(x) is true.&lt;/span&gt;
 &lt;span class="nv"&gt;mu&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;call muh,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
