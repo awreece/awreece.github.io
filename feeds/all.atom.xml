@@ -2,11 +2,6 @@
 <feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/all.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2013-04-28T00:00:00-07:00</updated><entry><title>PicoCTF Videos</title><link href="http://codearcana.com/posts/2013/04/28/picoctf-videos.html" rel="alternate"></link><updated>2013-04-28T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-04-28:posts/2013/04/28/picoctf-videos.html</id><summary type="html">&lt;p&gt;For &lt;a href="picoctf.com"&gt;PicoCTF&lt;/a&gt; this year, I made some slides and recorded some
 video tutorials. I'll probably turn these into better tutorials on this blog at
 some later point.&lt;/p&gt;
-&lt;p&gt;&lt;em&gt;Disclaimer: because I re-recorded over some of the slides in keynote halfway 
-through,
-the audio cuts out when played on the web. If you download and play locally, 
-it works fine. Anyone
-know whats up or how to fix?&lt;/em&gt;&lt;/p&gt;
 &lt;h1&gt;Introduction to Return Oriented Programming (ROP)&lt;/h1&gt;
 &lt;video width="100%" controls&gt;
   &lt;source src="https://dl.dropboxusercontent.com/u/15197322/easy_rop.mp4"&gt;
