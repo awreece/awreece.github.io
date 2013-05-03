@@ -15,7 +15,7 @@ writes to arbitrary memory addresses. The following program contains such an err
 
 
 &lt;p&gt;Since &lt;code&gt;printf&lt;/code&gt; has a variable number of arguments, it must use the format string to determine the number of arguments.
-In the case above, the attacker can pass the string &lt;code&gt;"%p %p %p %p %p %p %p %p %p %p %p %p %p %p %p"&lt;/code&gt; and fool the &lt;code&gt;printf&lt;/code&gt; into thinking it has 5
+In the case above, the attacker can pass the string &lt;code&gt;"%p %p %p %p %p %p %p %p %p %p %p %p %p %p %p"&lt;/code&gt; and fool the &lt;code&gt;printf&lt;/code&gt; into thinking it has 15
 arguments. It will naively print the next 15 addresses on the stack, thinking they are its arguments:&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./a.out &lt;span class="s2"&gt;&amp;quot;%p %p %p %p %p %p %p %p %p %p %p %p %p %p %p&amp;quot;&lt;/span&gt;
 &lt;span class="go"&gt;0xffffdddd 0x64 0xf7ec1289 0xffffdbdf 0xffffdbde (nil) 0xffffdcc4 0xffffdc64 (nil) 0x25207025 0x70252070 0x20702520 0x25207025 0x70252070 0x20702520&lt;/span&gt;
