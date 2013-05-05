@@ -213,13 +213,13 @@ this, you need to make sure your stack looks like the stack used by &lt;code&gt;
 first see what the stack looks like under &lt;code&gt;gdb&lt;/code&gt; and then always run our exploit
 with that environment:&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; env -i /usr/bin/printenv
-&lt;span class="gp"&gt;$&lt;/span&gt; env -i gdb -q /usr/bin/printenv
+&lt;span class="gp"&gt;$&lt;/span&gt; gdb -q /usr/bin/printenv
 &lt;span class="go"&gt;Reading symbols from /usr/bin/printenv...(no debugging symbols found)...done.&lt;/span&gt;
+&lt;span class="go"&gt;(gdb) unset env&lt;/span&gt;
+&lt;span class="go"&gt;Delete all environment variables? (y or n) y&lt;/span&gt;
 &lt;span class="go"&gt;(gdb) r&lt;/span&gt;
 &lt;span class="go"&gt;Starting program: /usr/bin/printenv &lt;/span&gt;
-&lt;span class="go"&gt;COLUMNS=84&lt;/span&gt;
 &lt;span class="go"&gt;PWD=/home/ppp&lt;/span&gt;
-&lt;span class="go"&gt;LINES=24&lt;/span&gt;
 &lt;span class="go"&gt;SHLVL=0&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -227,7 +227,7 @@ with that environment:&lt;/p&gt;
 &lt;p&gt;Now that we know the environment used by &lt;code&gt;gdb&lt;/code&gt;, we can make sure to always 
 execute our payload with the same environment so we can test our exploit in
 &lt;code&gt;gdb&lt;/code&gt;:&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; env -i &lt;span class="nv"&gt;COLUMNS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;84 &lt;span class="nv"&gt;PWD&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;&lt;span class="nb"&gt;pwd&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt; &lt;span class="nv"&gt;LINES&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;24 &lt;span class="nv"&gt;SHLVL&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0 ./a.out &lt;span class="s2"&gt;&amp;quot;$(python -c &amp;#39;print &amp;quot;&lt;/span&gt;my_exploit_string&lt;span class="s2"&gt;&amp;quot;&amp;#39;)&amp;quot;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; env -i &lt;span class="nv"&gt;PWD&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;&lt;span class="nb"&gt;pwd&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt; &lt;span class="nv"&gt;SHLVL&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0 ./a.out &lt;span class="s2"&gt;&amp;quot;$(python -c &amp;#39;print &amp;quot;&lt;/span&gt;my_exploit_string&lt;span class="s2"&gt;&amp;quot;&amp;#39;)&amp;quot;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
