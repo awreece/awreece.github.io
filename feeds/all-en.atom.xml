@@ -206,7 +206,7 @@ stays the same length. Here is the final exploit:&lt;/p&gt;
 &lt;p&gt;Woo hoo, we got our shell!&lt;/p&gt;
 &lt;h1&gt;Debugging an exploit&lt;/h1&gt;
 &lt;p&gt;Sometimes, things don't go as planned and we don't get a shell. If this
-happens, &lt;code&gt;gdb&lt;/code&gt; is your friend. Unfortunately, &lt;code&gt;gdb&lt;/code&gt; isn't a very godo friend.
+happens, &lt;code&gt;gdb&lt;/code&gt; is your friend. Unfortunately, &lt;code&gt;gdb&lt;/code&gt; isn't a very good friend.
 It helpfully puts stuff in your environment, so any careful calculations you
 were doing related to the stack may no longer be valid. In order to resolve
 this, you need to make sure your stack looks like the stack used by &lt;code&gt;gdb&lt;/code&gt;. We
