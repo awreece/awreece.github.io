@@ -1,5 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/performance.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2013-02-26T00:00:00-08:00</updated><entry><title>Introduction to Using Profiling Tools</title><link href="http://codearcana.com/posts/2013/02/26/introduction-to-using-profiling-tools.html" rel="alternate"></link><updated>2013-02-26T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-02-26:posts/2013/02/26/introduction-to-using-profiling-tools.html</id><summary type="html">&lt;h2&gt;Performance tools&lt;/h2&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/performance.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2013-05-10T00:00:00-07:00</updated><entry><title>Why is omp_get_num_procs so bad?</title><link href="http://codearcana.com/posts/2013/05/10/why-is-omp_get_num_procs-so-bad.html" rel="alternate"></link><updated>2013-05-10T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-05-10:posts/2013/05/10/why-is-omp_get_num_procs-so-bad.html</id><summary type="html">&lt;p&gt;I was advising some students in
+&lt;a href="http://15418.courses.cs.cmu.edu/15418_spr13/"&gt;15-418&lt;/a&gt;, a parallel computer
+architecture and programming course at CMU. They were attempting to make a
+multithreaded puzzle solver using OpenMP and had some difficulty using the CPU
+profiler from &lt;a href="https://code.google.com/p/gperftools/"&gt;Google &lt;code&gt;perftools&lt;/code&gt;&lt;/a&gt;.
+Basically, the profiler kept reporting that &lt;code&gt;omp_get_num_procs&lt;/code&gt; was taking a
+huge portion of the program:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt;  pprof --text solver out.prof 
+&lt;span class="go"&gt;Using local file solver.&lt;/span&gt;
+&lt;span class="go"&gt;Using local file out.prof.&lt;/span&gt;
+&lt;span class="go"&gt;Removing _L_unlock_16 from all stack traces.&lt;/span&gt;
+&lt;span class="go"&gt;Total: 1382 samples&lt;/span&gt;
+&lt;span class="go"&gt;     633  45.8%  45.8%      633  45.8% omp_get_num_procs&lt;/span&gt;
+&lt;span class="go"&gt;     283  20.5%  66.3%      283  20.5% is_complete_row&lt;/span&gt;
+&lt;span class="go"&gt;     226  16.4%  82.6%      226  16.4% partial_check_col&lt;/span&gt;
+&lt;span class="go"&gt;     102   7.4%  90.0%      744  53.8% backtrack_row_solve&lt;/span&gt;
+&lt;span class="go"&gt;      42   3.0%  93.1%       85   6.2% partial_check_row&lt;/span&gt;
+&lt;span class="go"&gt;      41   3.0%  96.0%      351  25.4% partial_check&lt;/span&gt;
+&lt;span class="go"&gt;      26   1.9%  97.9%      292  21.1% complete_and_check_puzzle&lt;/span&gt;
+&lt;span class="go"&gt;      25   1.8%  99.7%       25   1.8% is_complete_col&lt;/span&gt;
+&lt;span class="go"&gt;       3   0.2%  99.9%      749  54.2% _Z28backtrack_row_solve_paralleliiiPiPS_S0_._omp_fn.0&lt;/span&gt;
+&lt;span class="go"&gt;       1   0.1% 100.0%     1328  96.1% GOMP_taskwait&lt;/span&gt;
+&lt;span class="go"&gt;       0   0.0% 100.0%        1   0.1% GOMP_loop_dynamic_start&lt;/span&gt;
+&lt;span class="go"&gt;       0   0.0% 100.0%     1258  91.0% __clone&lt;/span&gt;
+&lt;span class="go"&gt;       0   0.0% 100.0%      124   9.0% __libc_start_main&lt;/span&gt;
+&lt;span class="go"&gt;       0   0.0% 100.0%      124   9.0% _start&lt;/span&gt;
+&lt;span class="go"&gt;       0   0.0% 100.0%      124   9.0% backtrack_row_solve_parallel&lt;/span&gt;
+&lt;span class="go"&gt;       0   0.0% 100.0%      124   9.0% backtrack_solve&lt;/span&gt;
+&lt;span class="go"&gt;       0   0.0% 100.0%      124   9.0% main&lt;/span&gt;
+&lt;span class="go"&gt;       0   0.0% 100.0%      124   9.0% solve&lt;/span&gt;
+&lt;span class="go"&gt;       0   0.0% 100.0%     1258  91.0% start_thread&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This was clearly not right, so I spent some time digging around. If we look at 
+the callgraph to find which functions call &lt;code&gt;omp_get_num_procs&lt;/code&gt;, we see that the 
+culprit is &lt;code&gt;GOMP_taskwait&lt;/code&gt;: &lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; pprof --gv --focus&lt;span class="o"&gt;=&lt;/span&gt;omp_get_num_procs solver out.prof
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;!-- TODO(awreece) Use the images support with newer pelican. --&gt;
+
+&lt;p&gt;&lt;img alt="omp_get_num_procs call graph" src="http://codearcana.com/images/omp_get_num_procs.png" title="omp_get_num_procs call graph" /&gt;&lt;/p&gt;
+&lt;p&gt;We cannot view annotated source for this function (since we don't have source),
+but we &lt;em&gt;can&lt;/em&gt; look at the annotated disassembly. &lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; pprof --disas&lt;span class="o"&gt;=&lt;/span&gt;GOMP_taskwait solver out.prof 
+&lt;span class="go"&gt;ROUTINE ====================== GOMP_taskwait&lt;/span&gt;
+&lt;span class="go"&gt;     1   1330 samples (flat, cumulative) 96.2% of total&lt;/span&gt;
+&lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
+&lt;span class="go"&gt;     .     16        84ef: callq  9ca0 &amp;lt;omp_get_num_procs+0x540&amp;gt;&lt;/span&gt;
+&lt;span class="go"&gt;     .      .        84f4: nopl   0x0(%rax)&lt;/span&gt;
+&lt;span class="go"&gt;     .      .        84f8: mov    %fs:0x10(%rbx),%r13&lt;/span&gt;
+&lt;span class="go"&gt;     .      .        84fd: mov    %r12,%rdi&lt;/span&gt;
+&lt;span class="go"&gt;     .    695        8500: callq  *%rbp&lt;/span&gt;
+&lt;span class="go"&gt;     .      .        8502: lea    0x80(%r13),%rdi&lt;/span&gt;
+&lt;span class="go"&gt;     .    391        8509: callq  9b40 &amp;lt;omp_get_num_procs+0x3e0&amp;gt;&lt;/span&gt;
+&lt;span class="go"&gt;     .      .        850e: mov    %r14,%rdi&lt;/span&gt;
+&lt;span class="go"&gt;     .    156        8511: callq  9ca0 &amp;lt;omp_get_num_procs+0x540&amp;gt;&lt;/span&gt;
+&lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Aha! The functions are being poorly identified, so it appears that &lt;em&gt;all&lt;/em&gt; calls to OpenMP library functions are being understood as calls to &lt;code&gt;omp_get_num_procs&lt;/code&gt;. Unfortunately, there is nothing we can do about it - that library does not export any symbols:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ldd solver | grep gomp
+&lt;span class="go"&gt;    libgomp.so.1 =&amp;gt; /usr/lib64/libgomp.so.1 (0x00007f19e9109000)&lt;/span&gt;
+&lt;span class="gp"&gt;$&lt;/span&gt; nm /usr/lib64/libgomp.so.1
+&lt;span class="go"&gt;nm: /usr/lib64/libgomp.so.1: no symbols&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;At least now why &lt;code&gt;omp_get_num_threads&lt;/code&gt; is reported so much! We probably need to count all calls to &lt;code&gt;omp_get_num_threads&lt;/code&gt; as 'overhead from OpenMP' but otherwise not trust the specific counts.
+In my opinion, the profiler should emit function addresses 
+for functions that don't map to some symbol, but I understand that is hard. For now, we will get more meaningful profiling data about our code if we do:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; pprof --text --ignore&lt;span class="o"&gt;=&lt;/span&gt;omp_get_num_threads solver out.prof 
+&lt;span class="go"&gt;Using local file solver.&lt;/span&gt;
+&lt;span class="go"&gt;Using local file out.prof.&lt;/span&gt;
+&lt;span class="go"&gt;Removing _L_unlock_16 from all stack traces.&lt;/span&gt;
+&lt;span class="go"&gt;Total: 1382 samples&lt;/span&gt;
+&lt;span class="go"&gt;     633  45.8%  45.8%      633  45.8% omp_get_num_procs&lt;/span&gt;
+&lt;span class="go"&gt;     283  20.5%  66.3%      283  20.5% is_complete_row&lt;/span&gt;
+&lt;span class="go"&gt;     226  16.4%  82.6%      226  16.4% partial_check_col&lt;/span&gt;
+&lt;span class="go"&gt;     102   7.4%  90.0%      744  53.8% backtrack_row_solve&lt;/span&gt;
+&lt;span class="go"&gt;      42   3.0%  93.1%       85   6.2% partial_check_row&lt;/span&gt;
+&lt;span class="go"&gt;      41   3.0%  96.0%      351  25.4% partial_check&lt;/span&gt;
+&lt;span class="go"&gt;      26   1.9%  97.9%      292  21.1% complete_and_check_puzzle&lt;/span&gt;
+&lt;span class="go"&gt;      25   1.8%  99.7%       25   1.8% is_complete_col&lt;/span&gt;
+&lt;span class="go"&gt;       3   0.2%  99.9%      749  54.2% _Z28backtrack_row_solve_paralleliiiPiPS_S0_._omp_fn.0&lt;/span&gt;
+&lt;span class="go"&gt;       1   0.1% 100.0%     1328  96.1% GOMP_taskwait&lt;/span&gt;
+&lt;span class="go"&gt;       0   0.0% 100.0%        1   0.1% GOMP_loop_dynamic_start&lt;/span&gt;
+&lt;span class="go"&gt;       0   0.0% 100.0%     1258  91.0% __clone&lt;/span&gt;
+&lt;span class="go"&gt;       0   0.0% 100.0%      124   9.0% __libc_start_main&lt;/span&gt;
+&lt;span class="go"&gt;       0   0.0% 100.0%      124   9.0% _start&lt;/span&gt;
+&lt;span class="go"&gt;       0   0.0% 100.0%      124   9.0% backtrack_row_solve_parallel&lt;/span&gt;
+&lt;span class="go"&gt;       0   0.0% 100.0%      124   9.0% backtrack_solve&lt;/span&gt;
+&lt;span class="go"&gt;       0   0.0% 100.0%      124   9.0% main&lt;/span&gt;
+&lt;span class="go"&gt;       0   0.0% 100.0%      124   9.0% solve&lt;/span&gt;
+&lt;span class="go"&gt;       0   0.0% 100.0%     1258  91.0% start_thread&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</summary><category term="profiling"></category></entry><entry><title>Introduction to Using Profiling Tools</title><link href="http://codearcana.com/posts/2013/02/26/introduction-to-using-profiling-tools.html" rel="alternate"></link><updated>2013-02-26T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-02-26:posts/2013/02/26/introduction-to-using-profiling-tools.html</id><summary type="html">&lt;h2&gt;Performance tools&lt;/h2&gt;
 &lt;p&gt;Frequently, we need to identify slow portions of our programs so we can improve performance. There are a number of tools available to profile programs and identify how much time is spent where. The most common of these tools sample the program periodically, recording information to be later analyzed. Typically, they involve a phase spent recording data and a later phase for analyzing it. We will use two common tools to analyze a simple program: Google &lt;code&gt;pprof&lt;/code&gt; and Linux &lt;code&gt;perf&lt;/code&gt;.&lt;/p&gt;
 &lt;h3&gt;Google &lt;code&gt;pprof&lt;/code&gt;&lt;/h3&gt;
 &lt;p&gt;Google &lt;code&gt;pprof&lt;/code&gt; is a tool available as part of the Google &lt;a href="https://code.google.com/p/gperftools/"&gt;&lt;code&gt;perftools&lt;/code&gt;&lt;/a&gt; package. It is is used with
