@@ -34,7 +34,7 @@
  <ol id="posts-list" class="hfeed">
   <li><article class="hentry">
     <header>
-      <h1><a href="../posts/2013/05/10/why-is-omp_get_num_procs-so-bad.html" rel="bookmark" title="Permalink to Why is <code>omp_get_num_procs</code> so bad?">Why is <code>omp_get_num_procs</code> so bad?</a></h1>
+      <h1><a href="../posts/2013/05/10/why-is-omp_get_num_procs-so-slow.html" rel="bookmark" title="Permalink to Why is <code>omp_get_num_procs</code> so slow?">Why is <code>omp_get_num_procs</code> so slow?</a></h1>
     </header>
 
     <footer class="post-info">
@@ -50,7 +50,7 @@
     <div class="entry-content">
       Some students had some difficulty profiling their code because <code>omp_get_num_procs</code> was dominating the profiling traces. I tracked it down and found that the profiling tools emitted misleading results when the library didn't have symbols.
     </div><!-- /.entry-content -->
-    <a class="readmore" href="../posts/2013/05/10/why-is-omp_get_num_procs-so-bad.html">read more</a>
+    <a class="readmore" href="../posts/2013/05/10/why-is-omp_get_num_procs-so-slow.html">read more</a>
   </article></li>
   <li><article class="hentry">
     <header>
@@ -87,14 +87,8 @@
 		<div class="widget">
 		    <h2>Tags</h2>
 		    <ul class="cloud">
-						<li class="tag-2">
-			  <a class="tag" href="../tag/tutorial.html">tutorial</a>
-			</li>
-						<li class="tag-2">
-			  <a class="tag" href="../tag/golang.html">golang</a>
-			</li>
 						<li class="tag-4">
-			  <a class="tag" href="../tag/malloc.html">malloc</a>
+			  <a class="tag" href="../tag/mac-osx.html">mac osx</a>
 			</li>
 						<li class="tag-4">
 			  <a class="tag" href="../tag/reverse-engineering.html">reverse engineering</a>
@@ -102,11 +96,17 @@
 						<li class="tag-4">
 			  <a class="tag" href="../tag/make.html">make</a>
 			</li>
+						<li class="tag-4">
+			  <a class="tag" href="../tag/malloc.html">malloc</a>
+			</li>
 						<li class="tag-1">
 			  <a class="tag" href="../tag/exploitation.html">exploitation</a>
 			</li>
-						<li class="tag-4">
-			  <a class="tag" href="../tag/mac-osx.html">mac osx</a>
+						<li class="tag-2">
+			  <a class="tag" href="../tag/golang.html">golang</a>
+			</li>
+						<li class="tag-2">
+			  <a class="tag" href="../tag/tutorial.html">tutorial</a>
 			</li>
 						<li class="tag-2">
 			  <a class="tag" href="../tag/profiling.html">profiling</a>
