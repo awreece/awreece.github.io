@@ -119,30 +119,28 @@ but we <em>can</em> look at the annotated disassembly. </p>
 <p>At least now why <code>omp_get_num_threads</code> is reported so much! We probably need to count all calls to <code>omp_get_num_threads</code> as 'overhead from OpenMP' but otherwise not trust the specific counts.
 In my opinion, the profiler should emit function addresses 
 for functions that don't map to some symbol, but I understand that is hard. For now, we will get more meaningful profiling data about our code if we do:</p>
-<div class="codehilite"><pre><span class="gp">$</span> pprof --text --ignore<span class="o">=</span>omp_get_num_threads solver out.prof 
+<div class="codehilite"><pre><span class="gp">$</span> pprof --text --ignore<span class="o">=</span>omp_get_num_procs solver out.prof 
 <span class="go">Using local file solver.</span>
 <span class="go">Using local file out.prof.</span>
 <span class="go">Removing _L_unlock_16 from all stack traces.</span>
 <span class="go">Total: 1382 samples</span>
-<span class="go">     633  45.8%  45.8%      633  45.8% omp_get_num_procs</span>
-<span class="go">     283  20.5%  66.3%      283  20.5% is_complete_row</span>
-<span class="go">     226  16.4%  82.6%      226  16.4% partial_check_col</span>
-<span class="go">     102   7.4%  90.0%      744  53.8% backtrack_row_solve</span>
-<span class="go">      42   3.0%  93.1%       85   6.2% partial_check_row</span>
-<span class="go">      41   3.0%  96.0%      351  25.4% partial_check</span>
-<span class="go">      26   1.9%  97.9%      292  21.1% complete_and_check_puzzle</span>
-<span class="go">      25   1.8%  99.7%       25   1.8% is_complete_col</span>
-<span class="go">       3   0.2%  99.9%      749  54.2% _Z28backtrack_row_solve_paralleliiiPiPS_S0_._omp_fn.0</span>
-<span class="go">       1   0.1% 100.0%     1328  96.1% GOMP_taskwait</span>
-<span class="go">       0   0.0% 100.0%        1   0.1% GOMP_loop_dynamic_start</span>
-<span class="go">       0   0.0% 100.0%     1258  91.0% __clone</span>
-<span class="go">       0   0.0% 100.0%      124   9.0% __libc_start_main</span>
-<span class="go">       0   0.0% 100.0%      124   9.0% _start</span>
-<span class="go">       0   0.0% 100.0%      124   9.0% backtrack_row_solve_parallel</span>
-<span class="go">       0   0.0% 100.0%      124   9.0% backtrack_solve</span>
-<span class="go">       0   0.0% 100.0%      124   9.0% main</span>
-<span class="go">       0   0.0% 100.0%      124   9.0% solve</span>
-<span class="go">       0   0.0% 100.0%     1258  91.0% start_thread</span>
+<span class="go">     283  37.8%  37.8%      283  37.8% is_complete_row</span>
+<span class="go">     226  30.2%  68.0%      226  30.2% partial_check_col</span>
+<span class="go">     102  13.6%  81.6%      744  99.3% backtrack_row_solve</span>
+<span class="go">      42   5.6%  87.2%       85  11.3% partial_check_row</span>
+<span class="go">      41   5.5%  92.7%      351  46.9% partial_check</span>
+<span class="go">      26   3.5%  96.1%      292  39.0% complete_and_check_puzzle</span>
+<span class="go">      25   3.3%  99.5%       25   3.3% is_complete_col</span>
+<span class="go">       3   0.4%  99.9%      748  99.9% _Z28backtrack_row_solve_paralleliiiPiPS_S0_._omp_fn.0</span>
+<span class="go">       1   0.1% 100.0%      695  92.8% GOMP_taskwait</span>
+<span class="go">       0   0.0% 100.0%      694  92.7% __clone</span>
+<span class="go">       0   0.0% 100.0%       55   7.3% __libc_start_main</span>
+<span class="go">       0   0.0% 100.0%       55   7.3% _start</span>
+<span class="go">       0   0.0% 100.0%       55   7.3% backtrack_row_solve_parallel</span>
+<span class="go">       0   0.0% 100.0%       55   7.3% backtrack_solve</span>
+<span class="go">       0   0.0% 100.0%       55   7.3% main</span>
+<span class="go">       0   0.0% 100.0%       55   7.3% solve</span>
+<span class="go">       0   0.0% 100.0%      694  92.7% start_thread  </span>
 </pre></div>
         </div><!-- /.entry-content -->
                 <div class="comments">
@@ -173,32 +171,32 @@ for functions that don't map to some symbol, but I understand that is hard. For 
 		<div class="widget">
 		    <h2>Tags</h2>
 		    <ul class="cloud">
-						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/theory.html">theory</a>
-			</li>
-						<li class="tag-1">
-			  <a class="tag" href="../../../../tag/exploitation.html">exploitation</a>
-			</li>
 						<li class="tag-2">
 			  <a class="tag" href="../../../../tag/golang.html">golang</a>
-			</li>
-						<li class="tag-2">
-			  <a class="tag" href="../../../../tag/profiling.html">profiling</a>
-			</li>
-						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/mac-osx.html">mac osx</a>
 			</li>
 						<li class="tag-4">
 			  <a class="tag" href="../../../../tag/make.html">make</a>
 			</li>
 						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/reverse-engineering.html">reverse engineering</a>
+			  <a class="tag" href="../../../../tag/mac-osx.html">mac osx</a>
+			</li>
+						<li class="tag-1">
+			  <a class="tag" href="../../../../tag/exploitation.html">exploitation</a>
+			</li>
+						<li class="tag-4">
+			  <a class="tag" href="../../../../tag/malloc.html">malloc</a>
 			</li>
 						<li class="tag-2">
 			  <a class="tag" href="../../../../tag/tutorial.html">tutorial</a>
 			</li>
 						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/malloc.html">malloc</a>
+			  <a class="tag" href="../../../../tag/reverse-engineering.html">reverse engineering</a>
+			</li>
+						<li class="tag-4">
+			  <a class="tag" href="../../../../tag/theory.html">theory</a>
+			</li>
+						<li class="tag-2">
+			  <a class="tag" href="../../../../tag/profiling.html">profiling</a>
 			</li>
 					    </ul>
 		</div>
