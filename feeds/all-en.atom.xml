@@ -402,7 +402,7 @@ cause/writing the patch. Here is a summary of how we did it.&lt;/p&gt;
 code execution there does not
 actually let you do anything. Had this been a more serious bug that could
 actually be used for anything malicious, we would have immediately reported it
-privately.&lt;/p&gt;
+privately. Neither specific vulnerability nor the technique used here work in the latest version of Go (Go 1.1 introduced non-executable heaps).&lt;/p&gt;
 &lt;p&gt;This post is cross posted on the &lt;a href="http://ppp.cylab.cmu.edu/wordpress/?p=1087"&gt;PPP blog&lt;/a&gt;.&lt;/p&gt;
 &lt;h3&gt;The Bug&lt;/h3&gt;
 
