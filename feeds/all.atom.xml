@@ -398,7 +398,7 @@ issue&lt;/a&gt;. geohot and I had a wager over who could get the first remote co
 execution on &lt;a href="http://play.golang.org"&gt;play.golang.org&lt;/a&gt;: he won, but
 just barely ;-). Props also to ricky for helping to find the underlying
 cause/writing the patch. Here is a summary of how we did it.&lt;/p&gt;
-&lt;p&gt;Note: &lt;play.golang.org&gt; is properly sandboxed, so code execution there does not
+&lt;p&gt;Note: &lt;a href="http://play.golang.org"&gt;http://play.golang.org&lt;/a&gt; is properly sandboxed, so code execution there does not
 actually let you do anything. Had this been a more serious bug that could
 actually be used for anything malicious, we would have immediately reported it
 privately.&lt;/p&gt;
