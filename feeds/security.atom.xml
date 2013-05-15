@@ -428,7 +428,7 @@ Now we can do &lt;tt&gt;instance.address = 0xdeadbeef&lt;/tt&gt; and we have wri
 
 &lt;h3&gt;What Now?&lt;/h3&gt;
 
-&lt;p&gt;Well, clearly the &lt;a href="https://code.google.com/p/go/issues/detail?id=5336"&gt;issue&lt;/a&gt;
+&lt;p&gt;Well, clearly the &lt;a href="https://code.google.com/p/go/source/detail?r=37bf155bc78073d51c0b5706a4f3fba19cca67f4"&gt;issue&lt;/a&gt;
 was fixed. I also think it is important for Go to add the protections
 that come now standard with C binaries (ASLR, NX) - I posted 
 &lt;a href="http://codearcana.com/posts/2012/05/06/securing-and-exploiting-go-binaries.html"&gt;an article&lt;/a&gt; 
