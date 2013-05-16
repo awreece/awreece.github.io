@@ -1,5 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/all-en.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2013-05-10T00:00:00-07:00</updated><entry><title>Why is omp_get_num_procs so slow?</title><link href="http://codearcana.com/posts/2013/05/10/why-is-omp_get_num_procs-so-slow.html" rel="alternate"></link><updated>2013-05-10T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-05-10:posts/2013/05/10/why-is-omp_get_num_procs-so-slow.html</id><summary type="html">&lt;p&gt;I was advising some students in
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/all-en.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2013-05-15T00:00:00-07:00</updated><entry><title>A C cross-platform monotonic timer</title><link href="http://codearcana.com/posts/2013/05/15/a-c-cross-platform-monotonic-timer.html" rel="alternate"></link><updated>2013-05-15T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-05-15:posts/2013/05/15/a-c-cross-platform-monotonic-timer.html</id><summary type="html">&lt;p&gt;I've been working on writing a memory bandwidth benchmark for a while and
+needed to use a monotonic timer to compute accurate timings. I have since
+learned that this is more challenging to do that I initially expected and each
+platform has a different way of doing it.&lt;/p&gt;
+&lt;h1&gt;The problem&lt;/h1&gt;
+&lt;p&gt;First, I started by using &lt;code&gt;gettimeofday&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;timeval&lt;/span&gt; &lt;span class="n"&gt;before&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;after&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="n"&gt;gettimeofday&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;before&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="n"&gt;function&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+&lt;span class="n"&gt;gettimeofday&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;after&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Unfortunately, this will not always work since it is dependent on the system clock. If some other process changes the system time between the two calls to &lt;code&gt;gettimeofday&lt;/code&gt;, it could report inaccurate results. We need a function that returns a monotonically increasing value.&lt;/p&gt;
+&lt;h1&gt;A solution?&lt;/h1&gt;
+&lt;p&gt;Luckily, such a function exists on Linux. We can use &lt;code&gt;clock_gettime&lt;/code&gt; with &lt;code&gt;CLOCK_MONOTONIC&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;timespec&lt;/span&gt; &lt;span class="n"&gt;before&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;after&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;total&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="n"&gt;clock_gettime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;CLOCK_MONOTONIC&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;before&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="n"&gt;function&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+&lt;span class="n"&gt;clock_gettime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;CLOCK_MONOTONIC&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;after&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h1&gt;Other platforms&lt;/h1&gt;
+&lt;p&gt;Unfortunately, this doesn't work everywhere! Each platform has its own way accessing a high resolution monotonic counter. On Mac OS X we use &lt;a href="https://developer.apple.com/library/mac/#qa/qa1398/_index.html"&gt;&lt;code&gt;mach_absolute_time&lt;/code&gt;&lt;/a&gt; and on Windows we use &lt;code&gt;QueryPerformanceCounter&lt;/code&gt;. &lt;/p&gt;
+&lt;h2&gt;&lt;code&gt;rdtsc&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;On x86 machines where none of these are available, we can resort directly to &lt;code&gt;rdtsc&lt;/code&gt;. This is a special instruction that returns the &lt;a href="https://en.wikipedia.org/wiki/Time_Stamp_Counter"&gt;Time Stamp Counter&lt;/a&gt;, the number of cycles since reset. Unfortunately, we have to be &lt;em&gt;very&lt;/em&gt; careful when using this instruction. &lt;a href="http://download.intel.com/embedded/software/IA/324264.pdf"&gt;This white paper&lt;/a&gt; offers a lot of good advice on how to use it, but in short we have to take care to prevent instruction reordering. In the following code, the reordering of the &lt;code&gt;fdiv&lt;/code&gt; after the &lt;code&gt;rdtsc&lt;/code&gt; would lead to inaccurate timing results:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nf"&gt;rdtsc&lt;/span&gt;
+&lt;span class="nf"&gt;fdiv&lt;/span&gt; &lt;span class="c"&gt;# Or another slow instruction&lt;/span&gt;
+&lt;span class="nf"&gt;rdtsc&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The instruction &lt;code&gt;rdtscp&lt;/code&gt; prevents instructions that occur before the &lt;code&gt;rdtsc&lt;/code&gt; from being reordered afterwards. Unfortunately, instructions that occur after the &lt;code&gt;rdtscp&lt;/code&gt; can still be reordered before it. The following code could have &lt;code&gt;fdiv&lt;/code&gt; reordered before the &lt;code&gt;rdtscp&lt;/code&gt;, leading to inaccurate results:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nf"&gt;rdtscp&lt;/span&gt;
+&lt;span class="nf"&gt;call&lt;/span&gt; &lt;span class="no"&gt;function&lt;/span&gt;
+&lt;span class="nf"&gt;rdtscp&lt;/span&gt;
+&lt;span class="nf"&gt;fdiv&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The suggested way to avoid the reordering is to use the &lt;code&gt;cpuid&lt;/code&gt; instruction, which has the effect of preventing all instruction reordering around it. While this is a slow instruction, we can be a bit clever and ensure that we never have to execute it while between the times when we query the counter.&lt;br /&gt;
+The ideal timing code looks something like this:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nf"&gt;cpuid&lt;/span&gt;
+&lt;span class="nf"&gt;rtdsc&lt;/span&gt;
+&lt;span class="c"&gt;# Save %edx and %eax (the output of rtdsc).&lt;/span&gt;
+&lt;span class="nf"&gt;call&lt;/span&gt; &lt;span class="no"&gt;function&lt;/span&gt;
+&lt;span class="nf"&gt;rdtscp&lt;/span&gt;
+&lt;span class="c"&gt;# Save %edx and %eax.&lt;/span&gt;
+&lt;span class="nf"&gt;cpuid&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h1&gt;A cross platform timer&lt;/h1&gt;
+&lt;p&gt;Assembling all this information, I attempted to write a cross-platform utility for fine grained timing. A few late nights and a file full of &lt;code&gt;#ifdef&lt;/code&gt;s later, I have the start of such a utility. Currently, it supports the function &lt;code&gt;monotonic_seconds&lt;/code&gt; which returns the seconds from some unspecified start point as a double precision floating point number. In the future, I'll add support for &lt;code&gt;monotonic_cycles&lt;/code&gt; as a static inline function in the header and &lt;code&gt;cycles_to_seconds&lt;/code&gt; as a way to convert cycles to seconds. Check it out &lt;a href="https://github.com/awreece/monotonic_timer/blob/master/monotonic_timer.c"&gt;here&lt;/a&gt;!&lt;/p&gt;</summary><category term="profiling"></category></entry><entry><title>Why is omp_get_num_procs so slow?</title><link href="http://codearcana.com/posts/2013/05/10/why-is-omp_get_num_procs-so-slow.html" rel="alternate"></link><updated>2013-05-10T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-05-10:posts/2013/05/10/why-is-omp_get_num_procs-so-slow.html</id><summary type="html">&lt;p&gt;I was advising some students in
 &lt;a href="http://15418.courses.cs.cmu.edu/15418_spr13/"&gt;15-418&lt;/a&gt;, a parallel computer
 architecture and programming course at CMU. They were attempting to make a
 multithreaded puzzle solver using OpenMP and had some difficulty using the CPU
