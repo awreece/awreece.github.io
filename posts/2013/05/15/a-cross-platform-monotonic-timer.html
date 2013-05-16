@@ -71,7 +71,11 @@ platform has a different way of doing it.</p>
 
 
 <h1>Other platforms</h1>
-<p>Unfortunately, this doesn't work everywhere! Each platform has its own way accessing a high resolution monotonic counter. On Mac OS X we use <a href="https://developer.apple.com/library/mac/#qa/qa1398/_index.html"><code>mach_absolute_time</code></a> and on Windows we use <code>QueryPerformanceCounter</code>. </p>
+<p>Unfortunately, this doesn't work everywhere! Each platform has its own way
+accessing a high resolution monotonic counter. On Mac OS X we use
+<a href="https://developer.apple.com/library/mac/#qa/qa1398/_index.html"><code>mach_absolute_time</code></a>
+and on Windows we use
+<a href="http://msdn.microsoft.com/en-us/library/windows/desktop/ms644904(v=vs.85).aspx"><code>QueryPerformanceCounter</code></a>. </p>
 <h2><code>rdtsc</code></h2>
 <p>On x86 machines where none of these are available, we can resort directly to <code>rdtsc</code>. This is a special instruction that returns the <a href="https://en.wikipedia.org/wiki/Time_Stamp_Counter">Time Stamp Counter</a>, the number of cycles since reset. Unfortunately, we have to be <em>very</em> careful when using this instruction. <a href="http://download.intel.com/embedded/software/IA/324264.pdf">This white paper</a> offers a lot of good advice on how to use it, but in short we have to take care to prevent instruction reordering. In the following code, the reordering of the <code>fdiv</code> after the <code>rdtsc</code> would lead to inaccurate timing results:</p>
 <div class="codehilite"><pre><span class="nf">rdtsc</span>
@@ -131,32 +135,32 @@ The ideal timing code looks something like this:</p>
 		<div class="widget">
 		    <h2>Tags</h2>
 		    <ul class="cloud">
+						<li class="tag-4">
+			  <a class="tag" href="../../../../tag/malloc.html">malloc</a>
+			</li>
 						<li class="tag-1">
 			  <a class="tag" href="../../../../tag/exploitation.html">exploitation</a>
-			</li>
-						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/theory.html">theory</a>
-			</li>
-						<li class="tag-1">
-			  <a class="tag" href="../../../../tag/profiling.html">profiling</a>
-			</li>
-						<li class="tag-2">
-			  <a class="tag" href="../../../../tag/golang.html">golang</a>
 			</li>
 						<li class="tag-2">
 			  <a class="tag" href="../../../../tag/tutorial.html">tutorial</a>
 			</li>
-						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/mac-osx.html">mac osx</a>
-			</li>
-						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/malloc.html">malloc</a>
+						<li class="tag-2">
+			  <a class="tag" href="../../../../tag/golang.html">golang</a>
 			</li>
 						<li class="tag-4">
 			  <a class="tag" href="../../../../tag/make.html">make</a>
 			</li>
 						<li class="tag-4">
+			  <a class="tag" href="../../../../tag/mac-osx.html">mac osx</a>
+			</li>
+						<li class="tag-4">
 			  <a class="tag" href="../../../../tag/reverse-engineering.html">reverse engineering</a>
+			</li>
+						<li class="tag-1">
+			  <a class="tag" href="../../../../tag/profiling.html">profiling</a>
+			</li>
+						<li class="tag-4">
+			  <a class="tag" href="../../../../tag/theory.html">theory</a>
 			</li>
 					    </ul>
 		</div>

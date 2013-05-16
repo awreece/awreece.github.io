@@ -25,7 +25,11 @@ platform has a different way of doing it.&lt;/p&gt;
 
 
 &lt;h1&gt;Other platforms&lt;/h1&gt;
-&lt;p&gt;Unfortunately, this doesn't work everywhere! Each platform has its own way accessing a high resolution monotonic counter. On Mac OS X we use &lt;a href="https://developer.apple.com/library/mac/#qa/qa1398/_index.html"&gt;&lt;code&gt;mach_absolute_time&lt;/code&gt;&lt;/a&gt; and on Windows we use &lt;code&gt;QueryPerformanceCounter&lt;/code&gt;. &lt;/p&gt;
+&lt;p&gt;Unfortunately, this doesn't work everywhere! Each platform has its own way
+accessing a high resolution monotonic counter. On Mac OS X we use
+&lt;a href="https://developer.apple.com/library/mac/#qa/qa1398/_index.html"&gt;&lt;code&gt;mach_absolute_time&lt;/code&gt;&lt;/a&gt;
+and on Windows we use
+&lt;a href="http://msdn.microsoft.com/en-us/library/windows/desktop/ms644904(v=vs.85).aspx"&gt;&lt;code&gt;QueryPerformanceCounter&lt;/code&gt;&lt;/a&gt;. &lt;/p&gt;
 &lt;h2&gt;&lt;code&gt;rdtsc&lt;/code&gt;&lt;/h2&gt;
 &lt;p&gt;On x86 machines where none of these are available, we can resort directly to &lt;code&gt;rdtsc&lt;/code&gt;. This is a special instruction that returns the &lt;a href="https://en.wikipedia.org/wiki/Time_Stamp_Counter"&gt;Time Stamp Counter&lt;/a&gt;, the number of cycles since reset. Unfortunately, we have to be &lt;em&gt;very&lt;/em&gt; careful when using this instruction. &lt;a href="http://download.intel.com/embedded/software/IA/324264.pdf"&gt;This white paper&lt;/a&gt; offers a lot of good advice on how to use it, but in short we have to take care to prevent instruction reordering. In the following code, the reordering of the &lt;code&gt;fdiv&lt;/code&gt; after the &lt;code&gt;rdtsc&lt;/code&gt; would lead to inaccurate timing results:&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nf"&gt;rdtsc&lt;/span&gt;
