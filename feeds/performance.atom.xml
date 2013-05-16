@@ -4,7 +4,9 @@ needed to use a monotonic timer to compute accurate timings. I have since
 learned that this is more challenging to do that I initially expected and each
 platform has a different way of doing it.&lt;/p&gt;
 &lt;h1&gt;The problem&lt;/h1&gt;
-&lt;p&gt;First, I started by using &lt;code&gt;gettimeofday&lt;/code&gt;:&lt;/p&gt;
+&lt;p&gt;I was trying to determine the run time of a function and wanted the most
+precise and accurate information possible.
+First, I started by using &lt;code&gt;gettimeofday&lt;/code&gt;:&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;timeval&lt;/span&gt; &lt;span class="n"&gt;before&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;after&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 
 &lt;span class="n"&gt;gettimeofday&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;before&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
