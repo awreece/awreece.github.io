@@ -1,5 +1,182 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/all.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2013-05-15T00:00:00-07:00</updated><entry><title>A cross-platform monotonic timer</title><link href="http://codearcana.com/posts/2013/05/15/a-cross-platform-monotonic-timer.html" rel="alternate"></link><updated>2013-05-15T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-05-15:posts/2013/05/15/a-cross-platform-monotonic-timer.html</id><summary type="html">&lt;p&gt;I've been working on writing a memory bandwidth benchmark for a while and
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/all.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2013-05-18T00:00:00-07:00</updated><entry><title>Achieving maximum memory bandwidth</title><link href="http://codearcana.com/posts/2013/05/18/achieving-maximum-memory-bandwidth.html" rel="alternate"></link><updated>2013-05-18T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-05-18:posts/2013/05/18/achieving-maximum-memory-bandwidth.html</id><summary type="html">&lt;p&gt;These past few months I was a teaching assistant for a class on &lt;a href="http://15418.courses.cs.cmu.edu/15418_spr13/"&gt;parallel computer architecture&lt;/a&gt;. One of the questions on our first homework assignment asked the students to analyze a function and realize that it could not be optimized any further because it was already at maximum memory bandwidth. But a student pointed out, rightly, that it was only at &lt;em&gt;half&lt;/em&gt; the maximum bandwidth. In an attempt to understand what was going on, I embarked on a quest to write a program that achieved the theoretical maximum memory bandwidth.&lt;/p&gt;
+&lt;h2&gt;tl;dr&lt;/h2&gt;
+&lt;p&gt;&lt;em&gt;Use non-temporal vector instructions or optimized string instructions to get the full bandwidth.&lt;/em&gt;&lt;/p&gt;
+&lt;h1&gt;What is memory bandwidth?&lt;/h1&gt;
+&lt;p&gt;When analyzing computer programs for performance, it is important to be aware of the hardware they will be running on. There are two important numbers to pay attention to with memory systems (i.e. RAM): &lt;a href="https://en.wikipedia.org/wiki/SDRAM_latency"&gt;memory latency&lt;/a&gt;, or the amount of time to satisfy an individual memory request, and &lt;a href="https://en.wikipedia.org/wiki/Memory_bandwidth"&gt;memory bandwidth&lt;/a&gt;, or the amount of data that can be accessed in a given amount of time&lt;sup id="fnref:1"&gt;&lt;a class="footnote-ref" href="#fn:1" rel="footnote"&gt;1&lt;/a&gt;&lt;/sup&gt;. &lt;/p&gt;
+&lt;p&gt;It is easy to compute the theoretically maximum memory bandwidth. &lt;a href="http://support.apple.com/kb/sp653"&gt;My laptop&lt;/a&gt; has 2 sticks of DDR3 SDRAM running at 1600 MHz, each connected to a 64 bit bus, for a maximum theoretical bandwidth of &lt;a href="http://www.wolframalpha.com/input/?i=1600+MHz+*+64+bits+*+2+to+GB%2Fs"&gt;25.6 GB/s&lt;/a&gt;&lt;sup id="fnref:4"&gt;&lt;a class="footnote-ref" href="#fn:4" rel="footnote"&gt;2&lt;/a&gt;&lt;/sup&gt;. This means that no matter how cleverly I write my program, the maximum amount of memory I can touch in 1 second is 25.6 GB. Unfortunately, this theoretical limit is somewhat challenging to reach with real code. &lt;/p&gt;
+&lt;h1&gt;Measuring memory bandwidth&lt;/h1&gt;
+&lt;p&gt;To measure the memory bandwidth for a function, I wrote a simple benchmark. For each function, I access a large&lt;sup id="fnref:2"&gt;&lt;a class="footnote-ref" href="#fn:2" rel="footnote"&gt;3&lt;/a&gt;&lt;/sup&gt; array of memory and compute the bandwidth by dividing by the run time&lt;sup id="fnref:3"&gt;&lt;a class="footnote-ref" href="#fn:3" rel="footnote"&gt;4&lt;/a&gt;&lt;/sup&gt;. For example, if a function takes 120 milliseconds to access 1 GB of memory, I calculate the bandwidth to be &lt;a href="http://www.wolframalpha.com/input/?i=1+GB+%2F+120+milliseconds+to+GB%2Fs"&gt;8.33 GB/s&lt;/a&gt;. To try to reduce the variance and timing overhead, I repeatedly accessed our array and took the smallest time over several iterations&lt;sup id="fnref:6"&gt;&lt;a class="footnote-ref" href="#fn:6" rel="footnote"&gt;5&lt;/a&gt;&lt;/sup&gt;. If you're curious, all my test code is available on &lt;a href="https://github.com/awreece/memory-bandwidth-demo"&gt;github&lt;/a&gt;.&lt;/p&gt;
+&lt;h1&gt;A first attempt&lt;/h1&gt;
+&lt;p&gt;I first wrote a simple C program to just write to every value in the array.&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;write_memory_loop&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;array&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="kt"&gt;size_t&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;carray&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;size_t&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;array&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="k"&gt;sizeof&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;size_t&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;carray&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This generated the assembly I was expecting:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mh"&gt;0000000100000ac0&lt;/span&gt; &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nf"&gt;_write_memory_loop&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;:&lt;/span&gt;
+&lt;span class="x"&gt;   100000ac0:   48 c1 ee 03             shr    $0x3,%rsi&lt;/span&gt;
+&lt;span class="x"&gt;   100000ac4:   48 8d 04 f7             lea    (%rdi,%rsi,8),%rax&lt;/span&gt;
+&lt;span class="x"&gt;   100000ac8:   48 85 f6                test   %rsi,%rsi&lt;/span&gt;
+&lt;span class="x"&gt;   100000acb:   74 13                   je     100000ae0 &amp;lt;_write_memory_loop+0x20&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;   100000acd:   0f 1f 00                nopl   (%rax)&lt;/span&gt;
+&lt;span class="x"&gt;   100000ad0:   48 c7 07 01 00 00 00    movq   $0x1,(%rdi)&lt;/span&gt;
+&lt;span class="x"&gt;   100000ad7:   48 83 c7 08             add    $0x8,%rdi&lt;/span&gt;
+&lt;span class="x"&gt;   100000adb:   48 39 c7                cmp    %rax,%rdi&lt;/span&gt;
+&lt;span class="x"&gt;   100000ade:   75 f0                   jne    100000ad0 &amp;lt;_write_memory_loop+0x10&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;   100000ae0:   f3 c3                   repz retq &lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;But not the bandwidth I was expecting (remember, my goal is 23.8 GiB/s):&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./memory_profiler
+&lt;span class="go"&gt;               write_memory_loop:  9.23 GiB/s&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h1&gt;Using SIMD&lt;/h1&gt;
+&lt;p&gt;The first thing I tried is to use &lt;a href="http://15418.courses.cs.cmu.edu/15418_spr13/index.php/lecture/basicarch/slide_021"&gt;Single Instruction Multiple Data (SIMD)&lt;/a&gt; instructions to touch more memory at once. Basically, a modern processor is very complicated and has multiple Arithmetic Logic Units (ALUs). This gives it the ability to support instructions that perform an operation on multiple pieces of data simultaneously. I will use this to perform operation on more data simultaneously to get higher bandwidth. Since my processor support AVX instructions, I can perform operations on 256 bits (32 bytes) every instruction:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#include &amp;lt;immintrin.h&amp;gt;&lt;/span&gt;
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;write_memory_avx&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;array&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="n"&gt;__m256i&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;varray&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;__m256i&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;array&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+  &lt;span class="n"&gt;__m256i&lt;/span&gt; &lt;span class="n"&gt;vals&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;_mm256_set1_epi32&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+  &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="k"&gt;sizeof&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;__m256i&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;_mm256_store_si256&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;varray&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;vals&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;  &lt;span class="c1"&gt;// This will generate the vmovaps instruction.&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;But when I use use this, I didn't get any better bandwidth than before!&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./memory_profiler
+&lt;span class="go"&gt;                write_memory_avx:  9.01 GiB/s&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Why was I consistently getting slightly under half the theoretical memory bandwidth?&lt;/p&gt;
+&lt;p&gt;The answer is a bit complicated because the cache in a modern processor is &lt;a href="http://15418.courses.cs.cmu.edu/15418_spr13/index.php/lecture/cachecoherence1/slide_028"&gt;complicated&lt;/a&gt;&lt;sup id="fnref:5"&gt;&lt;a class="footnote-ref" href="#fn:5" rel="footnote"&gt;6&lt;/a&gt;&lt;/sup&gt;. The main problem is that memory traffic on the bus is done in units of &lt;em&gt;cache lines&lt;/em&gt;, which tend to be larger than 32 bytes. In order to write only 32 bytes, the cache must first &lt;em&gt;read&lt;/em&gt; the entire cache line from memory and then modify it. Unfortunately, this means that my program, which only writes values, will actually cause double the memory traffic I expect because it will cause reads of cache line! As you can see from the picture below, the bus traffic (the blue lines out of the processor) per cache line is a read and a write to memory:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Cache traffic for a partial cache line write" src="http://codearcana.com/images/cache_readwrite.png" title="Cache traffic for a partial cache line write" /&gt;&lt;/p&gt;
+&lt;h1&gt;Non-temporal instructions&lt;/h1&gt;
+&lt;p&gt;So how do I solve this problem? The answer lies in a little known feature: non-temporal instructions. As described in Ulrich Drepper's 100 pages &lt;a href="http://www.akkadia.org/drepper/cpumemory.pdf"&gt;&lt;em&gt;What every programmer should know about memory&lt;/em&gt;&lt;/a&gt;,&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;These non-temporal write operations do not read a cache line and then modify it; instead, the new content is directly written to memory. This might sound expensive but it does not have to be. The processor will try to use write-combining (see section 3.3.3) to ﬁll entire cache lines. If this succeeds no memory read operation is needed at all.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Aha! I can use these to avoid the reads and get our full bandwidth!&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;write_memory_nontemporal_avx&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;array&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="n"&gt;__m256i&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;varray&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;__m256i&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;array&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+  &lt;span class="n"&gt;__m256i&lt;/span&gt; &lt;span class="n"&gt;vals&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;_mm256_set1_epi32&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+  &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="k"&gt;sizeof&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;__m256&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;_mm256_stream_si256&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;varray&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;vals&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;  &lt;span class="c1"&gt;// This generates the vmovntps instruction.&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;I run our new program and am disappointed again:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./memory_profiler
+&lt;span class="go"&gt;    write_memory_nontemporal_avx: 12.65 GiB/s&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;At this point I'm getting really frustrated. Am I on the right track? I quickly compare our benchmarks to &lt;code&gt;memset&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./memory_profiler
+&lt;span class="go"&gt;             write_memory_memset: 12.84 GiB/s&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;and see that while I am far from the theoretical bandwidth, I'm at least on the same scale as &lt;code&gt;memset&lt;/code&gt;. So now the question is: is it even &lt;em&gt;possible&lt;/em&gt; to get the full bandwidth?&lt;/p&gt;
+&lt;h1&gt;Repeated string instructions&lt;/h1&gt;
+&lt;p&gt;At this point, I got some advice: Dillon Sharlet had a key suggestion here to use the repeated string instructions. The &lt;a href="http://web.itu.edu.tr/kesgin/mul06/intel/instr/rep.html"&gt;&lt;code&gt;rep&lt;/code&gt;&lt;/a&gt; instruction prefix repeats a special string instruction. For exaple, &lt;code&gt;rep stosq&lt;/code&gt; will repeatedly store a word into an array - exactly what I want. For relatively recent processors&lt;sup id="fnref:7"&gt;&lt;a class="footnote-ref" href="#fn:7" rel="footnote"&gt;7&lt;/a&gt;&lt;/sup&gt;, this works well. After looking up the hideous syntax for inline assembly&lt;sup id="fnref:8"&gt;&lt;a class="footnote-ref" href="#fn:8" rel="footnote"&gt;8&lt;/a&gt;&lt;/sup&gt;, I get our function:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;write_memory_rep_stosq&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="n"&gt;asm&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;cld&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&lt;/span&gt;
+      &lt;span class="s"&gt;&amp;quot;rep stosq&amp;quot;&lt;/span&gt;
+      &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;D&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;c&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;a&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;And when I run, I get results that are really close to the peak bandwidth:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./memory_profiler
+&lt;span class="go"&gt;          write_memory_rep_stosq: 20.60 GiB/s&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now the plot thickens. It turns out that it is &lt;em&gt;indeed&lt;/em&gt; possible to get the full memory bandwidth, but I can't get close with my non-temporal AVX instructions. So what is up?&lt;/p&gt;
+&lt;h1&gt;Multiple cores&lt;/h1&gt;
+&lt;p&gt;Again, Dillon Sharlet provided an important insight: the goal of saturating the entire bandwidth with a single core was perhaps a bit extreme. In order to use the full bandwidth, I would need to use multiple cores. I used OpenMP to run the function over multiple cores. To avoid counting the OpenMP overhead, I computed the timings only after all threads are ready and after all threads are done. To do this, I put barriers before the timing code:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#pragma omp parallel  &lt;/span&gt;&lt;span class="c1"&gt;// Set OMP_NUM_THREADS to the number of physical cores.&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="cp"&gt;#pragma omp barrier  &lt;/span&gt;&lt;span class="c1"&gt;// Wait for all threads to be ready before starting the timer.&lt;/span&gt;
+
+&lt;span class="cp"&gt;#pragma omp master  &lt;/span&gt;&lt;span class="c1"&gt;// Start the timer on only one thread.&lt;/span&gt;
+&lt;span class="n"&gt;start_time&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;monotonic_seconds&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+
+&lt;span class="c1"&gt;// The code we want to time.&lt;/span&gt;
+
+&lt;span class="cp"&gt;#pragma omp barrier  &lt;/span&gt;&lt;span class="c1"&gt;// Wait for all threads to finish before ending the timer.&lt;/span&gt;
+
+&lt;span class="cp"&gt;#pragma omp master  &lt;/span&gt;&lt;span class="c1"&gt;// End the timer.&lt;/span&gt;
+&lt;span class="n"&gt;end_time&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;monotonic_seconds&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;When I run, I get very reasonable output (remember, the goal is 23.8 GiB/s):&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./memory_profiler
+&lt;span class="go"&gt;      write_memory_rep_stosq_omp: 21.25 GiB/s&lt;/span&gt;
+&lt;span class="go"&gt;            write_memory_avx_omp:  9.70 GiB/s&lt;/span&gt;
+&lt;span class="go"&gt;write_memory_nontemporal_avx_omp: 22.13 GiB/s&lt;/span&gt;
+&lt;span class="go"&gt;         write_memory_memset_omp: 22.14 GiB/s&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h1&gt;Final thoughts&lt;/h1&gt;
+&lt;p&gt;Finally! We are within 10% of our theoretically maximum bandwidth. I'm tempted to try to squeeze out some more bandwidth, but I suspect there isn't much more that I can do. I think any more performance would probably require booting the machine into a special configuration (hyper threading and frequency scaling disabled, etc) which would not be representative of real programs.&lt;/p&gt;
+&lt;p&gt;I still have some unanswered questions (I will happily buy a beer for anyone who can give a compelling answer):&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Why doesn't &lt;code&gt;write_memory_avx_omp&lt;/code&gt;, the function that uses AVX to store (but doesn't use non-temporal instructions) use half the bandwidth?&lt;/li&gt;
+&lt;li&gt;Why doesn't the use of non-temporal instructions double bandwidth for the single core programs? It only went up 50%.&lt;/li&gt;
+&lt;li&gt;Why aren't the AVX instructions on one core able to saturate the bandwidth?&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="footnote"&gt;
+&lt;hr /&gt;
+&lt;ol&gt;
+&lt;li id="fn:1"&gt;
+&lt;p&gt;&lt;a href="http://15418.courses.cs.cmu.edu/15418_spr13/index.php/lecture/basicarch/slide_039"&gt;This lecture&lt;/a&gt; from the course is very good at illustrating some of these concepts.&amp;#160;&lt;a class="footnote-backref" href="#fnref:1" rev="footnote" title="Jump back to footnote 1 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:4"&gt;
+&lt;p&gt;I'm not completely convinced this math is correct, but this number lines up with &lt;a href="http://ark.intel.com/products/64891/Intel-Core-i7-3720QM-Processor-6M-Cache-up-to-3_60-GHz"&gt;the specs provided by Intel&lt;/a&gt; for my processor as well.&amp;#160;&lt;a class="footnote-backref" href="#fnref:4" rev="footnote" title="Jump back to footnote 2 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:2"&gt;
+&lt;p&gt;It should be too large to fit in cache since I want to test memory throughput, not cache throughput.&amp;#160;&lt;a class="footnote-backref" href="#fnref:2" rev="footnote" title="Jump back to footnote 3 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:3"&gt;
+&lt;p&gt;Use a &lt;a href="http://codearcana.com/posts/2013/05/15/a-cross-platform-monotonic-timer.html"&gt;monotonic timer&lt;/a&gt; to avoid errors caused by the system clock.&amp;#160;&lt;a class="footnote-backref" href="#fnref:3" rev="footnote" title="Jump back to footnote 4 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:6"&gt;
+&lt;p&gt;For future work, I'll probably write a kernel module in the style of &lt;a href="http://download.intel.com/embedded/software/IA/324264.pdf"&gt;this excellent Intel white paper&lt;/a&gt;.&amp;#160;&lt;a class="footnote-backref" href="#fnref:6" rev="footnote" title="Jump back to footnote 5 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:5"&gt;
+&lt;p&gt;Ok, the answer is actually fairly complicated and I'm going to lie just a little bit to simplify things. If you're curious how a modern cache works, you should read through the &lt;a href="http://15418.courses.cs.cmu.edu/15418_spr13/index.php/lecture/cachecoherence1"&gt;lectures&lt;/a&gt; on it.&amp;#160;&lt;a class="footnote-backref" href="#fnref:5" rev="footnote" title="Jump back to footnote 6 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:7"&gt;
+&lt;p&gt;Apparently, this wasn't always the case: &lt;a href="http://stackoverflow.com/a/8429084/447288"&gt;http://stackoverflow.com/a/8429084/447288&lt;/a&gt;&amp;#160;&lt;a class="footnote-backref" href="#fnref:7" rev="footnote" title="Jump back to footnote 7 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:8"&gt;
+&lt;p&gt;The inline assembly wasn't strictly necessary here (I could have and should have written it directly in an assembly file), but I've had difficulties exporting function names in assembly portably.&amp;#160;&lt;a class="footnote-backref" href="#fnref:8" rev="footnote" title="Jump back to footnote 8 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;</summary><category term="profiling"></category></entry><entry><title>A cross-platform monotonic timer</title><link href="http://codearcana.com/posts/2013/05/15/a-cross-platform-monotonic-timer.html" rel="alternate"></link><updated>2013-05-15T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-05-15:posts/2013/05/15/a-cross-platform-monotonic-timer.html</id><summary type="html">&lt;p&gt;I've been working on writing a memory bandwidth benchmark for a while and
 needed to use a monotonic timer to compute accurate timings. I have since
 learned that this is more challenging to do that I initially expected and each
 platform has a different way of doing it.&lt;/p&gt;
