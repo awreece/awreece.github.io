@@ -111,7 +111,7 @@
 <p>The answer is a bit complicated because the cache in a modern processor is <a href="http://15418.courses.cs.cmu.edu/15418_spr13/index.php/lecture/cachecoherence1/slide_028">complicated</a><sup id="fnref:5"><a class="footnote-ref" href="#fn:5" rel="footnote">6</a></sup>. The main problem is that memory traffic on the bus is done in units of <em>cache lines</em>, which tend to be larger than 32 bytes. In order to write only 32 bytes, the cache must first <em>read</em> the entire cache line from memory and then modify it. Unfortunately, this means that my program, which only writes values, will actually cause double the memory traffic I expect because it will cause reads of cache line! As you can see from the picture below, the bus traffic (the blue lines out of the processor) per cache line is a read and a write to memory:</p>
 <p><img alt="Cache traffic for a partial cache line write" src="../../../../images/cache_readwrite.png" title="Cache traffic for a partial cache line write" /></p>
 <h1>Non-temporal instructions</h1>
-<p>So how do I solve this problem? The answer lies in a little known feature: non-temporal instructions. As described in Ulrich Drepper's 100 pages <a href="http://www.akkadia.org/drepper/cpumemory.pdf"><em>What every programmer should know about memory</em></a>,</p>
+<p>So how do I solve this problem? The answer lies in a little known feature: non-temporal instructions. As described in Ulrich Drepper's 100 page <a href="http://www.akkadia.org/drepper/cpumemory.pdf"><em>What every programmer should know about memory</em></a>,</p>
 <blockquote>
 <p>These non-temporal write operations do not read a cache line and then modify it; instead, the new content is directly written to memory. This might sound expensive but it does not have to be. The processor will try to use write-combining (see section 3.3.3) to ﬁll entire cache lines. If this succeeds no memory read operation is needed at all.</p>
 </blockquote>
@@ -255,29 +255,29 @@
 						<li class="tag-2">
 			  <a class="tag" href="../../../../tag/tutorial.html">tutorial</a>
 			</li>
-						<li class="tag-1">
-			  <a class="tag" href="../../../../tag/profiling.html">profiling</a>
-			</li>
 						<li class="tag-2">
 			  <a class="tag" href="../../../../tag/golang.html">golang</a>
-			</li>
-						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/reverse-engineering.html">reverse engineering</a>
-			</li>
-						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/make.html">make</a>
-			</li>
-						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/mac-osx.html">mac osx</a>
 			</li>
 						<li class="tag-1">
 			  <a class="tag" href="../../../../tag/exploitation.html">exploitation</a>
 			</li>
 						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/malloc.html">malloc</a>
+			  <a class="tag" href="../../../../tag/make.html">make</a>
+			</li>
+						<li class="tag-4">
+			  <a class="tag" href="../../../../tag/reverse-engineering.html">reverse engineering</a>
+			</li>
+						<li class="tag-1">
+			  <a class="tag" href="../../../../tag/profiling.html">profiling</a>
+			</li>
+						<li class="tag-4">
+			  <a class="tag" href="../../../../tag/mac-osx.html">mac osx</a>
 			</li>
 						<li class="tag-4">
 			  <a class="tag" href="../../../../tag/theory.html">theory</a>
+			</li>
+						<li class="tag-4">
+			  <a class="tag" href="../../../../tag/malloc.html">malloc</a>
 			</li>
 					    </ul>
 		</div>
