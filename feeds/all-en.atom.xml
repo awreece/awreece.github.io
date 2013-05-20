@@ -96,7 +96,7 @@
 
 &lt;p&gt;and see that while I am far from the theoretical bandwidth, I'm at least on the same scale as &lt;code&gt;memset&lt;/code&gt;. So now the question is: is it even &lt;em&gt;possible&lt;/em&gt; to get the full bandwidth?&lt;/p&gt;
 &lt;h1&gt;Repeated string instructions&lt;/h1&gt;
-&lt;p&gt;At this point, I got some advice: Dillon Sharlet had a key suggestion here to use the repeated string instructions. The &lt;a href="http://web.itu.edu.tr/kesgin/mul06/intel/instr/rep.html"&gt;&lt;code&gt;rep&lt;/code&gt;&lt;/a&gt; instruction prefix repeats a special string instruction. For exaple, &lt;code&gt;rep stosq&lt;/code&gt; will repeatedly store a word into an array - exactly what I want. For relatively recent processors&lt;sup id="fnref:7"&gt;&lt;a class="footnote-ref" href="#fn:7" rel="footnote"&gt;7&lt;/a&gt;&lt;/sup&gt;, this works well. After looking up the hideous syntax for inline assembly&lt;sup id="fnref:8"&gt;&lt;a class="footnote-ref" href="#fn:8" rel="footnote"&gt;8&lt;/a&gt;&lt;/sup&gt;, I get our function:&lt;/p&gt;
+&lt;p&gt;At this point, I got some advice: Dillon Sharlet had a key suggestion here to use the repeated string instructions. The &lt;a href="http://web.itu.edu.tr/kesgin/mul06/intel/instr/rep.html"&gt;&lt;code&gt;rep&lt;/code&gt;&lt;/a&gt; instruction prefix repeats a special string instruction. For example, &lt;code&gt;rep stosq&lt;/code&gt; will repeatedly store a word into an array - exactly what I want. For relatively recent processors&lt;sup id="fnref:7"&gt;&lt;a class="footnote-ref" href="#fn:7" rel="footnote"&gt;7&lt;/a&gt;&lt;/sup&gt;, this works well. After looking up the hideous syntax for inline assembly&lt;sup id="fnref:8"&gt;&lt;a class="footnote-ref" href="#fn:8" rel="footnote"&gt;8&lt;/a&gt;&lt;/sup&gt;, I get our function:&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;write_memory_rep_stosq&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
   &lt;span class="n"&gt;asm&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;cld&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&lt;/span&gt;
       &lt;span class="s"&gt;&amp;quot;rep stosq&amp;quot;&lt;/span&gt;
@@ -146,7 +146,9 @@
 &lt;ul&gt;
 &lt;li&gt;Why doesn't &lt;code&gt;write_memory_avx_omp&lt;/code&gt;, the function that uses AVX to store (but doesn't use non-temporal instructions) use half the bandwidth?&lt;/li&gt;
 &lt;li&gt;Why doesn't the use of non-temporal instructions double bandwidth for the single core programs? It only went up 50%.&lt;/li&gt;
-&lt;li&gt;Why aren't the AVX instructions on one core able to saturate the bandwidth?&lt;/li&gt;
+&lt;li&gt;Why aren't the AVX instructions on one core able to saturate the bandwidth ?&lt;/li&gt;
+&lt;li&gt;Why don't AVX instructions get roughly double the bandwidth of the SSE instructions?&lt;/li&gt;
+&lt;li&gt;Why doesn't &lt;code&gt;rep scansq&lt;/code&gt; or &lt;code&gt;rep lodsq&lt;/code&gt; get the same bandwidth as &lt;code&gt;rep stosq&lt;/code&gt;?&lt;/li&gt;
 &lt;/ul&gt;
 &lt;div class="footnote"&gt;
 &lt;hr /&gt;
@@ -170,7 +172,7 @@
 &lt;p&gt;Ok, the answer is actually fairly complicated and I'm going to lie just a little bit to simplify things. If you're curious how a modern cache works, you should read through the &lt;a href="http://15418.courses.cs.cmu.edu/15418_spr13/index.php/lecture/cachecoherence1"&gt;lectures&lt;/a&gt; on it.&amp;#160;&lt;a class="footnote-backref" href="#fnref:5" rev="footnote" title="Jump back to footnote 6 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
 &lt;/li&gt;
 &lt;li id="fn:7"&gt;
-&lt;p&gt;Apparently, this wasn't always the case: &lt;a href="http://stackoverflow.com/a/8429084/447288"&gt;http://stackoverflow.com/a/8429084/447288&lt;/a&gt;&amp;#160;&lt;a class="footnote-backref" href="#fnref:7" rev="footnote" title="Jump back to footnote 7 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Apparently, this wasn't always the case: &lt;a href="http://stackoverflow.com/a/8429084/447288"&gt;http://stackoverflow.com/a/8429084/447288&lt;/a&gt;. In addition, my benchmarking seems to indicate that neither &lt;code&gt;rep lodsq&lt;/code&gt; or &lt;code&gt;rep scansq&lt;/code&gt; benefit from the same degree of optimization that &lt;code&gt;rep stosq&lt;/code&gt; received. I don't fully understand what all is going on.&amp;#160;&lt;a class="footnote-backref" href="#fnref:7" rev="footnote" title="Jump back to footnote 7 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
 &lt;/li&gt;
 &lt;li id="fn:8"&gt;
 &lt;p&gt;The inline assembly wasn't strictly necessary here (I could have and should have written it directly in an assembly file), but I've had difficulties exporting function names in assembly portably.&amp;#160;&lt;a class="footnote-backref" href="#fnref:8" rev="footnote" title="Jump back to footnote 8 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;

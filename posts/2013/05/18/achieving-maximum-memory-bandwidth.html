@@ -142,7 +142,7 @@
 
 <p>and see that while I am far from the theoretical bandwidth, I'm at least on the same scale as <code>memset</code>. So now the question is: is it even <em>possible</em> to get the full bandwidth?</p>
 <h1>Repeated string instructions</h1>
-<p>At this point, I got some advice: Dillon Sharlet had a key suggestion here to use the repeated string instructions. The <a href="http://web.itu.edu.tr/kesgin/mul06/intel/instr/rep.html"><code>rep</code></a> instruction prefix repeats a special string instruction. For exaple, <code>rep stosq</code> will repeatedly store a word into an array - exactly what I want. For relatively recent processors<sup id="fnref:7"><a class="footnote-ref" href="#fn:7" rel="footnote">7</a></sup>, this works well. After looking up the hideous syntax for inline assembly<sup id="fnref:8"><a class="footnote-ref" href="#fn:8" rel="footnote">8</a></sup>, I get our function:</p>
+<p>At this point, I got some advice: Dillon Sharlet had a key suggestion here to use the repeated string instructions. The <a href="http://web.itu.edu.tr/kesgin/mul06/intel/instr/rep.html"><code>rep</code></a> instruction prefix repeats a special string instruction. For example, <code>rep stosq</code> will repeatedly store a word into an array - exactly what I want. For relatively recent processors<sup id="fnref:7"><a class="footnote-ref" href="#fn:7" rel="footnote">7</a></sup>, this works well. After looking up the hideous syntax for inline assembly<sup id="fnref:8"><a class="footnote-ref" href="#fn:8" rel="footnote">8</a></sup>, I get our function:</p>
 <div class="codehilite"><pre><span class="kt">void</span> <span class="nf">write_memory_rep_stosq</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">buffer</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">asm</span><span class="p">(</span><span class="s">&quot;cld</span><span class="se">\n</span><span class="s">&quot;</span>
       <span class="s">&quot;rep stosq&quot;</span>
@@ -192,7 +192,9 @@
 <ul>
 <li>Why doesn't <code>write_memory_avx_omp</code>, the function that uses AVX to store (but doesn't use non-temporal instructions) use half the bandwidth?</li>
 <li>Why doesn't the use of non-temporal instructions double bandwidth for the single core programs? It only went up 50%.</li>
-<li>Why aren't the AVX instructions on one core able to saturate the bandwidth?</li>
+<li>Why aren't the AVX instructions on one core able to saturate the bandwidth ?</li>
+<li>Why don't AVX instructions get roughly double the bandwidth of the SSE instructions?</li>
+<li>Why doesn't <code>rep scansq</code> or <code>rep lodsq</code> get the same bandwidth as <code>rep stosq</code>?</li>
 </ul>
 <div class="footnote">
 <hr />
@@ -216,7 +218,7 @@
 <p>Ok, the answer is actually fairly complicated and I'm going to lie just a little bit to simplify things. If you're curious how a modern cache works, you should read through the <a href="http://15418.courses.cs.cmu.edu/15418_spr13/index.php/lecture/cachecoherence1">lectures</a> on it.&#160;<a class="footnote-backref" href="#fnref:5" rev="footnote" title="Jump back to footnote 6 in the text">&#8617;</a></p>
 </li>
 <li id="fn:7">
-<p>Apparently, this wasn't always the case: <a href="http://stackoverflow.com/a/8429084/447288">http://stackoverflow.com/a/8429084/447288</a>&#160;<a class="footnote-backref" href="#fnref:7" rev="footnote" title="Jump back to footnote 7 in the text">&#8617;</a></p>
+<p>Apparently, this wasn't always the case: <a href="http://stackoverflow.com/a/8429084/447288">http://stackoverflow.com/a/8429084/447288</a>. In addition, my benchmarking seems to indicate that neither <code>rep lodsq</code> or <code>rep scansq</code> benefit from the same degree of optimization that <code>rep stosq</code> received. I don't fully understand what all is going on.&#160;<a class="footnote-backref" href="#fnref:7" rev="footnote" title="Jump back to footnote 7 in the text">&#8617;</a></p>
 </li>
 <li id="fn:8">
 <p>The inline assembly wasn't strictly necessary here (I could have and should have written it directly in an assembly file), but I've had difficulties exporting function names in assembly portably.&#160;<a class="footnote-backref" href="#fnref:8" rev="footnote" title="Jump back to footnote 8 in the text">&#8617;</a></p>
@@ -253,31 +255,31 @@
 		    <h2>Tags</h2>
 		    <ul class="cloud">
 						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/mac-osx.html">mac osx</a>
+			  <a class="tag" href="../../../../tag/malloc.html">malloc</a>
 			</li>
-						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/reverse-engineering.html">reverse engineering</a>
+						<li class="tag-2">
+			  <a class="tag" href="../../../../tag/golang.html">golang</a>
 			</li>
-						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/theory.html">theory</a>
-			</li>
-						<li class="tag-1">
-			  <a class="tag" href="../../../../tag/profiling.html">profiling</a>
+						<li class="tag-2">
+			  <a class="tag" href="../../../../tag/tutorial.html">tutorial</a>
 			</li>
 						<li class="tag-4">
 			  <a class="tag" href="../../../../tag/make.html">make</a>
 			</li>
 						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/malloc.html">malloc</a>
+			  <a class="tag" href="../../../../tag/reverse-engineering.html">reverse engineering</a>
+			</li>
+						<li class="tag-1">
+			  <a class="tag" href="../../../../tag/profiling.html">profiling</a>
+			</li>
+						<li class="tag-4">
+			  <a class="tag" href="../../../../tag/mac-osx.html">mac osx</a>
+			</li>
+						<li class="tag-4">
+			  <a class="tag" href="../../../../tag/theory.html">theory</a>
 			</li>
 						<li class="tag-1">
 			  <a class="tag" href="../../../../tag/exploitation.html">exploitation</a>
-			</li>
-						<li class="tag-2">
-			  <a class="tag" href="../../../../tag/tutorial.html">tutorial</a>
-			</li>
-						<li class="tag-2">
-			  <a class="tag" href="../../../../tag/golang.html">golang</a>
 			</li>
 					    </ul>
 		</div>
