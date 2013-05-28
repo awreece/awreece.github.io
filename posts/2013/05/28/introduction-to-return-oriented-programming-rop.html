@@ -56,7 +56,9 @@ the correct libraries, you can compile 32 bit code on a 64 bit machine with the
 slightly more technically challenging. For the purpose of this tutorial, I will
 assume that you are familiar with x86 C calling conventions and stack
 management. I will attempt to provide a brief explanation
-<a href="../../../../posts/2013/05/21/a-brief-introduction-to-x86-calling-conventions.html">here</a>, but you are encouraged to explore in more depth on your own.</p>
+<a href="../../../../posts/2013/05/21/a-brief-introduction-to-x86-calling-conventions.html">here</a>, but you are encouraged to explore
+in more depth on your own. Lastly, you should be familiar with a unix command
+line interface.</p>
 <h1>My first ROP</h1>
 <p>The first thing we will do is use ROP to call a function in a very simple binary. In particular, we will be attempting to call <code>not_called</code> in the following program<sup id="fnref:3"><a class="footnote-ref" href="#fn:3" rel="footnote">3</a></sup>:</p>
 <div class="codehilite"><pre><span class="kt">void</span> <span class="nf">not_called</span><span class="p">()</span> <span class="p">{</span>
@@ -542,7 +544,16 @@ management. I will attempt to provide a brief explanation
 		    <h2>Tags</h2>
 		    <ul class="cloud">
 						<li class="tag-4">
+			  <a class="tag" href="../../../../tag/reverse-engineering.html">reverse engineering</a>
+			</li>
+						<li class="tag-2">
+			  <a class="tag" href="../../../../tag/golang.html">golang</a>
+			</li>
+						<li class="tag-4">
 			  <a class="tag" href="../../../../tag/make.html">make</a>
+			</li>
+						<li class="tag-1">
+			  <a class="tag" href="../../../../tag/tutorial.html">tutorial</a>
 			</li>
 						<li class="tag-4">
 			  <a class="tag" href="../../../../tag/theory.html">theory</a>
@@ -551,22 +562,13 @@ management. I will attempt to provide a brief explanation
 			  <a class="tag" href="../../../../tag/profiling.html">profiling</a>
 			</li>
 						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/mac-osx.html">mac osx</a>
-			</li>
-						<li class="tag-1">
-			  <a class="tag" href="../../../../tag/tutorial.html">tutorial</a>
+			  <a class="tag" href="../../../../tag/malloc.html">malloc</a>
 			</li>
 						<li class="tag-1">
 			  <a class="tag" href="../../../../tag/exploitation.html">exploitation</a>
 			</li>
 						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/reverse-engineering.html">reverse engineering</a>
-			</li>
-						<li class="tag-2">
-			  <a class="tag" href="../../../../tag/golang.html">golang</a>
-			</li>
-						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/malloc.html">malloc</a>
+			  <a class="tag" href="../../../../tag/mac-osx.html">mac osx</a>
 			</li>
 					    </ul>
 		</div>

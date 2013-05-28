@@ -10,7 +10,9 @@ the correct libraries, you can compile 32 bit code on a 64 bit machine with the
 slightly more technically challenging. For the purpose of this tutorial, I will
 assume that you are familiar with x86 C calling conventions and stack
 management. I will attempt to provide a brief explanation
-&lt;a href="http://codearcana.com/posts/2013/05/21/a-brief-introduction-to-x86-calling-conventions.html"&gt;here&lt;/a&gt;, but you are encouraged to explore in more depth on your own.&lt;/p&gt;
+&lt;a href="http://codearcana.com/posts/2013/05/21/a-brief-introduction-to-x86-calling-conventions.html"&gt;here&lt;/a&gt;, but you are encouraged to explore
+in more depth on your own. Lastly, you should be familiar with a unix command
+line interface.&lt;/p&gt;
 &lt;h1&gt;My first ROP&lt;/h1&gt;
 &lt;p&gt;The first thing we will do is use ROP to call a function in a very simple binary. In particular, we will be attempting to call &lt;code&gt;not_called&lt;/code&gt; in the following program&lt;sup id="fnref:3"&gt;&lt;a class="footnote-ref" href="#fn:3" rel="footnote"&gt;3&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;not_called&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
