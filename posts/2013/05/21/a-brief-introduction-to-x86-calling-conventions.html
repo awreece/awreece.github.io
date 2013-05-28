@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <title>A brief introduction to x86 calling conventions</title>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="../../../../theme/css/main.css" type="text/css" />
+        <link href="../../../../" type="application/atom+xml" rel="alternate" title="Code Arcana ATOM Feed" />
+        
+
+        <!--[if IE]>
+                <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+        <!--[if lte IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="../../../../css/ie.css"/>
+                <script src="../../../../js/IE8.js" type="text/javascript"></script><![endif]-->
+
+        <!--[if lt IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="../../../../css/ie6.css"/><![endif]-->
+
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="../../../../index.html">Code Arcana </a></h1>
+                <nav><ul>
+                                    <li><a href="http://codearcana.com">Blog</a></li>
+                                    <li><a href="http://codearcana.com/archives.html">Archives</a></li>
+                                                                    <li ><a href="../../../../pages/about.html">About</a></li>
+                                                                </ul></nav>
+        </header><!-- /#banner -->
+
+        <section id="content" class="body">
+<article>
+        <header> <h1 class="entry-title"><a href="posts/2013/05/21/a-brief-introduction-to-x86-calling-conventions.html"
+        rel="bookmark" title="Permalink to A brief introduction to x86 calling conventions">A brief introduction to x86 calling conventions</a></h1> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="awreece">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
+ </header>
+        <footer class="post-info">
+        <abbr class="published" title="2013-05-21T00:00:00">
+                Tue 21 May 2013
+        </abbr>
+
+                <address class="vcard author">
+                By <a class="url fn" href="../../../../author/alex-reece.html">Alex Reece</a>
+        </address>
+        <p>In <a href="../../../../category/security.html">security</a>. </p>
+<p>tags: <a href="../../../../tag/tutorial.html">tutorial</a></p></footer><!-- /.post-info --><!-- /.post-info -->
+        <div class="entry-content">
+        <p>To support some of my other tutorials, I will provide a brief introduction to x86 calling conventions. This should be considered an <em>introduction</em>, not a thorough resource. I encourage you to check out the "Machine Prog" lectures from <a href="https://www.cs.cmu.edu/afs/cs/academic/class/15213-s13/www/schedule.html">the CMU 15-213 course</a> or an alternative resource. In particular, pages 11-14 of <a href="https://www.cs.cmu.edu/afs/cs/academic/class/15213-s13/www/lectures/07-machine-procedures.pdf">this lecture</a> are useful. <a href="https://en.wikipedia.org/wiki/X86_calling_conventions">The wikipedia page</a> is also a useful reference.</p>
+<h1>Calling a function</h1>
+<p>A computer program<sup id="fnref:3"><a class="footnote-ref" href="#fn:3" rel="footnote">1</a></sup> keeps track of two important pointers as it runs: the instruction pointer, which points to the next instruction it will execute, and the stack pointer, which points to the last value pushed onto the stack. In x86, the instruction pointer is the register <code>%eip</code> and the stack pointer is in the register <code>%esp</code><sup id="fnref:4"><a class="footnote-ref" href="#fn:4" rel="footnote">2</a></sup>. The stack grows down (as values are pushed onto the stack, the stack pointer decreases) and is logically divided into regions, one for each function, called stack frames. </p>
+<p>When a function is called, the instruction pointer is pushed onto the stack to allow the program to return to the site of the <code>call</code> later. Before the <code>call</code>, the instruction pointer points to the <code>call</code> instruction and the stack pointer points to the last thing pushed (in this case, some garbage value):</p>
+<div class="codehilite"><pre>                    code                          |          stack
+--------------------------------------------------+----------------------------
+%eip =&gt; 0x00001f66: call   0x1ef0 &lt;nop_ret&gt;       |      | 0xdeadbeef | &lt;= %esp
+        0x00001f6b: movl   $0x0,-0x8(%ebp)        |      |            |
+</pre></div>
+
+
+<p>After the <code>call</code>, the instruction pointer points to the first instruction in our function and the stack pointer points to the last thing pushed, the return address from our function:</p>
+<div class="codehilite"><pre>                    code                          |          stack
+--------------------------------------------------+----------------------------
+%eip =&gt; 0x00001ef0: ret                           |      | 0xdeadbeef |
+                                                  |      | 0x00001f6b | &lt;= %esp
+</pre></div>
+
+
+<p>In this case, the function does nothing and merely returns. The <code>ret</code> instruction pops a value off the stack and into <code>%eip</code>. This both increments the stack pointer and returns control flow to the calling function:</p>
+<div class="codehilite"><pre>                    code                          |          stack
+--------------------------------------------------+----------------------------
+        0x00001f66: call   0x1ef0 &lt;nop_ret&gt;       |      | 0xdeadbeef | &lt;= %esp
+%eip =&gt; 0x00001f6b: movl   $0x0,-0x8(%ebp)        |      |            |
+</pre></div>
+
+
+<h1>Arguments</h1>
+<p>When a function needing arguments is called, they pushed onto the stack immediately before the call<sup id="fnref:5"><a class="footnote-ref" href="#fn:5" rel="footnote">3</a></sup>. If there is more than one argument, the first argument is pushed on last. The following sequence of operations corresponds to the function call <code>proj_1(0x5, 0x10)</code>:</p>
+<div class="codehilite"><pre>                    code                          |          stack
+--------------------------------------------------+----------------------------
+%eip =&gt; 0x00001f78: pushl  $0x10                  |      | 0xdeadbeef | &lt;= %esp
+        0x00001f7a: pushl  $0x5                   |      |            |
+        0x00001f7c: call   0x1f90 &lt;proj_1&gt;        |      |            |
+        0x00001f81: addl   $0x8, %esp             |      |            |      
+</pre></div>
+
+
+<div class="codehilite"><pre>        0x00001f78: pushl  $0x10                  |      | 0xdeadbeef |
+%eip =&gt; 0x00001f7a: pushl  $0x5                   |      | 0x10       | &lt;= %esp
+        0x00001f7c: call   0x1f90 &lt;proj_1&gt;        |      |            |
+        0x00001f81: addl   $0x8, %esp             |      |            |      
+</pre></div>
+
+
+<div class="codehilite"><pre>        0x00001f78: pushl  $0x10                  |      | 0xdeadbeef |
+        0x00001f7a: pushl  $0x5                   |      | 0x10       |
+%eip =&gt; 0x00001f7c: call   0x1f90 &lt;proj_1&gt;        |      | 0x5        | &lt;= %esp
+        0x00001f81: addl   $0x8, %esp             |      |            |      
+</pre></div>
+
+
+<p>It is more common to see arguments put onto the stack via <code>mov</code> instructions rather than via <code>push</code> instructions. The following block of code also would call <code>proj_1(0x5, 0x10)</code>:</p>
+<div class="codehilite"><pre><span class="nf">subl</span> <span class="no">$0x8</span><span class="p">,</span> <span class="nv">%esp</span>      <span class="c"># Reserve space for the arguments (4 bytes for each arg).</span>
+<span class="nf">movl</span> <span class="no">$0x10</span><span class="p">,</span> <span class="mi">4</span><span class="p">(</span><span class="nv">%esp</span><span class="p">)</span>  <span class="c"># Put the first argument at the memory address %esp + 4.</span>
+<span class="nf">movl</span> <span class="no">$0x5</span><span class="p">,</span> <span class="p">(</span><span class="nv">%esp</span><span class="p">)</span>    <span class="c"># Put the second argument at the memory address %esp</span>
+<span class="nf">call</span> <span class="no">proj_1</span>
+<span class="nf">addl</span> <span class="no">$0x8</span><span class="p">,</span> <span class="nv">%esp</span>      <span class="c"># Reclaim stack space reserved for arguments.</span>
+<span class="nf">ret</span>
+</pre></div>
+
+
+<h1>Return values</h1>
+<p>As you can see, the arguments are above the return address on the stack immediately after the function call. In this case, our simple function returns merely the first argument. The <code>mov 0x4(%esp), %eax</code> moves the value 4 above <code>%esp</code> into <code>%eax</code>. By convention, the return value of a function is in <code>%eax</code>.</p>
+<div class="codehilite"><pre>                    code                          |          stack
+--------------------------------------------------+----------------------------
+%eip =&gt; 0x00001f90: mov    0x4(%esp),%eax         |      | 0xdeadbeef | 
+        0x00001f94: ret                           |      | 0x10       |
+                                                  |      | 0x5        |
+                                                  |      | 0x00001f81 | &lt;= %esp
+</pre></div>
+
+
+<div class="codehilite"><pre>        0x00001f90: mov    0x4(%esp),%eax         |      | 0xdeadbeef | 
+%eip =&gt; 0x00001f94: ret                           |      | 0x10       |
+                                                  |      | 0x5        |
+                                                  |      | 0x00001f81 | &lt;= %esp
+</pre></div>
+
+
+<div class="codehilite"><pre>        0x00001f78: pushl  $0x10                  |      | 0xdeadbeef |
+        0x00001f7a: pushl  $0x5                   |      | 0x10       |
+        0x00001f7c: call   0x1f90 &lt;proj_1&gt;        |      | 0x5        | &lt;= %esp
+%eip =&gt; 0x00001f81: addl   $0x8, %esp             |      |            |      
+</pre></div>
+
+
+<p>Immediately after the function call, the <code>addl $0x8, %esp</code> reclaims the stack space used by pushing the arguments (in this case, 4 bytes for each of the two arguments).</p>
+<h1>Base pointer and local variables</h1>
+<p>The base pointer is conventionally used to mark the start of a function's stack frame, or the area of the stack managed by that function. Local variables are stored below the base pointer and above the stack pointer. The start of each function has a preamble saves the old base pointer and initializes a new one and the end of each function has epilogue that restores the old base pointer:</p>
+<div class="codehilite"><pre><span class="nl">my_function:</span>
+  <span class="nf">push</span> <span class="nv">%ebp</span>              <span class="c"># Preamble: save the old %ebp.</span>
+  <span class="nf">movl</span> <span class="nv">%esp</span><span class="p">,</span> <span class="nv">%ebp</span>        <span class="c"># Point %ebp to the saved %ebp and the new stack frame.</span>
+
+  <span class="nf">subl</span> <span class="no">$0x4</span><span class="p">,</span> <span class="nv">%esp</span>        <span class="c"># Reserve space for local variables.</span>
+
+  <span class="nf">movl</span> <span class="mi">0x8</span><span class="p">(</span><span class="nv">%ebp</span><span class="p">),</span> <span class="nv">%eax</span>   
+  <span class="no">movl</span> <span class="nv">%eax</span><span class="p">,</span> <span class="p">-</span><span class="mi">0x4</span><span class="p">(</span><span class="nv">%ebp</span><span class="p">)</span>  <span class="c"># Move argument into local variable.</span>
+
+  <span class="c"># Function body. </span>
+
+  <span class="nf">addl</span> <span class="no">$0x4</span><span class="p">,</span> <span class="nv">%esp</span>        <span class="c"># Reclaim space used by local variables.</span>
+
+  <span class="nf">pop</span> <span class="nv">%ebp</span>               <span class="c"># Epilogue: restore the old %ebp.</span>
+  <span class="nf">ret</span>
+</pre></div>
+
+
+<p>Inside a function, the stack would look like this:</p>
+<div class="codehilite"><pre>| &lt;argument 2&gt;       |
+| &lt;argument 1&gt;       |
+| &lt;return address&gt;   |
+| &lt;old ebp&gt;          | &lt;= %ebp
+| &lt;local var 1&gt;      |
+| &lt;local var 2&gt;      | &lt;= %esp
+</pre></div>
+
+
+<h1>Saving registers</h1>
+<p>Inside a function, you can freely use <code>%eax</code>, <code>%ecx</code>, and <code>%edx</code>. However, they are not guaranteed to be persistent across function calls (other functions can use them freely) so you must save them before calling other functions. If you use any other register, you <em>must</em> make sure to save them before you use them and restore them to the original values before you return. Registers you must save before you call a function are called <em>caller save</em> registers. Registers you must save before you can use them in a function are called <em>callee save</em> registers. The following block of code demonstrates the proper way to save <code>%ebx</code> (callee save) and <code>%ecx</code> (caller save):</p>
+<div class="codehilite"><pre><span class="nl">my_function:</span>
+  <span class="nf">push</span> <span class="nv">%ebp</span>              <span class="c"># Preamble: save the old %ebp.</span>
+  <span class="nf">movl</span> <span class="nv">%esp</span><span class="p">,</span> <span class="nv">%ebp</span>
+  <span class="nf">push</span> <span class="nv">%ebx</span>              <span class="c"># Save %ebx before we use it.</span>
+
+  <span class="c"># Function body.</span>
+
+  <span class="nf">push</span> <span class="nv">%ecx</span>              <span class="c"># Save %ecx before a function call.  </span>
+  <span class="nf">call</span> <span class="no">another_function</span>
+  <span class="nf">pop</span> <span class="nv">%ecx</span>               <span class="c"># Restore %ecx after a function call.</span>
+
+  <span class="nf">pop</span> <span class="nv">%ebx</span>               <span class="c"># Restore %ebx before we return.</span>
+  <span class="nf">pop</span> <span class="nv">%ebp</span>               <span class="c"># Epilogue: restore the old %ebp.</span>
+  <span class="nf">ret</span>
+</pre></div>
+
+
+<h1>To recap:</h1>
+<ul>
+<li><code>%esp</code> points to the last thing pushed on the stack.</li>
+<li><code>%eip</code> points to the next thing to execute.</li>
+<li><code>call &lt;addr&gt;</code> pushes the current value of <code>%eip</code> and changes <code>%eip</code> to <code>&lt;addr&gt;</code>.</li>
+<li><code>ret</code> pops the next value off the stack into <code>%eip</code>.</li>
+<li>Arguments are pushed onto the stack before a function call.</li>
+<li>
+<p>Immediately after function call, the stack looks like this:</p>
+<div class="codehilite"><pre>| &lt;argument 2&gt;     |
+| &lt;argument 1&gt;     |
+| &lt;return address&gt; | &lt;= %esp
+</pre></div>
+
+
+</li>
+<li>
+<p>Inside a function, the stack looks like this:</p>
+<div class="codehilite"><pre>| &lt;argument 2&gt;       |
+| &lt;argument 1&gt;       |
+| &lt;return address&gt;   |
+| &lt;old %ebp&gt;         | &lt;= %ebp
+| &lt;local var 1&gt;      |
+| &lt;local var 2&gt;      | &lt;= %esp
+</pre></div>
+
+
+</li>
+<li>
+<p>The return value of a function is in <code>%eax</code>.</p>
+</li>
+<li><code>%eax</code>, <code>%ecx</code>, and <code>%edx</code> are caller save registers. <code>%ebp</code>, <code>%ebx</code>, <code>%edi</code>, and <code>%esi</code> are callee save registers.</li>
+<li>Please read more to learn more!</li>
+</ul>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:3">
+<p>While I hope to stay close the spirit of the truth, I'm about to lie to simplify things. Please forgive me.&#160;<a class="footnote-backref" href="#fnref:3" rev="footnote" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:4">
+<p>In x86-64, the instruction pointer and the stack pointer are in the registers <code>%rip</code> and <code>%rsp</code>, respectively.&#160;<a class="footnote-backref" href="#fnref:4" rev="footnote" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+<li id="fn:5">
+<p>In x86-64, the first 6 integer arguments are passed in the registers <code>%rdi</code>, <code>%rsi</code>, <code>%rdx</code>, <code>%rcx</code>, <code>%r9</code>, and <code>%r8</code>. The first 8 floating point arguments are passed in via <code>%xmm0</code> through <code>%xmm7</code>. Any additional arguments are pushed onto the stack.&#160;<a class="footnote-backref" href="#fnref:5" rev="footnote" title="Jump back to footnote 3 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+        </div><!-- /.entry-content -->
+                <div class="comments">
+        <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+               var disqus_identifier = "posts/2013/05/21/a-brief-introduction-to-x86-calling-conventions.html";
+               (function() {
+               var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+               dsq.src = 'http://codearcana.disqus.com/embed.js';
+               (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+              })();
+            </script>
+        </div>
+        
+</article>
+</section>
+
+        <aside id="sidebar">
+                <div class="widget">
+                        <h2>Categories</h2>
+                        <ul>
+                                                   <li ><a href="../../../../category/performance.html">performance</a></li>
+                                                   <li class="active"><a href="../../../../category/security.html">security</a></li>
+                                                   <li ><a href="../../../../category/software-engineering.html">software engineering</a></li>
+                                                </ul>
+		</div>
+		<div class="widget">
+		    <h2>Tags</h2>
+		    <ul class="cloud">
+						<li class="tag-4">
+			  <a class="tag" href="../../../../tag/make.html">make</a>
+			</li>
+						<li class="tag-4">
+			  <a class="tag" href="../../../../tag/theory.html">theory</a>
+			</li>
+						<li class="tag-1">
+			  <a class="tag" href="../../../../tag/profiling.html">profiling</a>
+			</li>
+						<li class="tag-4">
+			  <a class="tag" href="../../../../tag/mac-osx.html">mac osx</a>
+			</li>
+						<li class="tag-1">
+			  <a class="tag" href="../../../../tag/tutorial.html">tutorial</a>
+			</li>
+						<li class="tag-1">
+			  <a class="tag" href="../../../../tag/exploitation.html">exploitation</a>
+			</li>
+						<li class="tag-4">
+			  <a class="tag" href="../../../../tag/reverse-engineering.html">reverse engineering</a>
+			</li>
+						<li class="tag-2">
+			  <a class="tag" href="../../../../tag/golang.html">golang</a>
+			</li>
+						<li class="tag-4">
+			  <a class="tag" href="../../../../tag/malloc.html">malloc</a>
+			</li>
+					    </ul>
+		</div>
+
+
+                        <div class="widget blogroll">
+                        <h2>Blogroll</h2>
+                        <ul>
+                                                    <li><a href="http://ppp.cylab.cmu.edu/wordpress/">PPP Blog</a></li>
+                                                    <li><a href="http://www.codinghorror.com/blog/">Coding Horror</a></li>
+                                                    <li><a href="http://blog.regehr.org/">Embedded in Academia</a></li>
+                                                    <li><a href="http://highscalability.com/">High Scalability</a></li>
+                                                    <li><a href="http://coderweekly.com/">Coder Weekly</a></li>
+                                                    <li><a href="http://www.phrack.org/">phrack</a></li>
+                                                    <li><a href="http://jbremer.org/">skier_'s blog</a></li>
+                                                    <li><a href="http://dtrace.org/blogs">dtrace blog</a></li>
+                                                </ul>
+                </div><!-- /.blogroll -->
+                                <div class="widget social">
+                        <h2>Social</h2>
+			<ul>
+                            <li><a href="http://codearcana.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate">atom feed</a></li>
+                            
+			    				<li><a href="https://twitter.com/awreece">twitter</a></li>
+			    				<li><a href="https://github.com/awreece">github</a></li>
+			    				<li><a href="https://plus.google.com/106589059588263736517/posts">google+</a></li>
+			                            </ul>
+                </div><!-- /.social -->
+                </aside><!-- /#sidebar -->
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-40107691-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+</body>
+</html>

