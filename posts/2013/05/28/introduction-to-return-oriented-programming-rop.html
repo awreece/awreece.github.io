@@ -229,15 +229,15 @@ line interface.</p>
 
 
 <p>These work by <code>pop</code>ing values from the stack (which we control) into registers and then executing code that uses them. To use, we set up the stack like so:</p>
-<div class="codehilite"><pre>| &lt;address of mov %eax, (%ecx)&gt;                  |
-| &lt;value to write&gt;                               |
-| &lt;address to write to&gt;                          |
-| &lt;address of pop %ecx; pop %edx; pop %eax; ret&gt; |
+<div class="codehilite"><pre>| &lt;address of mov %eax, (%ecx)&gt;        |
+| &lt;value to write&gt;                     |
+| &lt;address to write to&gt;                |
+| &lt;address of pop %ecx; pop %eax; ret&gt; |
 </pre></div>
 
 
 <p>You'll see that the first gadget returns to the second gadget, continuing the chain of attacker controlled code execution (this next gadget can continue).</p>
-<p>Other useful gadgets include <code>xchg %eax, %esp</code>, <code>sub %eax,%esp</code>, and <code>add    $0x1c,%esp</code>, which can be used to modify the stack pointer and <em>pivot</em> it to a attacker controlled buffer. This is useful if the original vulnerability only gave control over <code>%eip</code> (like in a <a href="../../../../posts/2013/05/02/introduction-to-format-string-exploits.html">format string vulnerability</a>) or if the attacker does not control very much of the stack (as would be the case for a short buffer overflow).</p>
+<p>Other useful gadgets include <code>xchg %eax, %esp</code> and <code>add $0x1c,%esp</code>, which can be used to modify the stack pointer and <em>pivot</em> it to a attacker controlled buffer. This is useful if the original vulnerability only gave control over <code>%eip</code> (like in a <a href="../../../../posts/2013/05/02/introduction-to-format-string-exploits.html">format string vulnerability</a>) or if the attacker does not control very much of the stack (as would be the case for a short buffer overflow).</p>
 <h1>Chaining functions</h1>
 <p>We can also use ROP to chain function calls: rather than a dummy return address, we use a <code>pop; ret</code> gadget to move the stack above the arguments to the first function. Since we are just using the <code>pop; ret</code> gadget to adjust the stack, we don't care what register it pops into (the value will be ignored anyways). As an example, we'll exploit the following binary<sup id="fnref:3"><a class="footnote-ref" href="#fn:3" rel="footnote">3</a></sup>:</p>
 <div class="codehilite"><pre><span class="kt">char</span> <span class="n">string</span><span class="p">[</span><span class="mi">100</span><span class="p">];</span>
@@ -544,19 +544,10 @@ line interface.</p>
 		    <h2>Tags</h2>
 		    <ul class="cloud">
 						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/reverse-engineering.html">reverse engineering</a>
-			</li>
-						<li class="tag-2">
-			  <a class="tag" href="../../../../tag/golang.html">golang</a>
+			  <a class="tag" href="../../../../tag/mac-osx.html">mac osx</a>
 			</li>
 						<li class="tag-4">
 			  <a class="tag" href="../../../../tag/make.html">make</a>
-			</li>
-						<li class="tag-1">
-			  <a class="tag" href="../../../../tag/tutorial.html">tutorial</a>
-			</li>
-						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/theory.html">theory</a>
 			</li>
 						<li class="tag-1">
 			  <a class="tag" href="../../../../tag/profiling.html">profiling</a>
@@ -568,7 +559,16 @@ line interface.</p>
 			  <a class="tag" href="../../../../tag/exploitation.html">exploitation</a>
 			</li>
 						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/mac-osx.html">mac osx</a>
+			  <a class="tag" href="../../../../tag/theory.html">theory</a>
+			</li>
+						<li class="tag-1">
+			  <a class="tag" href="../../../../tag/tutorial.html">tutorial</a>
+			</li>
+						<li class="tag-4">
+			  <a class="tag" href="../../../../tag/reverse-engineering.html">reverse engineering</a>
+			</li>
+						<li class="tag-2">
+			  <a class="tag" href="../../../../tag/golang.html">golang</a>
 			</li>
 					    </ul>
 		</div>
