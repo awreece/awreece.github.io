@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/all-en.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2013-05-28T00:00:00-07:00</updated><entry><title>Introduction to return oriented programming (ROP)</title><link href="http://codearcana.com/posts/2013/05/28/introduction-to-return-oriented-programming-rop.html" rel="alternate"></link><updated>2013-05-28T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-05-28:posts/2013/05/28/introduction-to-return-oriented-programming-rop.html</id><summary type="html">&lt;h1&gt;What is ROP?&lt;/h1&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/all-en.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2013-11-06T00:00:00-08:00</updated><entry><title>My zsh theme</title><link href="http://codearcana.com/posts/2013/11/06/my-zsh-theme.html" rel="alternate"></link><updated>2013-11-06T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-11-06:posts/2013/11/06/my-zsh-theme.html</id><summary type="html">&lt;p&gt;I spent some time this week switching from &lt;code&gt;bash&lt;/code&gt; to &lt;code&gt;zsh&lt;/code&gt; (I really enjoy
+&lt;code&gt;zsh&lt;/code&gt; - I treat it as &lt;code&gt;bash&lt;/code&gt; with floating point arithmetic and other
+niceities)
+and making a theme for
+&lt;a href="https://github.com/robbyrussell/oh-my-zsh"&gt;&lt;code&gt;oh-my-zsh&lt;/code&gt;&lt;/a&gt; 
+for myself. I'm not quite done, but I am pretty pleased with
+the results. First, a screenshot:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="zsh theme" src="http://codearcana.com/images/zsh_theme.png" title="My zsh theme" /&gt;&lt;/p&gt;
+&lt;p&gt;And a step by step explanation:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;By default, the prompt is very minimalist (the current directory and a % or a # depending on the privileges of the shell).&lt;/li&gt;
+&lt;li&gt;In the right hand prompt, the execution time of the last command is displayed. It is colored green if the command returned successfully and red otherwise.&lt;/li&gt;
+&lt;li&gt;The number of background processes is displayed (but only if there are background processes).&lt;/li&gt;
+&lt;li&gt;If the path to the current directory is long, it is also displayed in the right hand side.&lt;/li&gt;
+&lt;li&gt;The user and hostname are displayed (only) if logged in over &lt;code&gt;ssh&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Since this is &lt;code&gt;zsh&lt;/code&gt;, the right hand prompt disappears if the line is long enough.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;You'll note that I &lt;em&gt;don't&lt;/em&gt; have &lt;code&gt;git&lt;/code&gt; directory status in the prompt, since I
+don't think they are worth it. I like my prompt to be as simple as possible
+unless it is necessary, which is why everything in my theme is in the right
+hand prompt.&lt;/p&gt;
+&lt;p&gt;The best part? On Mac OSX, I get notifications if a program completes and the terminal doesn't have focus:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="zsh theme popup" src="http://codearcana.com/images/zsh_theme_popup.png" title="A sample notification - click to focus on the terminal window." /&gt;&lt;/p&gt;
+&lt;p&gt;Source is in &lt;a href="https://github.com/awreece/oh-my-zsh/blob/master/themes/awreece.zsh-theme"&gt;my fork of &lt;code&gt;oh-my-zsh&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;</summary><category term="zsh"></category></entry><entry><title>Introduction to return oriented programming (ROP)</title><link href="http://codearcana.com/posts/2013/05/28/introduction-to-return-oriented-programming-rop.html" rel="alternate"></link><updated>2013-05-28T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-05-28:posts/2013/05/28/introduction-to-return-oriented-programming-rop.html</id><summary type="html">&lt;h1&gt;What is ROP?&lt;/h1&gt;
 &lt;p&gt;Return Oriented Programming (ROP) is a powerful technique used to counter common exploit prevention strategies. In particular, ROP is useful for circumventing Address Space Layout Randomization (ASLR)&lt;sup id="fnref:1"&gt;&lt;a class="footnote-ref" href="#fn:1" rel="footnote"&gt;1&lt;/a&gt;&lt;/sup&gt; and DEP&lt;sup id="fnref:2"&gt;&lt;a class="footnote-ref" href="#fn:2" rel="footnote"&gt;2&lt;/a&gt;&lt;/sup&gt;. When using ROP, an attacker uses his/her control over the stack right before the return from a function to direct code execution to some other location in the program. Except on very hardened binaries, attackers can easily find a portion of code that is located in a fixed location (circumventing ASLR) and which is executable (circumventing DEP). Furthermore, it is relatively straightforward to chain several payloads to achieve (almost) arbitrary code execution. &lt;/p&gt;
 &lt;h1&gt;Before we begin&lt;/h1&gt;
 &lt;p&gt;If you are attempting to follow along with this tutorial, it might be helpful
