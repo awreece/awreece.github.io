@@ -7,9 +7,9 @@ and making a theme for
 for myself. I'm not quite done, but I am pretty pleased with
 the results. &lt;/p&gt;
 &lt;p&gt;It differs from most themes in the following ways:
--    Explicitly not having git or other version control info in the prompt (I very rarely don't know what branch I am in and when I care about the status of git, I usually care about which files are affected).
--    Showing the execution time and status of the last command executed.
--    Displaying a notification (on Mac OSX) if a (long running) command completes and the terminal isn't in the foreground.&lt;/p&gt;
+-     Explicitly not having git or other version control info in the prompt (I very rarely don't know what branch I am in and when I care about the status of git, I usually care about which files are affected).
+-     Showing the execution time and status of the last command executed.
+-     Displaying a notification (on Mac OSX) if a (long running) command completes and the terminal isn't in the foreground.&lt;/p&gt;
 &lt;p&gt;First, a screenshot:&lt;/p&gt;
 &lt;p&gt;&lt;img alt="zsh theme" src="http://codearcana.com/images/zsh_theme.png" title="My zsh theme" /&gt;
 &lt;img alt="zsh theme popup" src="http://codearcana.com/images/zsh_theme_popup.png" title="A sample notification - click to focus on the terminal window." /&gt;&lt;/p&gt;
