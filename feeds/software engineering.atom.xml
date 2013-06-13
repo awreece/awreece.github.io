@@ -5,11 +5,17 @@ niceities)
 and making a theme for
 &lt;a href="https://github.com/robbyrussell/oh-my-zsh"&gt;&lt;code&gt;oh-my-zsh&lt;/code&gt;&lt;/a&gt; 
 for myself. I'm not quite done, but I am pretty pleased with
-the results. First, a screenshot:&lt;/p&gt;
-&lt;p&gt;&lt;img alt="zsh theme" src="http://codearcana.com/images/zsh_theme.png" title="My zsh theme" /&gt;&lt;/p&gt;
-&lt;p&gt;And a step by step explanation:&lt;/p&gt;
+the results. &lt;/p&gt;
+&lt;p&gt;It differs from most themes in the following ways:
+-    Explicitly not having git or other version control info in the prompt (I very rarely don't know what branch I am in and when I care about the status of git, I usually care about which files are affected).
+-    Showing the execution time and status of the last command executed.
+-    Displaying a notification (on Mac OSX) if a (long running) command completes and the terminal isn't in the foreground.&lt;/p&gt;
+&lt;p&gt;First, a screenshot:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="zsh theme" src="http://codearcana.com/images/zsh_theme.png" title="My zsh theme" /&gt;
+&lt;img alt="zsh theme popup" src="http://codearcana.com/images/zsh_theme_popup.png" title="A sample notification - click to focus on the terminal window." /&gt;&lt;/p&gt;
+&lt;p&gt;And some more detailed explanation:&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;By default, the prompt is very minimalist (the current directory and a % or a # depending on the privileges of the shell).&lt;/li&gt;
+&lt;li&gt;By default, the prompt is very minimalist (the current directory and a % or a # depending on the privileges of the shell). Most extra information is hidden unless it is useful.&lt;/li&gt;
 &lt;li&gt;In the right hand prompt, the execution time of the last command is displayed. It is colored green if the command returned successfully and red otherwise.&lt;/li&gt;
 &lt;li&gt;The number of background processes is displayed (but only if there are background processes).&lt;/li&gt;
 &lt;li&gt;If the path to the current directory is long, it is also displayed in the right hand side.&lt;/li&gt;
@@ -17,11 +23,9 @@ the results. First, a screenshot:&lt;/p&gt;
 &lt;li&gt;Since this is &lt;code&gt;zsh&lt;/code&gt;, the right hand prompt disappears if the line is long enough.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;You'll note that I &lt;em&gt;don't&lt;/em&gt; have &lt;code&gt;git&lt;/code&gt; directory status in the prompt, since I
-don't think they are worth it. I like my prompt to be as simple as possible
-unless it is necessary, which is why everything in my theme is in the right
-hand prompt.&lt;/p&gt;
-&lt;p&gt;The best part? On Mac OSX, I get notifications if a program completes and the terminal doesn't have focus:&lt;/p&gt;
-&lt;p&gt;&lt;img alt="zsh theme popup" src="http://codearcana.com/images/zsh_theme_popup.png" title="A sample notification - click to focus on the terminal window." /&gt;&lt;/p&gt;
+don't think they are worth it. 
+I very rarely don't know what branch I am on and when I care about the status
+of git, I usually care about which files are affected&lt;/p&gt;
 &lt;p&gt;Source is in &lt;a href="https://github.com/awreece/oh-my-zsh/blob/master/themes/awreece.zsh-theme"&gt;my fork of &lt;code&gt;oh-my-zsh&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;</summary><category term="zsh"></category></entry><entry><title>CS Theory with Make</title><link href="http://codearcana.com/posts/2012/03/05/cs-theory-with-make.html" rel="alternate"></link><updated>2012-03-05T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2012-03-05:posts/2012/03/05/cs-theory-with-make.html</id><summary type="html">&lt;p&gt;In this post, I play around with some make functions and eventually provide a constructive proof that the make syntax is turing complete via reduction to μ-recursion.&lt;/p&gt;
 &lt;p&gt;First, we have to construct numbers. I used the representation of numbers as
 unary strings of the character &lt;code&gt;0&lt;/code&gt;: ie, the number 4 is represented by &lt;code&gt;0000&lt;/code&gt;

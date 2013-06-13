@@ -51,11 +51,17 @@ niceities)
 and making a theme for
 <a href="https://github.com/robbyrussell/oh-my-zsh"><code>oh-my-zsh</code></a> 
 for myself. I'm not quite done, but I am pretty pleased with
-the results. First, a screenshot:</p>
-<p><img alt="zsh theme" src="../../../../images/zsh_theme.png" title="My zsh theme" /></p>
-<p>And a step by step explanation:</p>
+the results. </p>
+<p>It differs from most themes in the following ways:
+-    Explicitly not having git or other version control info in the prompt (I very rarely don't know what branch I am in and when I care about the status of git, I usually care about which files are affected).
+-    Showing the execution time and status of the last command executed.
+-    Displaying a notification (on Mac OSX) if a (long running) command completes and the terminal isn't in the foreground.</p>
+<p>First, a screenshot:</p>
+<p><img alt="zsh theme" src="../../../../images/zsh_theme.png" title="My zsh theme" />
+<img alt="zsh theme popup" src="../../../../images/zsh_theme_popup.png" title="A sample notification - click to focus on the terminal window." /></p>
+<p>And some more detailed explanation:</p>
 <ul>
-<li>By default, the prompt is very minimalist (the current directory and a % or a # depending on the privileges of the shell).</li>
+<li>By default, the prompt is very minimalist (the current directory and a % or a # depending on the privileges of the shell). Most extra information is hidden unless it is useful.</li>
 <li>In the right hand prompt, the execution time of the last command is displayed. It is colored green if the command returned successfully and red otherwise.</li>
 <li>The number of background processes is displayed (but only if there are background processes).</li>
 <li>If the path to the current directory is long, it is also displayed in the right hand side.</li>
@@ -63,11 +69,9 @@ the results. First, a screenshot:</p>
 <li>Since this is <code>zsh</code>, the right hand prompt disappears if the line is long enough.</li>
 </ul>
 <p>You'll note that I <em>don't</em> have <code>git</code> directory status in the prompt, since I
-don't think they are worth it. I like my prompt to be as simple as possible
-unless it is necessary, which is why everything in my theme is in the right
-hand prompt.</p>
-<p>The best part? On Mac OSX, I get notifications if a program completes and the terminal doesn't have focus:</p>
-<p><img alt="zsh theme popup" src="../../../../images/zsh_theme_popup.png" title="A sample notification - click to focus on the terminal window." /></p>
+don't think they are worth it. 
+I very rarely don't know what branch I am on and when I care about the status
+of git, I usually care about which files are affected</p>
 <p>Source is in <a href="https://github.com/awreece/oh-my-zsh/blob/master/themes/awreece.zsh-theme">my fork of <code>oh-my-zsh</code></a>.</p>
         </div><!-- /.entry-content -->
                 <div class="comments">
@@ -98,18 +102,6 @@ hand prompt.</p>
 		<div class="widget">
 		    <h2>Tags</h2>
 		    <ul class="cloud">
-						<li class="tag-1">
-			  <a class="tag" href="../../../../tag/profiling.html">profiling</a>
-			</li>
-						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/zsh.html">zsh</a>
-			</li>
-						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/mac-osx.html">mac osx</a>
-			</li>
-						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/malloc.html">malloc</a>
-			</li>
 						<li class="tag-2">
 			  <a class="tag" href="../../../../tag/golang.html">golang</a>
 			</li>
@@ -117,7 +109,7 @@ hand prompt.</p>
 			  <a class="tag" href="../../../../tag/reverse-engineering.html">reverse engineering</a>
 			</li>
 						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/theory.html">theory</a>
+			  <a class="tag" href="../../../../tag/mac-osx.html">mac osx</a>
 			</li>
 						<li class="tag-4">
 			  <a class="tag" href="../../../../tag/make.html">make</a>
@@ -126,7 +118,19 @@ hand prompt.</p>
 			  <a class="tag" href="../../../../tag/exploitation.html">exploitation</a>
 			</li>
 						<li class="tag-1">
+			  <a class="tag" href="../../../../tag/profiling.html">profiling</a>
+			</li>
+						<li class="tag-1">
 			  <a class="tag" href="../../../../tag/tutorial.html">tutorial</a>
+			</li>
+						<li class="tag-4">
+			  <a class="tag" href="../../../../tag/theory.html">theory</a>
+			</li>
+						<li class="tag-4">
+			  <a class="tag" href="../../../../tag/zsh.html">zsh</a>
+			</li>
+						<li class="tag-4">
+			  <a class="tag" href="../../../../tag/malloc.html">malloc</a>
 			</li>
 					    </ul>
 		</div>
