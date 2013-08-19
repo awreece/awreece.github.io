@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/software%20engineering.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2013-11-06T00:00:00-08:00</updated><entry><title>My zsh theme</title><link href="http://codearcana.com/posts/2013/11/06/my-zsh-theme.html" rel="alternate"></link><updated>2013-11-06T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-11-06:posts/2013/11/06/my-zsh-theme.html</id><summary type="html">&lt;p&gt;I spent some time this week switching from &lt;code&gt;bash&lt;/code&gt; to &lt;code&gt;zsh&lt;/code&gt; (I really enjoy
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/software-engineering.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2013-06-11T00:00:00-07:00</updated><entry><title>My zsh theme</title><link href="http://codearcana.com/posts/2013/06/11/my-zsh-theme.html" rel="alternate"></link><updated>2013-06-11T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-06-11:posts/2013/06/11/my-zsh-theme.html</id><summary type="html">&lt;p&gt;I spent some time this week switching from &lt;code&gt;bash&lt;/code&gt; to &lt;code&gt;zsh&lt;/code&gt; (I really enjoy
 &lt;code&gt;zsh&lt;/code&gt; - I treat it as &lt;code&gt;bash&lt;/code&gt; with floating point arithmetic and other
 niceities)
 and making a theme for
@@ -28,7 +28,7 @@ the results. &lt;/p&gt;
 &lt;p&gt;First, we have to construct numbers. I used the representation of numbers as
 unary strings of the character &lt;code&gt;0&lt;/code&gt;: ie, the number 4 is represented by &lt;code&gt;0000&lt;/code&gt;
 (zero being the empty string). We can also compute the successor of a number:&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="c"&gt;# If this is called as a make function, $(1) will be replaced with the first&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;# If this is called as a make function, $(1) will be replaced with the first&lt;/span&gt;
 &lt;span class="c"&gt;# function argument.&lt;/span&gt;
 &lt;span class="nv"&gt;successor&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; O&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;
 
@@ -38,7 +38,7 @@ unary strings of the character &lt;code&gt;0&lt;/code&gt;: ie, the number 4 is r
 
 &lt;p&gt;Life is a lot easier if we can compute predecesser. Luckily, this is pretty
 easy for us too:&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nv"&gt;monus_one&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;patsubst O%,%,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;monus_one&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;patsubst O%,%,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;
 
 &lt;span class="k"&gt;$(&lt;/span&gt;info &lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,OO&lt;span class="k"&gt;))&lt;/span&gt;  &lt;span class="c"&gt;# Outputs &amp;#39;0&amp;#39;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
@@ -46,14 +46,14 @@ easy for us too:&lt;/p&gt;
 
 &lt;p&gt;Now lets actually do computation with this. It is hideous, but we can actually
 compute fibonacci numbers in make:&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nv"&gt;fib&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call fib,&lt;span class="k"&gt;$(&lt;/span&gt;call &lt;span class="se"&gt;\&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;fib&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call fib,&lt;span class="k"&gt;$(&lt;/span&gt;call &lt;span class="se"&gt;\&lt;/span&gt;
   monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;&lt;span class="o"&gt;))&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;call fib,&lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))))&lt;/span&gt;,O&lt;span class="o"&gt;)&lt;/span&gt;,O&lt;span class="o"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;Let me try to break this up a bit. I'll add comments but it will no longer be
 valid make.&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="c"&gt;# fib (n):&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;# fib (n):&lt;/span&gt;
 &lt;span class="nv"&gt;fib&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;, &lt;span class="c"&gt;# If n &amp;gt; 0:&lt;/span&gt;
           &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;, &lt;span class="c"&gt;# if n - 1 &amp;gt; 0:&lt;/span&gt;
 &lt;span class="c"&gt;              # return fib(n-1) + fib(n-2)&lt;/span&gt;
@@ -67,7 +67,7 @@ valid make.&lt;/p&gt;
 couldn't do with a primitive recursive function. We can easily show that make
 is more powerful than primitive recusion by encoding the &lt;a href="https://en.wikipedia.org/wiki/Ackermann_function"&gt;Ackerman
 function&lt;/a&gt;.&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nv"&gt;ack&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;2&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call ack,&lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call &lt;span class="se"&gt;\&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;ack&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;2&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call ack,&lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call &lt;span class="se"&gt;\&lt;/span&gt;
   ack,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;2&lt;span class="k"&gt;))&lt;/span&gt;&lt;span class="o"&gt;))&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call ack,&lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;,O&lt;span class="k"&gt;)&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;2&lt;span class="k"&gt;)&lt;/span&gt;O&lt;span class="o"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -79,7 +79,7 @@ functions&lt;/a&gt;. They are
 the primitive recursive functions with the addition of the minimization (µ)
 operator: µ of f(x) is the minimum x such that f(x)=0. As it turns out, we can
 encode this operator in make:&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="c"&gt;# muh f x returns the first number greater than or equal to x such&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;# muh f x returns the first number greater than or equal to x such&lt;/span&gt;
 &lt;span class="c"&gt;# that f(x) is true.&lt;/span&gt;
 &lt;span class="nv"&gt;muh&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;call &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;2&lt;span class="k"&gt;))&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;2&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call muh,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,O&lt;span class="k"&gt;$(&lt;/span&gt;2&lt;span class="k"&gt;)))&lt;/span&gt;
 
@@ -91,7 +91,7 @@ encode this operator in make:&lt;/p&gt;
 
 &lt;p&gt;Wow! There we have it, make is turing complete. As a final piece of fun, here
 is the inverse ackerman function:&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nv"&gt;not&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,,O&lt;span class="k"&gt;)&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;not&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,,O&lt;span class="k"&gt;)&lt;/span&gt;
 
 &lt;span class="c"&gt;# lesseq_template n creates a function lesseq_y that returns y &amp;lt; x&lt;/span&gt;
 &lt;span class="cp"&gt;define lesseq_template&lt;/span&gt;

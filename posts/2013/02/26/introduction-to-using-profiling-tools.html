@@ -3,64 +3,64 @@
 <head>
         <title>Introduction to Using Profiling Tools</title>
         <meta charset="utf-8" />
-        <link rel="stylesheet" href="../../../../theme/css/main.css" type="text/css" />
-        <link href="../../../../" type="application/atom+xml" rel="alternate" title="Code Arcana ATOM Feed" />
-        
+        <link rel="stylesheet" href="http://codearcana.com/theme/css/main.css" type="text/css" />
+        <link href="http://codearcana.com/" type="application/atom+xml" rel="alternate" title="Code Arcana ATOM Feed" />
+
 
         <!--[if IE]>
                 <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
 
         <!--[if lte IE 7]>
-                <link rel="stylesheet" type="text/css" media="all" href="../../../../css/ie.css"/>
-                <script src="../../../../js/IE8.js" type="text/javascript"></script><![endif]-->
+                <link rel="stylesheet" type="text/css" media="all" href="http://codearcana.com/css/ie.css"/>
+                <script src="http://codearcana.com/js/IE8.js" type="text/javascript"></script><![endif]-->
 
         <!--[if lt IE 7]>
-                <link rel="stylesheet" type="text/css" media="all" href="../../../../css/ie6.css"/><![endif]-->
+                <link rel="stylesheet" type="text/css" media="all" href="http://codearcana.com/css/ie6.css"/><![endif]-->
 
 </head>
 
 <body id="index" class="home">
         <header id="banner" class="body">
-                <h1><a href="../../../../index.html">Code Arcana </a></h1>
+                <h1><a href="http://codearcana.com/index.html">Code Arcana </a></h1>
                 <nav><ul>
-                                    <li><a href="http://codearcana.com">Blog</a></li>
-                                    <li><a href="http://codearcana.com/archives.html">Archives</a></li>
-                                                                    <li ><a href="../../../../pages/about.html">About</a></li>
-                                                                </ul></nav>
+                    <li><a href="http://codearcana.com">Blog</a></li>
+                    <li><a href="http://codearcana.com/archives.html">Archives</a></li>
+                    <li ><a href="http://codearcana.com/pages/about.html">About</a></li>
+                </ul></nav>
         </header><!-- /#banner -->
 
-        <section id="content" class="body">
+<section id="content" class="body">
 <article>
         <header> <h1 class="entry-title"><a href="posts/2013/02/26/introduction-to-using-profiling-tools.html"
         rel="bookmark" title="Permalink to Introduction to Using Profiling Tools">Introduction to Using Profiling Tools</a></h1> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="awreece">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
  </header>
-        <footer class="post-info">
+<footer class="post-info">
         <abbr class="published" title="2013-02-26T00:00:00">
                 Tue 26 February 2013
         </abbr>
 
-                <address class="vcard author">
-                By <a class="url fn" href="../../../../author/alex-reece.html">Alex Reece</a>
+        <address class="vcard author">
+                By <a class="url fn" href="http://codearcana.com/author/alex-reece.html">Alex Reece</a>
         </address>
-        <p>In <a href="../../../../category/performance.html">performance</a>. </p>
-<p>tags: <a href="../../../../tag/profiling.html">profiling</a></p></footer><!-- /.post-info --><!-- /.post-info -->
+<p>In <a href="http://codearcana.com/category/performance.html">performance</a>. </p>
+<p>tags: <a href="http://codearcana.com/tag/profiling.html">profiling</a></p></footer><!-- /.post-info --><!-- /.post-info -->
         <div class="entry-content">
         <h2>Performance tools</h2>
 <p>Frequently, we need to identify slow portions of our programs so we can improve performance. There are a number of tools available to profile programs and identify how much time is spent where. The most common of these tools sample the program periodically, recording information to be later analyzed. Typically, they involve a phase spent recording data and a later phase for analyzing it. We will use two common tools to analyze a simple program: Google <code>pprof</code> and Linux <code>perf</code>.</p>
 <h3>Google <code>pprof</code></h3>
 <p>Google <code>pprof</code> is a tool available as part of the Google <a href="https://code.google.com/p/gperftools/"><code>perftools</code></a> package. It is is used with
 <code>libprofiler</code>, a sampling based profiler that is linked into your binary. There are 3 steps for using <code>pprof</code>: linking it into the binary, generating profile output, and analyzing the output. The following links a binary with <code>libprofiler</code>:</p>
-<div class="codehilite"><pre><span class="gp">%</span> gcc main.c -lprofiler
+<div class="highlight"><pre><span class="gp">%</span> gcc main.c -lprofiler
 </pre></div>
 
 
 <p>For any profile linked with <code>libprofiler</code>, setting the environment variable <code>CPUPROFILE</code> enables profiling and specifies the output file. The following command runs <code>./a.out</code> and prints profiling data to <code>out.prof</code>:</p>
-<div class="codehilite"><pre><span class="gp">%</span> <span class="nv">CPUPROFILE</span><span class="o">=</span>out.prof ./a.out
+<div class="highlight"><pre><span class="gp">%</span> <span class="nv">CPUPROFILE</span><span class="o">=</span>out.prof ./a.out
 </pre></div>
 
 
 <p>We can now analyze this file using <code>pprof</code>. Below, we output the sample counts for all the functions in <code>a.out</code>:</p>
-<div class="codehilite"><pre><span class="gp">%</span> pprof --text ./a.out out.prof
+<div class="highlight"><pre><span class="gp">%</span> pprof --text ./a.out out.prof
 <span class="go">... &lt;snip&gt; ...</span>
 <span class="go">Total: 311 samples</span>
 <span class="go">  144  46.3%  46.3%      144  46.3% bar</span>
@@ -76,7 +76,7 @@
 <h3>Linux <code>perf</code></h3>
 <p>On Linux, the <code>perf</code> system is a powerful tool for analyzing program / system performance. It provides some nice abstractions over tracking hardware counters on different CPUs. It defines a number of events to be tracked and recorded. Run <code>perf list</code> to see a list of the events allowed on your system. </p>
 <p>To use <code>perf</code>, you run: </p>
-<div class="codehilite"><pre><span class="gp">%</span> perf stat ./a.out
+<div class="highlight"><pre><span class="gp">%</span> perf stat ./a.out
 <span class="go"> Performance counter stats for &#39;./a.out&#39;:</span>
 
 <span class="go">    3121.725439 task-clock                #    0.997 CPUs utilized          </span>
@@ -96,7 +96,7 @@
 
 
 <p>In addition to <code>perf stat</code>, there quite a few other ways to use perf. Run </p>
-<div class="codehilite"><pre><span class="gp">%</span> perf
+<div class="highlight"><pre><span class="gp">%</span> perf
 </pre></div>
 
 
@@ -106,14 +106,14 @@
 <p>We compile the program with <code>-lprofiler</code> so we can generate output to examine. <code>try_perf.c</code> is a C program that counts the number of even values
 in an array of random numbers. We run with 8 threads that all increment a global
 counter every time they see an even number.</p>
-<div class="codehilite"><pre><span class="gp">%</span> gcc try_perf.c -g -lprofiler -lpthread
+<div class="highlight"><pre><span class="gp">%</span> gcc try_perf.c -g -lprofiler -lpthread
 <span class="gp">%</span> <span class="nv">CPUPROFILE</span><span class="o">=</span>a.out.prof ./a.out --num_threads<span class="o">=</span>8
 </pre></div>
 
 
 <p>We run pprof and get the source code annotated with the number of probes that 
 hit that instruction during the trace (result below trimmed for brevity).</p>
-<div class="codehilite"><pre><span class="gp">%</span> pprof --list<span class="o">=</span>thread_scan a.out a.out.prof
+<div class="highlight"><pre><span class="gp">%</span> pprof --list<span class="o">=</span>thread_scan a.out a.out.prof
 <span class="go"> ... &lt;snip&gt; ...</span>
 <span class="go">   .      .   60: void* thread_scan(void* void_arg) {</span>
 <span class="go">   .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.</span>
@@ -131,7 +131,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 
 
 <p>The output above is actually misleading: if you look at the assembly (shown below), the instruction immediately after the atomic instruction (the <code>addq   $0x1,-0x8(%rbp)</code> after the <code>lock addq $0x1,(%rax)</code>) gets excess hits that count towards the for loop when they should probably count towards the atomic instruction.</p>
-<div class="codehilite"><pre><span class="gp">%</span> pprof --disas<span class="o">=</span>thread_scan a.out a.out.prof
+<div class="highlight"><pre><span class="gp">%</span> pprof --disas<span class="o">=</span>thread_scan a.out a.out.prof
 <span class="go"> ... &lt;snip&gt; ...</span>
 <span class="go">  9    300    68: __sync_fetch_and_add(arg-&gt;num_evens, 1);</span>
 <span class="go">  4      5      4008a4: mov    -0x10(%rbp),%rax</span>
@@ -145,7 +145,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 
 <p>Hrm. Why are we spending a lot of time in <code>lock addq $0x1,(%rax)</code>?</p>
 <p>To understand this, we will use <code>perf</code>. Run: </p>
-<div class="codehilite"><pre><span class="gp">%</span> perf stat ./a.out
+<div class="highlight"><pre><span class="gp">%</span> perf stat ./a.out
 <span class="go"> Performance counter stats for &#39;./a.out&#39;:</span>
 
 <span class="go">    5793.307952 task-clock                #    2.157 CPUs utilized          </span>
@@ -165,7 +165,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 
 
 <p>Wow, thats a lot of stalled instructions! The 8 threads are sharing the same counter, generating a lot of memory traffic. We modify the program so they all use their own counter, and then we aggregate at the end (if we do this, we don't need to use the atomic instruction).</p>
-<div class="codehilite"><pre><span class="kt">size_t</span> <span class="n">counts</span><span class="p">[</span><span class="n">nthreads</span><span class="p">];</span>
+<div class="highlight"><pre><span class="kt">size_t</span> <span class="n">counts</span><span class="p">[</span><span class="n">nthreads</span><span class="p">];</span>
 <span class="kt">size_t</span> <span class="n">num_evens</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 
 <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nthreads</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
@@ -183,7 +183,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 
 
 <p>But that didn't seem to help at all! We still spend most of our time on the increment, even though we aren't using an atomic instruction: </p>
-<div class="codehilite"><pre><span class="gp">%</span> pprof --list<span class="o">=</span>thread_scan a.out out.prof
+<div class="highlight"><pre><span class="gp">%</span> pprof --list<span class="o">=</span>thread_scan a.out out.prof
 <span class="go">... &lt;snip&gt; ...</span>
 <span class="go">  .      .   60: void* thread_scan(void* void_arg) {</span>
 <span class="go">  .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.</span>
@@ -201,7 +201,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 
 
 <p>Why could this be? Lets run <code>perf stat</code> again and see:</p>
-<div class="codehilite"><pre><span class="gp">%</span> perf stat ./a.out
+<div class="highlight"><pre><span class="gp">%</span> perf stat ./a.out
 <span class="go"> Performance counter stats for &#39;./a.out&#39;:</span>
 
 <span class="go">      4372.474270 task-clock                #    1.882 CPUs utilized          </span>
@@ -221,12 +221,12 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 
 
 <p>What is going on now? We <em>still</em> have a lot of stalled instructions, but all those counters are different. See?</p>
-<div class="codehilite"><pre><span class="kt">size_t</span> <span class="n">counts</span><span class="p">[</span><span class="n">nthreads</span><span class="p">];</span>
+<div class="highlight"><pre><span class="kt">size_t</span> <span class="n">counts</span><span class="p">[</span><span class="n">nthreads</span><span class="p">];</span>
 </pre></div>
 
 
 <p>Oh, they are all on the same cache line - we're experiencing false sharing. Let us use a thread local counter thats on a different cache line for each thread:</p>
-<div class="codehilite"><pre><span class="kt">void</span><span class="o">*</span> <span class="nf">thread_scan</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">void_arg</span><span class="p">)</span> <span class="p">{</span>
+<div class="highlight"><pre><span class="kt">void</span><span class="o">*</span> <span class="nf">thread_scan</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">void_arg</span><span class="p">)</span> <span class="p">{</span>
   <span class="kt">thread_arg_t</span><span class="o">*</span> <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="kt">thread_arg_t</span><span class="o">*</span><span class="p">)</span> <span class="n">void_arg</span><span class="p">;</span>
   <span class="kt">size_t</span> <span class="n">i</span><span class="p">;</span>
   <span class="kt">size_t</span> <span class="n">num_evens</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
@@ -251,7 +251,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 
 
 <p>And then look at the profile:</p>
-<div class="codehilite"><pre><span class="gp">%</span> pprof --list<span class="o">=</span>thread_scan a.out out.prof
+<div class="highlight"><pre><span class="gp">%</span> pprof --list<span class="o">=</span>thread_scan a.out out.prof
 <span class="go">... &lt;snip&gt; ...</span>
 <span class="go">  .      .   60: void* thread_scan(void* void_arg) {</span>
 <span class="go">  .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.</span>
@@ -271,7 +271,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 
 
 <p>Good, our increment doesn't dominate the function anymore. We look at <code>perf stat</code> and see:</p>
-<div class="codehilite"><pre><span class="gp">%</span> perf stat ./a.out
+<div class="highlight"><pre><span class="gp">%</span> perf stat ./a.out
 <span class="go"> Performance counter stats for &#39;./a.out&#39;:</span>
 
 <span class="go">    2977.781539 task-clock                #    1.472 CPUs utilized          </span>
@@ -292,7 +292,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 
 <p>Ah, perfect! 30% faster than our original solution and significantly fewer stalled instructions.</p>
         </div><!-- /.entry-content -->
-                <div class="comments">
+        <div class="comments">
         <h2>Comments !</h2>
             <div id="disqus_thread"></div>
             <script type="text/javascript">
@@ -304,7 +304,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
               })();
             </script>
         </div>
-        
+
 </article>
 </section>
 
@@ -312,72 +312,72 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
                 <div class="widget">
                         <h2>Categories</h2>
                         <ul>
-                                                   <li class="active"><a href="../../../../category/performance.html">performance</a></li>
-                                                   <li ><a href="../../../../category/security.html">security</a></li>
-                                                   <li ><a href="../../../../category/software-engineering.html">software engineering</a></li>
-                                                </ul>
+                           <li class="active"><a href="http://codearcana.com/category/performance.html">performance</a></li>
+                           <li ><a href="http://codearcana.com/category/security.html">security</a></li>
+                           <li ><a href="http://codearcana.com/category/software-engineering.html">software engineering</a></li>
+                        </ul>
 		</div>
 		<div class="widget">
 		    <h2>Tags</h2>
 		    <ul class="cloud">
-						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/mac-osx.html">mac osx</a>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/malloc.html">malloc</a>
 			</li>
-						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/zsh.html">zsh</a>
+			<li class="tag-1">
+			  <a class="tag" href="http://codearcana.com/tag/tutorial.html">tutorial</a>
 			</li>
-						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/theory.html">theory</a>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/theory.html">theory</a>
 			</li>
-						<li class="tag-2">
-			  <a class="tag" href="../../../../tag/golang.html">golang</a>
+			<li class="tag-1">
+			  <a class="tag" href="http://codearcana.com/tag/exploitation.html">exploitation</a>
 			</li>
-						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/malloc.html">malloc</a>
+			<li class="tag-2">
+			  <a class="tag" href="http://codearcana.com/tag/golang.html">golang</a>
 			</li>
-						<li class="tag-1">
-			  <a class="tag" href="../../../../tag/exploitation.html">exploitation</a>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/zsh.html">zsh</a>
 			</li>
-						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/reverse-engineering.html">reverse engineering</a>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/make.html">make</a>
 			</li>
-						<li class="tag-4">
-			  <a class="tag" href="../../../../tag/make.html">make</a>
+			<li class="tag-1">
+			  <a class="tag" href="http://codearcana.com/tag/profiling.html">profiling</a>
 			</li>
-						<li class="tag-1">
-			  <a class="tag" href="../../../../tag/tutorial.html">tutorial</a>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/bash.html">bash</a>
 			</li>
-						<li class="tag-1">
-			  <a class="tag" href="../../../../tag/profiling.html">profiling</a>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/mac-osx.html">mac osx</a>
 			</li>
-					    </ul>
+		    </ul>
 		</div>
 
 
-                        <div class="widget blogroll">
+                <div class="widget blogroll">
                         <h2>Blogroll</h2>
                         <ul>
-                                                    <li><a href="http://ppp.cylab.cmu.edu/wordpress/">PPP Blog</a></li>
-                                                    <li><a href="http://www.codinghorror.com/blog/">Coding Horror</a></li>
-                                                    <li><a href="http://blog.regehr.org/">Embedded in Academia</a></li>
-                                                    <li><a href="http://highscalability.com/">High Scalability</a></li>
-                                                    <li><a href="http://coderweekly.com/">Coder Weekly</a></li>
-                                                    <li><a href="http://www.phrack.org/">phrack</a></li>
-                                                    <li><a href="http://jbremer.org/">skier_'s blog</a></li>
-                                                    <li><a href="http://dtrace.org/blogs">dtrace blog</a></li>
-                                                </ul>
+                            <li><a href="http://ppp.cylab.cmu.edu/wordpress/">PPP Blog</a></li>
+                            <li><a href="http://www.codinghorror.com/blog/">Coding Horror</a></li>
+                            <li><a href="http://blog.regehr.org/">Embedded in Academia</a></li>
+                            <li><a href="http://highscalability.com/">High Scalability</a></li>
+                            <li><a href="http://coderweekly.com/">Coder Weekly</a></li>
+                            <li><a href="http://www.phrack.org/">phrack</a></li>
+                            <li><a href="http://jbremer.org/">skier_'s blog</a></li>
+                            <li><a href="http://dtrace.org/blogs">dtrace blog</a></li>
+                        </ul>
                 </div><!-- /.blogroll -->
-                                <div class="widget social">
+                <div class="widget social">
                         <h2>Social</h2>
 			<ul>
                             <li><a href="http://codearcana.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate">atom feed</a></li>
-                            
-			    				<li><a href="https://twitter.com/awreece">twitter</a></li>
-			    				<li><a href="https://github.com/awreece">github</a></li>
-			    				<li><a href="https://plus.google.com/106589059588263736517/posts">google+</a></li>
-			                            </ul>
+
+				<li><a href="https://twitter.com/awreece">twitter</a></li>
+				<li><a href="https://github.com/awreece">github</a></li>
+				<li><a href="https://plus.google.com/106589059588263736517/posts">google+</a></li>
+                        </ul>
                 </div><!-- /.social -->
-                </aside><!-- /#sidebar -->
+        </aside><!-- /#sidebar -->
     <script type="text/javascript">
     var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
     document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <title>Bash Performance Tricks</title>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="http://codearcana.com/theme/css/main.css" type="text/css" />
+        <link href="http://codearcana.com/" type="application/atom+xml" rel="alternate" title="Code Arcana ATOM Feed" />
+
+
+        <!--[if IE]>
+                <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+        <!--[if lte IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://codearcana.com/css/ie.css"/>
+                <script src="http://codearcana.com/js/IE8.js" type="text/javascript"></script><![endif]-->
+
+        <!--[if lt IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://codearcana.com/css/ie6.css"/><![endif]-->
+
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="http://codearcana.com/index.html">Code Arcana </a></h1>
+                <nav><ul>
+                    <li><a href="http://codearcana.com">Blog</a></li>
+                    <li><a href="http://codearcana.com/archives.html">Archives</a></li>
+                    <li ><a href="http://codearcana.com/pages/about.html">About</a></li>
+                </ul></nav>
+        </header><!-- /#banner -->
+
+<section id="content" class="body">
+<article>
+        <header> <h1 class="entry-title"><a href="posts/2013/08/06/bash-performance-tricks.html"
+        rel="bookmark" title="Permalink to Bash Performance Tricks">Bash Performance Tricks</a></h1> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="awreece">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
+ </header>
+<footer class="post-info">
+        <abbr class="published" title="2013-08-06T00:00:00">
+                Tue 06 August 2013
+        </abbr>
+
+        <address class="vcard author">
+                By <a class="url fn" href="http://codearcana.com/author/alex-reece.html">Alex Reece</a>
+        </address>
+<p>In <a href="http://codearcana.com/category/performance.html">performance</a>. </p>
+<p>tags: <a href="http://codearcana.com/tag/bash.html">bash</a><a href="http://codearcana.com/tag/profiling.html">profiling</a></p></footer><!-- /.post-info --><!-- /.post-info -->
+        <div class="entry-content">
+        <p>My coworkers presented a silly programming interview style question to
+me the other day: given a list of words, find the largest set of words from
+that list that all have the same hash function. Everyone was playing around
+with a different language, and someone made the claim that it couldn't be done
+efficiently in <code>bash</code>. Rising to the challenge, I rolled up my sleeves and
+started playing around.</p>
+<p>The first trick was to figure out how to write the hash function in <code>bash</code>.
+<code>bash</code> has functions, but they can only return an exit status in the range 0-255.
+There are a couple of different ways to do that, but I opted to return the value
+in a global variable. We also want to iterate through the letters of the word
+and want to take great care not invoke another process while doing so (so 
+<code>while read letter; do math; done &lt;(grep -o &lt;&lt;&lt;$word)</code> is out of the question).
+Instead, we will use a <code>for</code> loop with <code>bash</code> expansions to iterate of each
+character. Finally, we will use <code>bash</code> 4.0 associative arrays map a letter to 
+its corresponding index (for computing hash values).</p>
+<div class="highlight"><pre><span class="c"># We will return into this variable.</span>
+<span class="nb">declare</span> -i HASH_RESULT
+<span class="k">function </span>kr1  <span class="o">{</span>
+    <span class="nb">local </span><span class="nv">word</span><span class="o">=</span><span class="nv">$1</span>
+    <span class="nv">HASH_RESULT</span><span class="o">=</span>0
+    <span class="k">for</span> <span class="o">((</span> <span class="nv">i</span> <span class="o">=</span> 0; i &lt;<span class="k">${#</span><span class="nv">word</span><span class="k">}</span>; i++<span class="o">))</span>; <span class="k">do</span>
+<span class="k">        </span><span class="nb">local </span><span class="nv">letter</span><span class="o">=</span><span class="k">${</span><span class="nv">word</span><span class="p">:</span><span class="nv">$i</span><span class="p">:</span><span class="nv">1</span><span class="k">}</span> 
+        <span class="o">((</span> HASH_RESULT +<span class="o">=</span> letter_value<span class="o">[</span><span class="nv">$letter</span><span class="o">]</span> <span class="o">))</span>
+    <span class="k">done</span>
+<span class="o">}</span>
+</pre></div>
+
+
+<p>Full program source below<sup id="fnref:1"><a class="footnote-ref" href="#fn:1" rel="footnote">1</a></sup>. With the hash function implemented, it is fairly
+straightforward to finish the rest of the program:</p>
+<div class="highlight"><pre><span class="k">while </span><span class="nb">read </span>word; <span class="k">do</span>
+<span class="k">    </span>kr1 <span class="nv">$word</span>
+
+    <span class="o">((</span> hash_to_count<span class="o">[</span><span class="nv">$HASH_RESULT</span><span class="o">]</span>++ <span class="o">))</span>
+    hash_to_words<span class="o">[</span><span class="nv">$HASH_RESULT</span><span class="o">]</span>+<span class="o">=</span><span class="s2">&quot; $word&quot;</span>
+
+    <span class="k">if</span> <span class="o">((</span> hash_to_count<span class="o">[</span><span class="nv">$HASH_RESULT</span><span class="o">]</span> &gt; max_count <span class="o">))</span>; <span class="k">then</span>
+<span class="k">        </span><span class="nv">max_count</span><span class="o">=</span><span class="k">${</span><span class="nv">hash_to_count</span><span class="p">[</span><span class="nv">$HASH_RESULT</span><span class="p">]</span><span class="k">}</span>
+        <span class="nv">max_hash</span><span class="o">=</span><span class="nv">$HASH_RESULT</span>
+    <span class="k">fi</span>
+<span class="k">done</span> &lt;word.lst
+<span class="nb">echo</span> <span class="k">${</span><span class="nv">hash_to_words</span><span class="p">[</span><span class="nv">$max_hash</span><span class="p">]</span><span class="k">}</span>
+</pre></div>
+
+
+<p>At this point it became interesting. My <code>bash</code> solution outperformed all the
+other <code>bash</code> solutions by a fair margin, but I wanted to see if I could do better.
+I ran it under a profiler and saw that it was spending all its time in many
+nested layers of <code>execute_command</code>.</p>
+<p><img alt="bash profiling run" src="http://codearcana.com/images/bash_perf_stack_trace.png" title="hash.bash has many nested calls to execute_command" /></p>
+<p>This gave me the idea to try inlining the function call. Quickly prototyping a
+variation using an inlined function call, I run some trials (and collect statistics 
+with my favorite tool, <code>histogram.py</code> <sup id="fnref:2"><a class="footnote-ref" href="#fn:2" rel="footnote">2</a></sup>):</p>
+<div class="highlight"><pre><span class="k">for </span>variation in hash.bash hash.bash.inlined; <span class="k">do</span>
+<span class="k">  </span><span class="nb">echo</span> <span class="nv">$variation</span>
+  <span class="k">for </span>trial in <span class="o">{</span>1..30<span class="o">}</span>; <span class="k">do</span>
+<span class="k">    </span><span class="nv">start</span><span class="o">=</span><span class="nv">$EPOCHREALTIME</span>
+    bash <span class="nv">$variation</span> &gt; /dev/null 
+    <span class="nb">echo</span> <span class="k">$((</span>EPOCHREALTIME <span class="o">-</span> start<span class="k">))</span> 
+  <span class="k">done</span> | histogram.py --confidence<span class="o">=</span>.90 | head -n 2
+  <span class="nb">echo</span>
+<span class="k">done</span>
+hash.bash
+<span class="c"># NumSamples = 30; Min = 3.43; Max = 3.99</span>
+<span class="c"># Mean = 3.529906 (+/- 0.028584); Variance = 0.009060; SD = 0.095184; Median 3.509426</span>
+
+hash.bash.inlined
+<span class="c"># NumSamples = 30; Min = 2.84; Max = 3.16</span>
+<span class="c"># Mean = 2.932449 (+/- 0.016860); Variance = 0.003152; SD = 0.056141; Median 2.917874</span>
+</pre></div>
+
+
+<p>As you can see, there is a greater than 15% improvement gain from inlining the
+function! We take this approach further, removing the local variable <code>letter</code> and
+making our code compact:</p>
+<div class="highlight"><pre><span class="k">for</span> <span class="o">((</span> <span class="nv">i</span> <span class="o">=</span> 0; i &lt;<span class="k">${#</span><span class="nv">word</span><span class="k">}</span>; i++<span class="o">))</span>; <span class="k">do</span>
+    <span class="o">((</span> HASH_RESULT +<span class="o">=</span> letter_value<span class="o">[</span><span class="k">${</span><span class="nv">word</span><span class="p">:</span><span class="nv">$i</span><span class="p">:</span><span class="nv">1</span><span class="k">}</span><span class="o">]</span> <span class="o">))</span>
+<span class="k">done</span>
+</pre></div>
+
+
+<p>Running with this variation, we see yet another significant improvement:</p>
+<div class="highlight"><pre>hash.bash.inline_nolocals
+<span class="c"># NumSamples = 30; Min = 2.69; Max = 2.84</span>
+<span class="c"># Mean = 2.749286 (+/- 0.010406); Variance = 0.001201; SD = 0.034651; Median 2.746643</span>
+</pre></div>
+
+
+<p>At this point we run again under a profiler and notice something interesting: the
+first time the runtime of an <code>execute_command</code> call isn't dominated by another
+recursive call to <code>execute_command</code>, the function <code>eval_arith_for_expr</code> consumes
+a large portion of the time. </p>
+<p><img alt="optimized bash perf" src="http://codearcana.com/images/bash_perf_eval_arith.png" title="eval_arith_for_expr is a serious part of this function's runtime" /></p>
+<p>Furthermore, we see that a large portion of the rest of the time is eventually spent 
+in <code>expand_word_list_internal</code>:</p>
+<p><img alt="optimized bash perf" src="http://codearcana.com/images/bash_perf_expand_word.png" title="expand_word_list_internal is also a serious part of this function's runtime" /></p>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:1">
+<p>Initial program.</p>
+<div class="highlight"><pre><span class="c">#!/usr/bin/env bash</span>
+
+<span class="k">if</span> <span class="o">((</span>BASH_VERSINFO<span class="o">[</span>0<span class="o">]</span> &lt; 4<span class="o">))</span>; <span class="k">then</span>
+<span class="k">  </span><span class="nb">echo</span> <span class="s2">&quot;Sorry, you need at least bash-4.0 to run this script.&quot;</span> &gt;&amp;2
+  <span class="nb">exit </span>1
+<span class="k">fi</span>
+
+<span class="c"># An associate array mapping each letter to its index.</span>
+<span class="nb">declare</span> -A letter_value
+<span class="nv">i</span><span class="o">=</span>97  <span class="c"># ascii &#39;a&#39;.</span>
+<span class="k">for </span>letter in a b c d e f g h i j k l m n o p q r s t u v w x y z; <span class="k">do </span>
+<span class="k">  </span>letter_value<span class="o">[</span><span class="nv">$letter</span><span class="o">]=</span><span class="k">$((</span>i++<span class="k">))</span>
+<span class="k">done</span>
+
+<span class="c"># We will return into this variable.</span>
+<span class="nb">declare</span> -i HASH_RESULT
+<span class="k">function </span>kr1  <span class="o">{</span>
+    <span class="nb">local </span><span class="nv">word</span><span class="o">=</span><span class="nv">$1</span>
+    <span class="nv">HASH_RESULT</span><span class="o">=</span>0
+    <span class="k">for</span> <span class="o">((</span> <span class="nv">i</span> <span class="o">=</span> 0; i &lt;<span class="k">${#</span><span class="nv">word</span><span class="k">}</span>; i++<span class="o">))</span>; <span class="k">do</span>
+<span class="k">        </span><span class="nb">local </span><span class="nv">letter</span><span class="o">=</span><span class="k">${</span><span class="nv">word</span><span class="p">:</span><span class="nv">$i</span><span class="p">:</span><span class="nv">1</span><span class="k">}</span> 
+        <span class="o">((</span> HASH_RESULT +<span class="o">=</span> letter_value<span class="o">[</span><span class="nv">$letter</span><span class="o">]</span> <span class="o">))</span>
+    <span class="k">done</span>
+<span class="o">}</span>
+
+<span class="nb">declare</span> -a hash_to_count
+<span class="nb">declare</span> -a hash_to_words
+
+<span class="nb">declare</span> -i <span class="nv">max_count</span><span class="o">=</span>0
+<span class="nb">declare</span> -i <span class="nv">max_hash</span><span class="o">=</span>-1
+
+<span class="k">while </span><span class="nb">read </span>word; <span class="k">do</span>
+<span class="k">    </span>kr1 <span class="nv">$word</span>
+
+    <span class="o">((</span> hash_to_count<span class="o">[</span><span class="nv">$HASH_RESULT</span><span class="o">]</span>++ <span class="o">))</span>
+    hash_to_words<span class="o">[</span><span class="nv">$HASH_RESULT</span><span class="o">]</span>+<span class="o">=</span><span class="s2">&quot; $word&quot;</span>
+
+    <span class="k">if</span> <span class="o">((</span> hash_to_count<span class="o">[</span><span class="nv">$HASH_RESULT</span><span class="o">]</span> &gt; max_count <span class="o">))</span>; <span class="k">then</span>
+<span class="k">        </span><span class="nv">max_count</span><span class="o">=</span><span class="k">${</span><span class="nv">hash_to_count</span><span class="p">[</span><span class="nv">$HASH_RESULT</span><span class="p">]</span><span class="k">}</span>
+        <span class="nv">max_hash</span><span class="o">=</span><span class="nv">$HASH_RESULT</span>
+    <span class="k">fi</span>
+<span class="k">done</span> &lt;word.lst
+
+<span class="nb">echo</span> <span class="k">${</span><span class="nv">hash_to_words</span><span class="p">[</span><span class="nv">$max_hash</span><span class="p">]</span><span class="k">}</span>
+</pre></div>
+
+
+<p><a class="footnote-backref" href="#fnref:1" rev="footnote" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:2">
+<p>Here I'm using a <a href="https://github.com/awreece/data_hacks">modified version</a>
+  of <code>bitly/data_hacks</code> that includes the flag <code>--confidence</code> specifying a 
+  confidence interval around the mean to report.&#160;<a class="footnote-backref" href="#fnref:2" rev="footnote" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+        </div><!-- /.entry-content -->
+        <div class="comments">
+        <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+               var disqus_identifier = "posts/2013/08/06/bash-performance-tricks.html";
+               (function() {
+               var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+               dsq.src = 'http://codearcana.disqus.com/embed.js';
+               (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+              })();
+            </script>
+        </div>
+
+</article>
+</section>
+
+        <aside id="sidebar">
+                <div class="widget">
+                        <h2>Categories</h2>
+                        <ul>
+                           <li class="active"><a href="http://codearcana.com/category/performance.html">performance</a></li>
+                           <li ><a href="http://codearcana.com/category/security.html">security</a></li>
+                           <li ><a href="http://codearcana.com/category/software-engineering.html">software engineering</a></li>
+                        </ul>
+		</div>
+		<div class="widget">
+		    <h2>Tags</h2>
+		    <ul class="cloud">
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/malloc.html">malloc</a>
+			</li>
+			<li class="tag-1">
+			  <a class="tag" href="http://codearcana.com/tag/tutorial.html">tutorial</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/theory.html">theory</a>
+			</li>
+			<li class="tag-1">
+			  <a class="tag" href="http://codearcana.com/tag/exploitation.html">exploitation</a>
+			</li>
+			<li class="tag-2">
+			  <a class="tag" href="http://codearcana.com/tag/golang.html">golang</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/zsh.html">zsh</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/make.html">make</a>
+			</li>
+			<li class="tag-1">
+			  <a class="tag" href="http://codearcana.com/tag/profiling.html">profiling</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/bash.html">bash</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/mac-osx.html">mac osx</a>
+			</li>
+		    </ul>
+		</div>
+
+
+                <div class="widget blogroll">
+                        <h2>Blogroll</h2>
+                        <ul>
+                            <li><a href="http://ppp.cylab.cmu.edu/wordpress/">PPP Blog</a></li>
+                            <li><a href="http://www.codinghorror.com/blog/">Coding Horror</a></li>
+                            <li><a href="http://blog.regehr.org/">Embedded in Academia</a></li>
+                            <li><a href="http://highscalability.com/">High Scalability</a></li>
+                            <li><a href="http://coderweekly.com/">Coder Weekly</a></li>
+                            <li><a href="http://www.phrack.org/">phrack</a></li>
+                            <li><a href="http://jbremer.org/">skier_'s blog</a></li>
+                            <li><a href="http://dtrace.org/blogs">dtrace blog</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="widget social">
+                        <h2>Social</h2>
+			<ul>
+                            <li><a href="http://codearcana.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate">atom feed</a></li>
+
+				<li><a href="https://twitter.com/awreece">twitter</a></li>
+				<li><a href="https://github.com/awreece">github</a></li>
+				<li><a href="https://plus.google.com/106589059588263736517/posts">google+</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </aside><!-- /#sidebar -->
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-40107691-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+</body>
+</html>
