@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/all-en.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2013-08-06T00:00:00-07:00</updated><entry><title>Bash Performance Tricks</title><link href="http://codearcana.com/posts/2013/08/06/bash-performance-tricks.html" rel="alternate"></link><updated>2013-08-06T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-08-06:posts/2013/08/06/bash-performance-tricks.html</id><summary type="html">&lt;p&gt;My coworkers presented a silly programming interview style question to
 me the other day: given a list of words, find the largest set of words from
-that list that all have the same hash function. Everyone was playing around
+that list that all have the same hash value. Everyone was playing around
 with a different language, and someone made the claim that it couldn't be done
 efficiently in &lt;code&gt;bash&lt;/code&gt;. Rising to the challenge, I rolled up my sleeves and
 started playing around.&lt;/p&gt;
@@ -9,10 +9,10 @@ started playing around.&lt;/p&gt;
 &lt;code&gt;bash&lt;/code&gt; has functions, but they can only return an exit status in the range 0-255.
 There are a couple of different ways to do that, but I opted to return the value
 in a global variable. We also want to iterate through the letters of the word
-and want to take great care not invoke another process while doing so (so 
+and want to take great care not invoke another process while doing so (so
 &lt;code&gt;while read letter; do math; done &amp;lt;(grep -o &amp;lt;&amp;lt;&amp;lt;$word)&lt;/code&gt; is out of the question).
 Instead, we will use a &lt;code&gt;for&lt;/code&gt; loop with &lt;code&gt;bash&lt;/code&gt; expansions to iterate of each
-character. Finally, we will use &lt;code&gt;bash&lt;/code&gt; 4.0 associative arrays map a letter to 
+character. Finally, we will use &lt;code&gt;bash&lt;/code&gt; 4.0 associative arrays map a letter to
 its corresponding index (for computing hash values).&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;# We will return into this variable.&lt;/span&gt;
 &lt;span class="nb"&gt;declare&lt;/span&gt; -i HASH_RESULT
@@ -20,7 +20,7 @@ its corresponding index (for computing hash values).&lt;/p&gt;
     &lt;span class="nb"&gt;local &lt;/span&gt;&lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$1&lt;/span&gt;
     &lt;span class="nv"&gt;HASH_RESULT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0
     &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt; &lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; 0; i &amp;lt;&lt;span class="k"&gt;${#&lt;/span&gt;&lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;; i++&lt;span class="o"&gt;))&lt;/span&gt;; &lt;span class="k"&gt;do&lt;/span&gt;
-&lt;span class="k"&gt;        &lt;/span&gt;&lt;span class="nb"&gt;local &lt;/span&gt;&lt;span class="nv"&gt;letter&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;$i&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;1&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt; 
+&lt;span class="k"&gt;        &lt;/span&gt;&lt;span class="nb"&gt;local &lt;/span&gt;&lt;span class="nv"&gt;letter&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;$i&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;1&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;
         &lt;span class="o"&gt;((&lt;/span&gt; HASH_RESULT +&lt;span class="o"&gt;=&lt;/span&gt; letter_value&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$letter&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt; &lt;span class="o"&gt;))&lt;/span&gt;
     &lt;span class="k"&gt;done&lt;/span&gt;
 &lt;span class="o"&gt;}&lt;/span&gt;
@@ -50,14 +50,14 @@ I ran it under a profiler and saw that it was spending all its time in many
 nested layers of &lt;code&gt;execute_command&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;&lt;img alt="bash profiling run" src="http://codearcana.com/images/bash_perf_stack_trace.png" title="hash.bash has many nested calls to execute_command" /&gt;&lt;/p&gt;
 &lt;p&gt;This gave me the idea to try inlining the function call. Quickly prototyping a
-variation using an inlined function call, I run some trials (and collect statistics 
-with my favorite tool, &lt;code&gt;histogram.py&lt;/code&gt; &lt;sup id="fnref:2"&gt;&lt;a class="footnote-ref" href="#fn:2" rel="footnote"&gt;2&lt;/a&gt;&lt;/sup&gt;):&lt;/p&gt;
+variation using an inlined function call, I run some trials (and collect statistics
+with my favorite tool, &lt;code&gt;histogram.py&lt;/code&gt;&lt;sup id="fnref:2"&gt;&lt;a class="footnote-ref" href="#fn:2" rel="footnote"&gt;2&lt;/a&gt;&lt;/sup&gt;):&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;for &lt;/span&gt;variation in hash.bash hash.bash.inlined; &lt;span class="k"&gt;do&lt;/span&gt;
 &lt;span class="k"&gt;  &lt;/span&gt;&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="nv"&gt;$variation&lt;/span&gt;
   &lt;span class="k"&gt;for &lt;/span&gt;trial in &lt;span class="o"&gt;{&lt;/span&gt;1..30&lt;span class="o"&gt;}&lt;/span&gt;; &lt;span class="k"&gt;do&lt;/span&gt;
 &lt;span class="k"&gt;    &lt;/span&gt;&lt;span class="nv"&gt;start&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$EPOCHREALTIME&lt;/span&gt;
-    bash &lt;span class="nv"&gt;$variation&lt;/span&gt; &amp;gt; /dev/null 
-    &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="k"&gt;$((&lt;/span&gt;EPOCHREALTIME &lt;span class="o"&gt;-&lt;/span&gt; start&lt;span class="k"&gt;))&lt;/span&gt; 
+    bash &lt;span class="nv"&gt;$variation&lt;/span&gt; &amp;gt; /dev/null
+    &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="k"&gt;$((&lt;/span&gt;EPOCHREALTIME &lt;span class="o"&gt;-&lt;/span&gt; start&lt;span class="k"&gt;))&lt;/span&gt;
   &lt;span class="k"&gt;done&lt;/span&gt; | histogram.py --confidence&lt;span class="o"&gt;=&lt;/span&gt;.90 | head -n 2
   &lt;span class="nb"&gt;echo&lt;/span&gt;
 &lt;span class="k"&gt;done&lt;/span&gt;
@@ -90,11 +90,24 @@ making our code compact:&lt;/p&gt;
 &lt;p&gt;At this point we run again under a profiler and notice something interesting: the
 first time the runtime of an &lt;code&gt;execute_command&lt;/code&gt; call isn't dominated by another
 recursive call to &lt;code&gt;execute_command&lt;/code&gt;, the function &lt;code&gt;eval_arith_for_expr&lt;/code&gt; consumes
-a large portion of the time. &lt;/p&gt;
+a large portion of the time.&lt;/p&gt;
 &lt;p&gt;&lt;img alt="optimized bash perf" src="http://codearcana.com/images/bash_perf_eval_arith.png" title="eval_arith_for_expr is a serious part of this function's runtime" /&gt;&lt;/p&gt;
-&lt;p&gt;Furthermore, we see that a large portion of the rest of the time is eventually spent 
+&lt;p&gt;Furthermore, we see that a large portion of the rest of the time is eventually spent
 in &lt;code&gt;expand_word_list_internal&lt;/code&gt;:&lt;/p&gt;
 &lt;p&gt;&lt;img alt="optimized bash perf" src="http://codearcana.com/images/bash_perf_expand_word.png" title="expand_word_list_internal is also a serious part of this function's runtime" /&gt;&lt;/p&gt;
+&lt;p&gt;These observations lead us to another technique - we will use only one character
+variable names to try to optimize for these two functions. Running again with all of
+these optimizations, we get a huge performance improvement:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;hash.bash.one_char_names
+&lt;span class="c"&gt;# NumSamples = 30; Min = 2.33; Max = 2.44&lt;/span&gt;
+&lt;span class="c"&gt;# Mean = 2.371499 (+/- 0.008031); Variance = 0.000715; SD = 0.026743; Median 2.363547&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We can take this further, but I think I'm going to quit here for now - I improved
+performance by almost 50% by using a profiler and some &lt;code&gt;bash&lt;/code&gt;-foo. Final program
+below&lt;sup id="fnref:3"&gt;&lt;a class="footnote-ref" href="#fn:3" rel="footnote"&gt;3&lt;/a&gt;&lt;/sup&gt;. One final note -
+for the love of all that is holy, don't write performant programs in &lt;code&gt;bash&lt;/code&gt;! &lt;/p&gt;
 &lt;div class="footnote"&gt;
 &lt;hr /&gt;
 &lt;ol&gt;
@@ -110,7 +123,7 @@ in &lt;code&gt;expand_word_list_internal&lt;/code&gt;:&lt;/p&gt;
 &lt;span class="c"&gt;# An associate array mapping each letter to its index.&lt;/span&gt;
 &lt;span class="nb"&gt;declare&lt;/span&gt; -A letter_value
 &lt;span class="nv"&gt;i&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;97  &lt;span class="c"&gt;# ascii &amp;#39;a&amp;#39;.&lt;/span&gt;
-&lt;span class="k"&gt;for &lt;/span&gt;letter in a b c d e f g h i j k l m n o p q r s t u v w x y z; &lt;span class="k"&gt;do &lt;/span&gt;
+&lt;span class="k"&gt;for &lt;/span&gt;letter in a b c d e f g h i j k l m n o p q r s t u v w x y z; &lt;span class="k"&gt;do&lt;/span&gt;
 &lt;span class="k"&gt;  &lt;/span&gt;letter_value&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$letter&lt;/span&gt;&lt;span class="o"&gt;]=&lt;/span&gt;&lt;span class="k"&gt;$((&lt;/span&gt;i++&lt;span class="k"&gt;))&lt;/span&gt;
 &lt;span class="k"&gt;done&lt;/span&gt;
 
@@ -120,7 +133,7 @@ in &lt;code&gt;expand_word_list_internal&lt;/code&gt;:&lt;/p&gt;
     &lt;span class="nb"&gt;local &lt;/span&gt;&lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$1&lt;/span&gt;
     &lt;span class="nv"&gt;HASH_RESULT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0
     &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt; &lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; 0; i &amp;lt;&lt;span class="k"&gt;${#&lt;/span&gt;&lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;; i++&lt;span class="o"&gt;))&lt;/span&gt;; &lt;span class="k"&gt;do&lt;/span&gt;
-&lt;span class="k"&gt;        &lt;/span&gt;&lt;span class="nb"&gt;local &lt;/span&gt;&lt;span class="nv"&gt;letter&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;$i&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;1&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt; 
+&lt;span class="k"&gt;        &lt;/span&gt;&lt;span class="nb"&gt;local &lt;/span&gt;&lt;span class="nv"&gt;letter&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;$i&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;1&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;
         &lt;span class="o"&gt;((&lt;/span&gt; HASH_RESULT +&lt;span class="o"&gt;=&lt;/span&gt; letter_value&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$letter&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt; &lt;span class="o"&gt;))&lt;/span&gt;
     &lt;span class="k"&gt;done&lt;/span&gt;
 &lt;span class="o"&gt;}&lt;/span&gt;
@@ -151,8 +164,51 @@ in &lt;code&gt;expand_word_list_internal&lt;/code&gt;:&lt;/p&gt;
 &lt;/li&gt;
 &lt;li id="fn:2"&gt;
 &lt;p&gt;Here I'm using a &lt;a href="https://github.com/awreece/data_hacks"&gt;modified version&lt;/a&gt;
-  of &lt;code&gt;bitly/data_hacks&lt;/code&gt; that includes the flag &lt;code&gt;--confidence&lt;/code&gt; specifying a 
-  confidence interval around the mean to report.&amp;#160;&lt;a class="footnote-backref" href="#fnref:2" rev="footnote" title="Jump back to footnote 2 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+  of &lt;code&gt;bitly/data_hacks&lt;/code&gt; that includes the flag &lt;code&gt;--confidence&lt;/code&gt; specifying a
+     confidence interval around the mean to report.&amp;#160;&lt;a class="footnote-backref" href="#fnref:2" rev="footnote" title="Jump back to footnote 2 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn:3"&gt;
+&lt;p&gt;Final program.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;#!/usr/local/bin/bash&lt;/span&gt;
+
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt;BASH_VERSINFO&lt;span class="o"&gt;[&lt;/span&gt;0&lt;span class="o"&gt;]&lt;/span&gt; &amp;lt; 4&lt;span class="o"&gt;))&lt;/span&gt;; &lt;span class="k"&gt;then&lt;/span&gt;
+&lt;span class="k"&gt;  &lt;/span&gt;&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Sorry, you need at least bash-4.0 to run this script.&amp;quot;&lt;/span&gt; &amp;gt;&amp;amp;2
+  &lt;span class="nb"&gt;exit &lt;/span&gt;1
+&lt;span class="k"&gt;fi&lt;/span&gt;
+
+&lt;span class="c"&gt;# An associate array mapping each letter to its index.&lt;/span&gt;
+&lt;span class="nb"&gt;declare&lt;/span&gt; -A l
+&lt;span class="nv"&gt;i&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;97  &lt;span class="c"&gt;# ascii &amp;#39;a&amp;#39;.&lt;/span&gt;
+&lt;span class="k"&gt;for &lt;/span&gt;letter in a b c d e f g h i j k l m n o p q r s t u v w x y z; &lt;span class="k"&gt;do&lt;/span&gt;
+&lt;span class="k"&gt;  &lt;/span&gt;l&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$letter&lt;/span&gt;&lt;span class="o"&gt;]=&lt;/span&gt;&lt;span class="k"&gt;$((&lt;/span&gt;i++&lt;span class="k"&gt;))&lt;/span&gt;
+&lt;span class="k"&gt;done&lt;/span&gt;
+
+&lt;span class="nb"&gt;declare&lt;/span&gt; -a c
+&lt;span class="nb"&gt;declare&lt;/span&gt; -a v
+
+&lt;span class="nb"&gt;declare&lt;/span&gt; -i &lt;span class="nv"&gt;m&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0
+&lt;span class="nb"&gt;declare&lt;/span&gt; -i &lt;span class="nv"&gt;n&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;-1
+
+&lt;span class="k"&gt;while &lt;/span&gt;&lt;span class="nb"&gt;read &lt;/span&gt;w; &lt;span class="k"&gt;do&lt;/span&gt;
+&lt;span class="k"&gt;    &lt;/span&gt;&lt;span class="nv"&gt;h&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt; &lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; 0; i &amp;lt;&lt;span class="k"&gt;${#&lt;/span&gt;&lt;span class="nv"&gt;w&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;; i++&lt;span class="o"&gt;))&lt;/span&gt;; &lt;span class="k"&gt;do&lt;/span&gt;
+        &lt;span class="o"&gt;((&lt;/span&gt; h +&lt;span class="o"&gt;=&lt;/span&gt; l&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="k"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;w&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;$i&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;1&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt; &lt;span class="o"&gt;))&lt;/span&gt;
+    &lt;span class="k"&gt;done&lt;/span&gt;
+
+    &lt;span class="o"&gt;((&lt;/span&gt; c&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$h&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;++ &lt;span class="o"&gt;))&lt;/span&gt;
+    v&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$h&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;+&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot; $w&amp;quot;&lt;/span&gt;
+
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt; c&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$h&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt; &amp;gt; m &lt;span class="o"&gt;))&lt;/span&gt;; &lt;span class="k"&gt;then&lt;/span&gt;
+&lt;span class="k"&gt;        &lt;/span&gt;&lt;span class="nv"&gt;m&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;c&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$h&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;
+        &lt;span class="nv"&gt;n&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$h&lt;/span&gt;
+    &lt;span class="k"&gt;fi&lt;/span&gt;
+&lt;span class="k"&gt;done&lt;/span&gt; &amp;lt;word.lst
+
+&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="k"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;v&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$n&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;a class="footnote-backref" href="#fnref:3" rev="footnote" title="Jump back to footnote 3 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ol&gt;
 &lt;/div&gt;</summary><category term="bash"></category><category term="profiling"></category></entry><entry><title>My zsh theme</title><link href="http://codearcana.com/posts/2013/06/11/my-zsh-theme.html" rel="alternate"></link><updated>2013-06-11T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-06-11:posts/2013/06/11/my-zsh-theme.html</id><summary type="html">&lt;p&gt;I spent some time this week switching from &lt;code&gt;bash&lt;/code&gt; to &lt;code&gt;zsh&lt;/code&gt; (I really enjoy
