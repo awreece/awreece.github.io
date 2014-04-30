@@ -1,5 +1,104 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/all.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2014-01-19T00:00:00-08:00</updated><entry><title>Ghost in the Shellcode 2014 - fuzzy</title><link href="http://codearcana.com/posts/2014/01/19/ghost-in-the-shellcode-2014-fuzzy.html" rel="alternate"></link><updated>2014-01-19T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2014-01-19:posts/2014/01/19/ghost-in-the-shellcode-2014-fuzzy.html</id><summary type="html">&lt;p&gt;tl;dr - &lt;code&gt;fuzzy&lt;/code&gt; is a "super secure parsing engine", that includes a histogram function. The histogram ascii text uses a buffer on the stack, but will increment
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/all.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2014-04-30T00:00:00-07:00</updated><entry><title>Compiling with libtool</title><link href="http://codearcana.com/posts/2014/04/30/compiling-with-libtool.html" rel="alternate"></link><updated>2014-04-30T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2014-04-30:posts/2014/04/30/compiling-with-libtool.html</id><summary type="html">&lt;p&gt;I'm having issues compiling glib2.40.0 (a libtool compiled shared library) on Omnios.&lt;/p&gt;
+&lt;p&gt;In particular, my shared library has a static initializer that does not get executed by the libtool linked library. I've reduced this to the test case below:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#include &amp;lt;stdio.h&amp;gt;&lt;/span&gt;
+
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;__attribute__&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="n"&gt;constructor&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="n"&gt;myctor&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;in myctor&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;I can compile with libtool and link with gcc, and get the expected behavior on LD_PRELOAD:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; libtool --mode&lt;span class="o"&gt;=&lt;/span&gt;compile gcc -c myctor.c
+&lt;span class="go"&gt;libtool: compile:  gcc -c myctor.c  -fPIC -DPIC -o .libs/myctor.o&lt;/span&gt;
+&lt;span class="gp"&gt;$&lt;/span&gt; gcc -shared .libs/myctor.o -o libmyctor.so
+&lt;span class="gp"&gt;$&lt;/span&gt; &lt;span class="nv"&gt;LD_PRELOAD&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;&lt;span class="nb"&gt;pwd&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt;/libmyctor.so ls
+&lt;span class="go"&gt;in myctor&lt;/span&gt;
+&lt;span class="go"&gt;libmyctor.so  myctor.c      myctor.lo&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;If I link with libtool, I do not get the expected behavior:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; libtool --mode&lt;span class="o"&gt;=&lt;/span&gt;link gcc -o libmyctor.la  -rpath /usr/lib myctor.lo
+&lt;span class="go"&gt;libtool: link: gcc -shared  -fPIC -DPIC -Wl,-z -Wl,text -Wl,-h -Wl,libmyctor.so.0 -o .libs/libmyctor.so.0.0.0  .libs/myctor.o      -nostdlib -lc&lt;/span&gt;
+&lt;span class="go"&gt;libtool: link: (cd &amp;quot;.libs&amp;quot; &amp;amp;&amp;amp; rm -f &amp;quot;libmyctor.so.0&amp;quot; &amp;amp;&amp;amp; ln -s &amp;quot;libmyctor.so.0.0.0&amp;quot; &amp;quot;libmyctor.so.0&amp;quot;)&lt;/span&gt;
+&lt;span class="go"&gt;libtool: link: (cd &amp;quot;.libs&amp;quot; &amp;amp;&amp;amp; rm -f &amp;quot;libmyctor.so&amp;quot; &amp;amp;&amp;amp; ln -s &amp;quot;libmyctor.so.0.0.0&amp;quot; &amp;quot;libmyctor.so&amp;quot;)&lt;/span&gt;
+&lt;span class="go"&gt;libtool: link: ( cd &amp;quot;.libs&amp;quot; &amp;amp;&amp;amp; rm -f &amp;quot;libmyctor.la&amp;quot; &amp;amp;&amp;amp; ln -s &amp;quot;../libmyctor.la&amp;quot; &amp;quot;libmyctor.la&amp;quot; )&lt;/span&gt;
+&lt;span class="gp"&gt;$&lt;/span&gt; &lt;span class="nv"&gt;LD_PRELOAD&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;&lt;span class="nb"&gt;pwd&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt;/.libs/libmyctor.so.0.0.0 ls
+&lt;span class="go"&gt;libmyctor.la  libmyctor.so  myctor.c      myctor.lo&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;I performed some trial and error experiments with the displayed gcc command invocation, and determined that "-nostdlib" is the flag that causes the constructor to no longer be called:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; gcc -shared  -fPIC -DPIC -Wl,-z -Wl,text -Wl,-h -Wl,libmyctor.so.0 -o .libs/libmyctor.so.0.0.0  .libs/myctor.o
+&lt;span class="gp"&gt;$&lt;/span&gt; &lt;span class="nv"&gt;LD_PRELOAD&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;&lt;span class="nb"&gt;pwd&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt;/.libs/libmyctor.so.0.0.0 ls
+&lt;span class="go"&gt;in myctor&lt;/span&gt;
+&lt;span class="go"&gt;libmyctor.la  libmyctor.so  myctor.c      myctor.lo&lt;/span&gt;
+
+&lt;span class="gp"&gt;$&lt;/span&gt; gcc -shared  -fPIC -DPIC -Wl,-z -Wl,text -Wl,-h -Wl,libmyctor.so.0 -o .libs/libmyctor.so.0.0.0  .libs/myctor.o      -nostdlib -lc
+&lt;span class="gp"&gt;$&lt;/span&gt; &lt;span class="nv"&gt;LD_PRELOAD&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;&lt;span class="nb"&gt;pwd&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt;/.libs/libmyctor.so.0.0.0
+&lt;span class="go"&gt;libmyctor.la  libmyctor.so  myctor.c      myctor.lo&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Illumos / Solaris has its own peculiarities for static initializers (&lt;a href="https://blogs.oracle.com/ahl/entry/the_mysteries_of_init"&gt;https://blogs.oracle.com/ahl/entry/the_mysteries_of_init&lt;/a&gt; was a helpful blogpost). The ".init" section for the gcc linked library has the expected contents:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; dis -t .init libmyctor.so
+&lt;span class="go"&gt;disassembly for libmyctor.so&lt;/span&gt;
+
+
+&lt;span class="go"&gt;section .init&lt;/span&gt;
+&lt;span class="go"&gt;_init()&lt;/span&gt;
+&lt;span class="go"&gt;    _init:      55                 pushl  %ebp&lt;/span&gt;
+&lt;span class="go"&gt;    _init+0x1:  89 e5              movl   %esp,%ebp&lt;/span&gt;
+&lt;span class="go"&gt;    _init+0x3:  83 e4 f0           andl   $0xfffffff0,%esp&lt;/span&gt;
+&lt;span class="go"&gt;    _init+0x6:  83 ec 0c           subl   $0xc,%esp&lt;/span&gt;
+&lt;span class="go"&gt;    _init+0x9:  53                 pushl  %ebx&lt;/span&gt;
+&lt;span class="go"&gt;    _init+0xa:  e8 00 00 00 00     call   +0x0  &amp;lt;_init+0xf&amp;gt;&lt;/span&gt;
+&lt;span class="go"&gt;    _init+0xf:  5b                 popl   %ebx&lt;/span&gt;
+&lt;span class="go"&gt;    _init+0x10: 81 c3 49 00 01 00  addl   $0x10049,%ebx&lt;/span&gt;
+&lt;span class="go"&gt;    _init+0x16: e8 35 ff ff ff     call   -0xcb &amp;lt;frame_dummy&amp;gt;&lt;/span&gt;
+&lt;span class="go"&gt;    _init+0x1b: e8 a0 ff ff ff     call   -0x60 &amp;lt;__do_global_ctors_aux&amp;gt;&lt;/span&gt;
+&lt;span class="go"&gt;    _init+0x20: 5b                 popl   %ebx&lt;/span&gt;
+&lt;span class="go"&gt;    _init+0x21: c9                 leave  &lt;/span&gt;
+&lt;span class="go"&gt;    _init+0x22: c3                 ret&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;But the ".init" section for the libtool linked library doesn't exist&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; dis -t .init .libs/libmyctor.so
+&lt;span class="go"&gt;disassembly for .libs/libmyctor.so&lt;/span&gt;
+
+&lt;span class="go"&gt;dis: warning: failed to find section &amp;#39;.init&amp;#39; in &amp;#39;.libs/libmyctor.so&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Digging a bit deeper (and reading that blog post), I see that I need to add &lt;code&gt;/usr/lib/crti.o&lt;/code&gt; and &lt;code&gt;/usr/lib/crtn.o&lt;/code&gt;. If I add these to the command line, I get an ".init" section that seems to be only partially complete:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="go"&gt;section .init&lt;/span&gt;
+&lt;span class="go"&gt;_init()&lt;/span&gt;
+&lt;span class="go"&gt;    _init:      55                 pushl  %ebp&lt;/span&gt;
+&lt;span class="go"&gt;    _init+0x1:  89 e5              movl   %esp,%ebp&lt;/span&gt;
+&lt;span class="go"&gt;    _init+0x3:  83 e4 f0           andl   $0xfffffff0,%esp&lt;/span&gt;
+&lt;span class="go"&gt;    _init+0x6:  83 ec 0c           subl   $0xc,%esp&lt;/span&gt;
+&lt;span class="go"&gt;    _init+0x9:  53                 pushl  %ebx&lt;/span&gt;
+&lt;span class="go"&gt;    _init+0xa:  e8 00 00 00 00     call   +0x0  &amp;lt;_init+0xf&amp;gt;&lt;/span&gt;
+&lt;span class="go"&gt;    _init+0xf:  5b                 popl   %ebx&lt;/span&gt;
+&lt;span class="go"&gt;    _init+0x10: 81 c3 31 00 01 00  addl   $0x10031,%ebx&lt;/span&gt;
+&lt;span class="go"&gt;    _init+0x16: 5b                 popl   %ebx&lt;/span&gt;
+&lt;span class="go"&gt;    _init+0x17: c9                 leave  &lt;/span&gt;
+&lt;span class="go"&gt;    _init+0x18: c3                 ret&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The problem is that we also need to pass some gcc artifacts (&lt;code&gt;/opt/gcc-4.8.1/lib/gcc/i386-pc-solaris2.11/4.8.1/crt{begin,end}.o&lt;/code&gt;) to get this to work. If I add all the relevant artifacts, I can get the constructor to behave correctly with &lt;code&gt;-nostdlib&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; gcc -shared -nostdlib -lc -lgcc -lgcc_s /usr/lib/crti.o  /opt/gcc-4.8.1/lib/gcc/i386-pc-solaris2.11/4.8.1/crtbegin.o .libs/myctor.o /opt/gcc-4.8.1/lib/gcc/i386-pc-solaris2.11/4.8.1/crtend.o /usr/lib/crtn.o -o libmyctor.so
+&lt;span class="gp"&gt;$&lt;/span&gt; &lt;span class="nv"&gt;LD_PRELOAD&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;&lt;span class="nb"&gt;pwd&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt;/libmyctor.so ls
+&lt;span class="go"&gt;in myctor&lt;/span&gt;
+&lt;span class="go"&gt;libmyctor.so  myctor.c      myctor.lo&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Fortunately, this all turns out to be unnecessary - a good spot by Rich Lowe turned up some voodoo in the omnios build infrastructure: the &lt;code&gt;-nostdlib&lt;/code&gt; was inexplicably added to the libtool options &lt;a href="https://github.com/omniti-labs/omnios-build/commit/16fdea8b57a52d74876606d6b118b50753603395"&gt;"glib2 -nostdlib"&lt;/a&gt; (For more fun, check out &lt;a href="https://github.com/omniti-labs/omnios-build/commit/18800320ec1119aab568efc72f50c3689e30c687"&gt;"generic libtool unfucking support"&lt;/a&gt;). Removing this allows us to compile our library with the expected behavior.&lt;/p&gt;</summary><category term="libtool"></category><category term="omnios"></category></entry><entry><title>Ghost in the Shellcode 2014 - fuzzy</title><link href="http://codearcana.com/posts/2014/01/19/ghost-in-the-shellcode-2014-fuzzy.html" rel="alternate"></link><updated>2014-01-19T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2014-01-19:posts/2014/01/19/ghost-in-the-shellcode-2014-fuzzy.html</id><summary type="html">&lt;p&gt;tl;dr - &lt;code&gt;fuzzy&lt;/code&gt; is a "super secure parsing engine", that includes a histogram function. The histogram ascii text uses a buffer on the stack, but will increment
 buckets past the end of the buffer if non ascii text is provided, allowing us to
 rop. Binary and exploit available &lt;a
 href="http://ppp.cylab.cmu.edu/wordpress/wp-content/uploads/2014/01/fuzzy.tar.gz"&gt;here&lt;/a&gt;.

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-        <title>About</title>
+        <title>Code Arcana - omnios</title>
         <meta charset="utf-8" />
         <link rel="stylesheet" href="http://codearcana.com/theme/css/main.css" type="text/css" />
         <link href="http://codearcana.com/" type="application/atom+xml" rel="alternate" title="Code Arcana ATOM Feed" />
@@ -25,34 +25,39 @@
                 <nav><ul>
                     <li><a href="http://codearcana.com">Blog</a></li>
                     <li><a href="http://codearcana.com/archives.html">Archives</a></li>
-                    <li class="active"><a href="http://codearcana.com/pages/about.html">About</a></li>
+                    <li ><a href="http://codearcana.com/pages/about.html">About</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
 
-        
-<section id="content" class="body">    
-    <h1 class="entry-title">About</h1>
-    <p>This is the personal blog of Alex Reece.  Some quick facts about me:</p>
-<ul>
-<li>I am a member of the <a href="http://pwning.net">Plaid Parliament of Pwning (PPP)</a>,
-    a computer security research group and CTF team from CMU. </li>
-<li>I work at <a href="http://www.delphix.com/">Delphix</a> in San Francisco.</li>
-<li>My <a href="https://github.com/awreece/resume">resume</a> is on Github (no pdf version
-    there for now).</li>
-<li><code>vim</code> is my editor, <code>git</code> is my DVCS, <code>zsh</code> is my shell, and I know more <code>make</code> than is
-    comfortable.</li>
-</ul>
-<p>I started this blog because I find the process of summarizing and explaining
-the interesting things I've done very rewarding. The idea is to update as much as
-a once or twice a week with a brief post about something interesting I've done
-or learned. The target audience will vary, but generally the posts will be
-readable by someone who is familiar with programming and exposed to some
-systems topics.
-Expect to see semi-regular thoughts on software engineering, computer systems, 
-security, and more.</p>
-<p>Unless otherwise specified, all content is my intellectual property. Feel free to share links to my articles, etc, but please do not claim it as your own work or use it in any commercial form. If you want to use anything, please properly attribute it to me and include a link back to the original content. I'd also appreciate an email - I love to hear that I was able to help people! :)</p>
-<p>If you want to contact me, my email address is awre<a href="http://www.google.com/recaptcha/mailhide/d?k=01U7tYw_J5_VO8Fey3IR-muQ==&amp;c=90p4dbfA1bNd15zEsvIiYQ0feCM8U9M8DZzpPcP6dc0=" onclick="window.open('http://www.google.com/recaptcha/mailhide/d?k\\07501U7tYw_J5_VO8Fey3IR-muQ\\75\\75\\46c\\7590p4dbfA1bNd15zEsvIiYQ0feCM8U9M8DZzpPcP6dc0\\075', '', 'toolbar=0,scrollbars=0,location=0,statusbar=0,menubar=0,resizable=0,width=500,height=300'); return false;" title="Reveal this e-mail address">...</a>@gmail.com</p>
-</section>
+<section id="content" class="body">
+ <h1 class="entry-title">Recent articles</h1>
+ <ol id="posts-list" class="hfeed">
+  <li><article class="hentry">
+    <header>
+      <h1><a href="http://codearcana.com/posts/2014/04/30/compiling-with-libtool.html" rel="bookmark" title="Permalink to Compiling with libtool">Compiling with libtool</a></h1>
+    </header>
+
+<footer class="post-info">
+        <abbr class="published" title="2014-04-30T00:00:00">
+                Wed 30 April 2014
+        </abbr>
+
+        <address class="vcard author">
+                By <a class="url fn" href="http://codearcana.com/author/alex-reece.html">Alex Reece</a>
+        </address>
+<p>In <a href="http://codearcana.com/category/software-engineering.html">software engineering</a>. </p>
+<p>tags: <a href="http://codearcana.com/tag/libtool.html">libtool</a><a href="http://codearcana.com/tag/omnios.html">omnios</a></p></footer><!-- /.post-info -->
+    <div class="entry-content">
+      <p>I'm having issues compiling glib2.40.0 (a libtool compiled shared library) on Omnios.</p>
+<p>In particular, my shared library has a static initializer that does not get executed by the libtool linked library. I've reduced this to the test case below:</p>
+<div class="highlight"><pre><span class="cp">#include &lt;stdio.h&gt;</span>
+
+<span class="kt">void</span> <span class="nf">__attribute__</span><span class="p">((</span><span class="n">constructor</span><span class="p">))</span> <span class="n">myctor ...</span></pre></div>
+    </div><!-- /.entry-content -->
+    <a class="readmore" href="http://codearcana.com/posts/2014/04/30/compiling-with-libtool.html">read more</a>
+  </article></li>
+</ol><!-- /#posts-list -->
+</section><!-- /#content -->
 
         <aside id="sidebar">
                 <div class="widget">

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <title>Compiling with libtool</title>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="http://codearcana.com/theme/css/main.css" type="text/css" />
+        <link href="http://codearcana.com/" type="application/atom+xml" rel="alternate" title="Code Arcana ATOM Feed" />
+
+
+        <!--[if IE]>
+                <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+        <!--[if lte IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://codearcana.com/css/ie.css"/>
+                <script src="http://codearcana.com/js/IE8.js" type="text/javascript"></script><![endif]-->
+
+        <!--[if lt IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://codearcana.com/css/ie6.css"/><![endif]-->
+
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="http://codearcana.com/index.html">Code Arcana </a></h1>
+                <nav><ul>
+                    <li><a href="http://codearcana.com">Blog</a></li>
+                    <li><a href="http://codearcana.com/archives.html">Archives</a></li>
+                    <li ><a href="http://codearcana.com/pages/about.html">About</a></li>
+                </ul></nav>
+        </header><!-- /#banner -->
+
+<section id="content" class="body">
+<article>
+        <header> <h1 class="entry-title"><a href="posts/2014/04/30/compiling-with-libtool.html"
+        rel="bookmark" title="Permalink to Compiling with libtool">Compiling with libtool</a></h1> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="awreece">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
+ </header>
+<footer class="post-info">
+        <abbr class="published" title="2014-04-30T00:00:00">
+                Wed 30 April 2014
+        </abbr>
+
+        <address class="vcard author">
+                By <a class="url fn" href="http://codearcana.com/author/alex-reece.html">Alex Reece</a>
+        </address>
+<p>In <a href="http://codearcana.com/category/software-engineering.html">software engineering</a>. </p>
+<p>tags: <a href="http://codearcana.com/tag/libtool.html">libtool</a><a href="http://codearcana.com/tag/omnios.html">omnios</a></p></footer><!-- /.post-info --><!-- /.post-info -->
+        <div class="entry-content">
+        <p>I'm having issues compiling glib2.40.0 (a libtool compiled shared library) on Omnios.</p>
+<p>In particular, my shared library has a static initializer that does not get executed by the libtool linked library. I've reduced this to the test case below:</p>
+<div class="highlight"><pre><span class="cp">#include &lt;stdio.h&gt;</span>
+
+<span class="kt">void</span> <span class="nf">__attribute__</span><span class="p">((</span><span class="n">constructor</span><span class="p">))</span> <span class="n">myctor</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;in myctor</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>I can compile with libtool and link with gcc, and get the expected behavior on LD_PRELOAD:</p>
+<div class="highlight"><pre><span class="gp">$</span> libtool --mode<span class="o">=</span>compile gcc -c myctor.c
+<span class="go">libtool: compile:  gcc -c myctor.c  -fPIC -DPIC -o .libs/myctor.o</span>
+<span class="gp">$</span> gcc -shared .libs/myctor.o -o libmyctor.so
+<span class="gp">$</span> <span class="nv">LD_PRELOAD</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/libmyctor.so ls
+<span class="go">in myctor</span>
+<span class="go">libmyctor.so  myctor.c      myctor.lo</span>
+</pre></div>
+
+
+<p>If I link with libtool, I do not get the expected behavior:</p>
+<div class="highlight"><pre><span class="gp">$</span> libtool --mode<span class="o">=</span>link gcc -o libmyctor.la  -rpath /usr/lib myctor.lo
+<span class="go">libtool: link: gcc -shared  -fPIC -DPIC -Wl,-z -Wl,text -Wl,-h -Wl,libmyctor.so.0 -o .libs/libmyctor.so.0.0.0  .libs/myctor.o      -nostdlib -lc</span>
+<span class="go">libtool: link: (cd &quot;.libs&quot; &amp;&amp; rm -f &quot;libmyctor.so.0&quot; &amp;&amp; ln -s &quot;libmyctor.so.0.0.0&quot; &quot;libmyctor.so.0&quot;)</span>
+<span class="go">libtool: link: (cd &quot;.libs&quot; &amp;&amp; rm -f &quot;libmyctor.so&quot; &amp;&amp; ln -s &quot;libmyctor.so.0.0.0&quot; &quot;libmyctor.so&quot;)</span>
+<span class="go">libtool: link: ( cd &quot;.libs&quot; &amp;&amp; rm -f &quot;libmyctor.la&quot; &amp;&amp; ln -s &quot;../libmyctor.la&quot; &quot;libmyctor.la&quot; )</span>
+<span class="gp">$</span> <span class="nv">LD_PRELOAD</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/.libs/libmyctor.so.0.0.0 ls
+<span class="go">libmyctor.la  libmyctor.so  myctor.c      myctor.lo</span>
+</pre></div>
+
+
+<p>I performed some trial and error experiments with the displayed gcc command invocation, and determined that "-nostdlib" is the flag that causes the constructor to no longer be called:</p>
+<div class="highlight"><pre><span class="gp">$</span> gcc -shared  -fPIC -DPIC -Wl,-z -Wl,text -Wl,-h -Wl,libmyctor.so.0 -o .libs/libmyctor.so.0.0.0  .libs/myctor.o
+<span class="gp">$</span> <span class="nv">LD_PRELOAD</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/.libs/libmyctor.so.0.0.0 ls
+<span class="go">in myctor</span>
+<span class="go">libmyctor.la  libmyctor.so  myctor.c      myctor.lo</span>
+
+<span class="gp">$</span> gcc -shared  -fPIC -DPIC -Wl,-z -Wl,text -Wl,-h -Wl,libmyctor.so.0 -o .libs/libmyctor.so.0.0.0  .libs/myctor.o      -nostdlib -lc
+<span class="gp">$</span> <span class="nv">LD_PRELOAD</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/.libs/libmyctor.so.0.0.0
+<span class="go">libmyctor.la  libmyctor.so  myctor.c      myctor.lo</span>
+</pre></div>
+
+
+<p>Illumos / Solaris has its own peculiarities for static initializers (<a href="https://blogs.oracle.com/ahl/entry/the_mysteries_of_init">https://blogs.oracle.com/ahl/entry/the_mysteries_of_init</a> was a helpful blogpost). The ".init" section for the gcc linked library has the expected contents:</p>
+<div class="highlight"><pre><span class="gp">$</span> dis -t .init libmyctor.so
+<span class="go">disassembly for libmyctor.so</span>
+
+
+<span class="go">section .init</span>
+<span class="go">_init()</span>
+<span class="go">    _init:      55                 pushl  %ebp</span>
+<span class="go">    _init+0x1:  89 e5              movl   %esp,%ebp</span>
+<span class="go">    _init+0x3:  83 e4 f0           andl   $0xfffffff0,%esp</span>
+<span class="go">    _init+0x6:  83 ec 0c           subl   $0xc,%esp</span>
+<span class="go">    _init+0x9:  53                 pushl  %ebx</span>
+<span class="go">    _init+0xa:  e8 00 00 00 00     call   +0x0  &lt;_init+0xf&gt;</span>
+<span class="go">    _init+0xf:  5b                 popl   %ebx</span>
+<span class="go">    _init+0x10: 81 c3 49 00 01 00  addl   $0x10049,%ebx</span>
+<span class="go">    _init+0x16: e8 35 ff ff ff     call   -0xcb &lt;frame_dummy&gt;</span>
+<span class="go">    _init+0x1b: e8 a0 ff ff ff     call   -0x60 &lt;__do_global_ctors_aux&gt;</span>
+<span class="go">    _init+0x20: 5b                 popl   %ebx</span>
+<span class="go">    _init+0x21: c9                 leave  </span>
+<span class="go">    _init+0x22: c3                 ret</span>
+</pre></div>
+
+
+<p>But the ".init" section for the libtool linked library doesn't exist</p>
+<div class="highlight"><pre><span class="gp">$</span> dis -t .init .libs/libmyctor.so
+<span class="go">disassembly for .libs/libmyctor.so</span>
+
+<span class="go">dis: warning: failed to find section &#39;.init&#39; in &#39;.libs/libmyctor.so&#39;</span>
+</pre></div>
+
+
+<p>Digging a bit deeper (and reading that blog post), I see that I need to add <code>/usr/lib/crti.o</code> and <code>/usr/lib/crtn.o</code>. If I add these to the command line, I get an ".init" section that seems to be only partially complete:</p>
+<div class="highlight"><pre><span class="go">section .init</span>
+<span class="go">_init()</span>
+<span class="go">    _init:      55                 pushl  %ebp</span>
+<span class="go">    _init+0x1:  89 e5              movl   %esp,%ebp</span>
+<span class="go">    _init+0x3:  83 e4 f0           andl   $0xfffffff0,%esp</span>
+<span class="go">    _init+0x6:  83 ec 0c           subl   $0xc,%esp</span>
+<span class="go">    _init+0x9:  53                 pushl  %ebx</span>
+<span class="go">    _init+0xa:  e8 00 00 00 00     call   +0x0  &lt;_init+0xf&gt;</span>
+<span class="go">    _init+0xf:  5b                 popl   %ebx</span>
+<span class="go">    _init+0x10: 81 c3 31 00 01 00  addl   $0x10031,%ebx</span>
+<span class="go">    _init+0x16: 5b                 popl   %ebx</span>
+<span class="go">    _init+0x17: c9                 leave  </span>
+<span class="go">    _init+0x18: c3                 ret</span>
+</pre></div>
+
+
+<p>The problem is that we also need to pass some gcc artifacts (<code>/opt/gcc-4.8.1/lib/gcc/i386-pc-solaris2.11/4.8.1/crt{begin,end}.o</code>) to get this to work. If I add all the relevant artifacts, I can get the constructor to behave correctly with <code>-nostdlib</code>:</p>
+<div class="highlight"><pre><span class="gp">$</span> gcc -shared -nostdlib -lc -lgcc -lgcc_s /usr/lib/crti.o  /opt/gcc-4.8.1/lib/gcc/i386-pc-solaris2.11/4.8.1/crtbegin.o .libs/myctor.o /opt/gcc-4.8.1/lib/gcc/i386-pc-solaris2.11/4.8.1/crtend.o /usr/lib/crtn.o -o libmyctor.so
+<span class="gp">$</span> <span class="nv">LD_PRELOAD</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/libmyctor.so ls
+<span class="go">in myctor</span>
+<span class="go">libmyctor.so  myctor.c      myctor.lo</span>
+</pre></div>
+
+
+<p>Fortunately, this all turns out to be unnecessary - a good spot by Rich Lowe turned up some voodoo in the omnios build infrastructure: the <code>-nostdlib</code> was inexplicably added to the libtool options <a href="https://github.com/omniti-labs/omnios-build/commit/16fdea8b57a52d74876606d6b118b50753603395">"glib2 -nostdlib"</a> (For more fun, check out <a href="https://github.com/omniti-labs/omnios-build/commit/18800320ec1119aab568efc72f50c3689e30c687">"generic libtool unfucking support"</a>). Removing this allows us to compile our library with the expected behavior.</p>
+        </div><!-- /.entry-content -->
+        <div class="comments">
+        <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+               var disqus_identifier = "posts/2014/04/30/compiling-with-libtool.html";
+               (function() {
+               var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+               dsq.src = 'http://codearcana.disqus.com/embed.js';
+               (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+              })();
+            </script>
+        </div>
+
+</article>
+</section>
+
+        <aside id="sidebar">
+                <div class="widget">
+                        <h2>Categories</h2>
+                        <ul>
+                           <li ><a href="http://codearcana.com/category/performance.html">performance</a></li>
+                           <li ><a href="http://codearcana.com/category/security.html">security</a></li>
+                           <li class="active"><a href="http://codearcana.com/category/software-engineering.html">software engineering</a></li>
+                        </ul>
+		</div>
+		<div class="widget">
+		    <h2>Tags</h2>
+		    <ul class="cloud">
+			<li class="tag-2">
+			  <a class="tag" href="http://codearcana.com/tag/golang.html">golang</a>
+			</li>
+			<li class="tag-2">
+			  <a class="tag" href="http://codearcana.com/tag/ctf.html">ctf</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/make.html">make</a>
+			</li>
+			<li class="tag-1">
+			  <a class="tag" href="http://codearcana.com/tag/tutorial.html">tutorial</a>
+			</li>
+			<li class="tag-1">
+			  <a class="tag" href="http://codearcana.com/tag/exploitation.html">exploitation</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/omnios.html">omnios</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/theory.html">theory</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/malloc.html">malloc</a>
+			</li>
+			<li class="tag-1">
+			  <a class="tag" href="http://codearcana.com/tag/profiling.html">profiling</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/libtool.html">libtool</a>
+			</li>
+		    </ul>
+		</div>
+
+
+                <div class="widget blogroll">
+                        <h2>Blogroll</h2>
+                        <ul>
+                            <li><a href="http://ppp.cylab.cmu.edu/wordpress/">PPP Blog</a></li>
+                            <li><a href="http://www.codinghorror.com/blog/">Coding Horror</a></li>
+                            <li><a href="http://blog.regehr.org/">Embedded in Academia</a></li>
+                            <li><a href="http://highscalability.com/">High Scalability</a></li>
+                            <li><a href="http://coderweekly.com/">Coder Weekly</a></li>
+                            <li><a href="http://www.phrack.org/">phrack</a></li>
+                            <li><a href="http://jbremer.org/">skier_'s blog</a></li>
+                            <li><a href="http://dtrace.org/blogs">dtrace blog</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="widget social">
+                        <h2>Social</h2>
+			<ul>
+                            <li><a href="http://codearcana.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate">atom feed</a></li>
+
+				<li><a href="https://twitter.com/awreece">twitter</a></li>
+				<li><a href="https://github.com/awreece">github</a></li>
+				<li><a href="https://plus.google.com/106589059588263736517/posts">google+</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </aside><!-- /#sidebar -->
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-40107691-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+</body>
+</html>
