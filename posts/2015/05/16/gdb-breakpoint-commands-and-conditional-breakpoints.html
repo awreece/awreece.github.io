@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <title>gdb breakpoint commands and conditional breakpoints</title>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="http://codearcana.com/theme/css/main.css" type="text/css" />
+        <link href="http://codearcana.com/" type="application/atom+xml" rel="alternate" title="Code Arcana ATOM Feed" />
+
+
+        <!--[if IE]>
+                <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+        <!--[if lte IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://codearcana.com/css/ie.css"/>
+                <script src="http://codearcana.com/js/IE8.js" type="text/javascript"></script><![endif]-->
+
+        <!--[if lt IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://codearcana.com/css/ie6.css"/><![endif]-->
+
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="http://codearcana.com/index.html">Code Arcana </a></h1>
+                <nav><ul>
+                    <li><a href="http://codearcana.com">Blog</a></li>
+                    <li><a href="http://codearcana.com/archives.html">Archives</a></li>
+                    <li ><a href="http://codearcana.com/pages/about.html">About</a></li>
+                </ul></nav>
+        </header><!-- /#banner -->
+
+<section id="content" class="body">
+<article>
+        <header> <h1 class="entry-title"><a href="posts/2015/05/16/gdb-breakpoint-commands-and-conditional-breakpoints.html"
+        rel="bookmark" title="Permalink to gdb breakpoint commands and conditional breakpoints">gdb breakpoint commands and conditional breakpoints</a></h1> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="awreece">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
+ </header>
+<footer class="post-info">
+        <abbr class="published" title="2015-05-16T00:00:00">
+                Sat 16 May 2015
+        </abbr>
+
+        <address class="vcard author">
+                By <a class="url fn" href="http://codearcana.com/author/alex-reece.html">Alex Reece</a>
+        </address>
+<p>In <a href="http://codearcana.com/category/software-engineering.html">software engineering</a>. </p>
+</footer><!-- /.post-info --><!-- /.post-info -->
+        <div class="entry-content">
+        <p>During my first week at my new job, I had the opportunity to teach some of my new coworkers about <code>gdb</code> breakpoint commands and conditional breakpoints. I had a lot of fun teaching these techniques my friends here and thought others might find the story enjoyable as well.</p>
+<h2>Breakpoint commands</h2>
+<p>The first question I had was: <em>where is our server doing reads</em>? To answer this question, I used an often overlooked feature of <code>gdb</code>: breakpoint commands. At a high level, these allowed us to run an arbitrary set of <code>gdb</code> command automatically when a break point is hit. In my case, I wanted to see what stack trace was causing the reads:</p>
+<div class="highlight"><pre><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="k">break</span> <span class="n">read</span>
+<span class="n">Breakpoint</span> <span class="mi">2</span> <span class="n">at</span> <span class="mh">0x7ffff7382960</span><span class="o">:</span> <span class="n">file</span> <span class="p">..</span><span class="o">/</span><span class="n">sysdeps</span><span class="o">/</span><span class="n">unix</span><span class="o">/</span><span class="n">syscall</span><span class="o">-</span><span class="n">template</span><span class="p">.</span><span class="n">S</span><span class="p">,</span> <span class="n">line</span> <span class="mf">82.</span>
+<span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">commands</span>
+<span class="n">End</span> <span class="n">with</span> <span class="n">a</span> <span class="n">line</span> <span class="n">saying</span> <span class="n">just</span> <span class="s">&quot;end&quot;</span><span class="p">.</span>
+<span class="o">&gt;</span><span class="n">backtrace</span>
+<span class="o">&gt;</span><span class="k">continue</span>
+<span class="o">&gt;</span><span class="n">end</span>
+<span class="p">(</span><span class="n">gdb</span><span class="p">)</span>
+</pre></div>
+
+
+<p>I put a breakpoint on the <code>libc</code> <code>read</code> function call and automatically do two things: print the backtrace of the thread that hit the read and then continue execution. The overall effect of this is that <code>gdb</code> runs the program as normal but prints a backtrace every time the program reads:</p>
+<div class="highlight"><pre><span class="nx">Breakpoint</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">read</span> <span class="p">()</span> <span class="nx">at</span> <span class="nx">..</span><span class="p">/</span><span class="nx">sysdeps</span><span class="p">/</span><span class="nx">unix</span><span class="p">/</span><span class="nx">syscall</span><span class="na">-template.S</span><span class="p">:</span><span class="mi">82</span>
+<span class="mi">82</span> <span class="nx">..</span><span class="p">/</span><span class="nx">sysdeps</span><span class="p">/</span><span class="nx">unix</span><span class="p">/</span><span class="nx">syscall</span><span class="na">-template.S</span><span class="p">:</span> <span class="nx">No</span> <span class="nx">such</span> <span class="nb">file</span> <span class="ow">or</span> <span class="nx">directory.</span>
+<span class="vi">#0</span>  <span class="nb">read</span> <span class="p">()</span> <span class="nx">at</span> <span class="nx">..</span><span class="p">/</span><span class="nx">sysdeps</span><span class="p">/</span><span class="nx">unix</span><span class="p">/</span><span class="nx">syscall</span><span class="na">-template.S</span><span class="p">:</span><span class="mi">82</span>
+<span class="vi">#1</span>  <span class="mh">0x00007ffff7324ed8</span> <span class="k">in</span> <span class="nx">_IO_new_file_underflow</span> <span class="p">(</span><span class="n">fp</span><span class="o">=</span><span class="mh">0x7ffff76386c0</span><span class="p">)</span>
+    <span class="nx">at</span> <span class="nx">fileops.c</span><span class="p">:</span><span class="mi">606</span>
+<span class="vi">#2</span>  <span class="mh">0x00007ffff73265be</span> <span class="k">in</span> <span class="nx">_IO_default_uflow</span> <span class="p">(</span><span class="n">fp</span><span class="o">=</span><span class="mh">0x0</span><span class="p">)</span> <span class="nx">at</span> <span class="nx">genops.c</span><span class="p">:</span><span class="mi">440</span>
+<span class="vi">#3</span>  <span class="mh">0x00007ffff731da9b</span> <span class="k">in</span> <span class="nx">_IO_getc</span> <span class="p">(</span><span class="n">fp</span><span class="o">=</span><span class="mh">0x7ffff76386c0</span><span class="p">)</span> <span class="nx">at</span> <span class="nx">getc.c</span><span class="p">:</span><span class="mi">41</span>
+<span class="vi">#4</span>  <span class="mh">0x00007ffff7b6e63d</span> <span class="k">in</span> <span class="nx">__gnu_cxx</span><span class="p">::</span><span class="nl">stdio_sync_filebuf</span><span class="o">&lt;</span><span class="nx">char</span><span class="p">,</span> <span class="nx">std</span><span class="p">::</span><span class="nl">char_traits</span><span class="o">&lt;</span><span class="nx">char</span><span class="o">&gt;</span> <span class="o">&gt;</span><span class="p">::</span><span class="nl">underflow</span><span class="p">()</span> <span class="p">()</span> <span class="nb">from</span> <span class="p">/</span><span class="nx">usr</span><span class="p">/</span><span class="nx">lib</span><span class="p">/</span><span class="nx">x86_64</span><span class="na">-linux-gnu</span><span class="p">/</span><span class="nx">libstdc</span><span class="o">++</span><span class="bp">.</span><span class="nx">so.6</span>
+<span class="vi">#5</span>  <span class="mh">0x00007ffff7b58c17</span> <span class="k">in</span> <span class="nx">std</span><span class="p">::</span><span class="nl">istream</span><span class="p">::</span><span class="nl">sentry</span><span class="p">::</span><span class="nl">sentry</span><span class="p">(</span><span class="nx">std</span><span class="p">::</span><span class="nl">istream</span><span class="o">&amp;</span><span class="p">,</span> <span class="nx">bool</span><span class="p">)</span> <span class="p">()</span>
+   <span class="nb">from</span> <span class="p">/</span><span class="nx">usr</span><span class="p">/</span><span class="nx">lib</span><span class="p">/</span><span class="nx">x86_64</span><span class="na">-linux-gnu</span><span class="p">/</span><span class="nx">libstdc</span><span class="o">++</span><span class="bp">.</span><span class="nx">so.6</span>
+<span class="vi">#6</span>  <span class="mh">0x00007ffff7b59b4b</span> <span class="k">in</span> <span class="nx">std</span><span class="p">::</span><span class="nl">istream</span><span class="p">::</span><span class="nl">operator</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="nx">int</span><span class="o">&amp;</span><span class="p">)</span> <span class="p">()</span>
+   <span class="nb">from</span> <span class="p">/</span><span class="nx">usr</span><span class="p">/</span><span class="nx">lib</span><span class="p">/</span><span class="nx">x86_64</span><span class="na">-linux-gnu</span><span class="p">/</span><span class="nx">libstdc</span><span class="o">++</span><span class="bp">.</span><span class="nx">so.6</span>
+<span class="vi">#7</span>  <span class="mh">0x0000000000400905</span> <span class="k">in</span> <span class="nx">main</span> <span class="p">()</span>
+</pre></div>
+
+
+<h2>Conditional breakpoints</h2>
+<p>I also noticed it was opening an interesting file, so I wanted break into a debugger to inspect the program to figure out why. Unfortunately, it opens a <em>lot</em> of files (logs, etc), so I needed a way to filter out only the interesting calls to <code>open</code>. To do this, I used <code>gdb</code> conditional breakpoints. The example below creates a breakpoint on <code>open</code> that only triggers if <code>/home/alex</code> is a substring in the filename:</p>
+<div class="highlight"><pre><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="k">break</span> <span class="n">open</span> <span class="k">if</span> <span class="n">strstr</span><span class="p">(</span><span class="err">$</span><span class="n">rdi</span><span class="p">,</span> <span class="s">&quot;/home/alex&quot;</span><span class="p">)</span>
+<span class="n">Breakpoint</span> <span class="mi">1</span> <span class="n">at</span> <span class="mh">0x7ffff7382770</span><span class="o">:</span> <span class="n">file</span> <span class="p">..</span><span class="o">/</span><span class="n">sysdeps</span><span class="o">/</span><span class="n">unix</span><span class="o">/</span><span class="n">syscall</span><span class="o">-</span><span class="n">template</span><span class="p">.</span><span class="n">S</span><span class="p">,</span> <span class="n">line</span> <span class="mf">82.</span>
+<span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="k">continue</span>
+<span class="n">Breakpoint</span> <span class="mi">1</span><span class="p">,</span> <span class="n">open64</span> <span class="p">()</span> <span class="n">at</span> <span class="p">..</span><span class="o">/</span><span class="n">sysdeps</span><span class="o">/</span><span class="n">unix</span><span class="o">/</span><span class="n">syscall</span><span class="o">-</span><span class="n">template</span><span class="p">.</span><span class="n">S</span><span class="o">:</span><span class="mi">82</span>
+<span class="mi">82</span> <span class="p">..</span><span class="o">/</span><span class="n">sysdeps</span><span class="o">/</span><span class="n">unix</span><span class="o">/</span><span class="n">syscall</span><span class="o">-</span><span class="n">template</span><span class="p">.</span><span class="n">S</span><span class="o">:</span> <span class="n">No</span> <span class="n">such</span> <span class="n">file</span> <span class="n">or</span> <span class="n">directory</span><span class="p">.</span>
+<span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span><span class="o">/</span><span class="n">s</span> <span class="err">$</span><span class="n">rdi</span>
+<span class="mh">0x400b7c</span><span class="o">:</span>  <span class="s">&quot;/home/alex/a.out&quot;</span>
+</pre></div>
+
+
+<p>This example takes advantage of two more pieces of <code>gdb</code> functionality:</p>
+<ul>
+<li><code>gdb</code> can call an arbitrary function (in this case, we call the <code>libc</code> <code>strstr</code> function to compute substring).</li>
+<li><code>gdb</code> can directly access the values of register and then cast them to common C types (in this case, <code>$rdi</code> is the first argument, which we know is a <code>char *</code>)</li>
+</ul>
+<h2>Putting it all together</h2>
+<p>We can use these tricks together to get ad-hoc dynamic tracing of our server!</p>
+<p>This logs the filename and the stack trace from any open call that isn't to our log directory, but otherwise runs the server as normal:</p>
+<div class="highlight"><pre><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="k">break</span> <span class="n">open</span> <span class="k">if</span> <span class="o">!</span><span class="n">strstr</span><span class="p">(</span><span class="err">$</span><span class="n">rdi</span><span class="p">,</span> <span class="s">&quot;/var/log&quot;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">commands</span>
+<span class="n">End</span> <span class="n">with</span> <span class="n">a</span> <span class="n">line</span> <span class="n">saying</span> <span class="n">just</span> <span class="s">&quot;end&quot;</span><span class="p">.</span>
+<span class="o">&gt;</span><span class="n">print</span><span class="o">/</span><span class="n">s</span> <span class="err">$</span><span class="n">rdi</span>
+<span class="o">&gt;</span><span class="n">backtrace</span>
+<span class="o">&gt;</span><span class="k">continue</span>
+<span class="o">&gt;</span><span class="n">end</span>
+<span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="k">continue</span>
+</pre></div>
+        </div><!-- /.entry-content -->
+        <div class="comments">
+        <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+               var disqus_identifier = "posts/2015/05/16/gdb-breakpoint-commands-and-conditional-breakpoints.html";
+               (function() {
+               var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+               dsq.src = 'http://codearcana.disqus.com/embed.js';
+               (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+              })();
+            </script>
+        </div>
+
+</article>
+</section>
+
+        <aside id="sidebar">
+                <div class="widget">
+                        <h2>Categories</h2>
+                        <ul>
+                           <li ><a href="http://codearcana.com/category/performance.html">performance</a></li>
+                           <li ><a href="http://codearcana.com/category/security.html">security</a></li>
+                           <li class="active"><a href="http://codearcana.com/category/software-engineering.html">software engineering</a></li>
+                        </ul>
+		</div>
+		<div class="widget">
+		    <h2>Tags</h2>
+		    <ul class="cloud">
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/omnios.html">omnios</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/make.html">make</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/theory.html">theory</a>
+			</li>
+			<li class="tag-1">
+			  <a class="tag" href="http://codearcana.com/tag/profiling.html">profiling</a>
+			</li>
+			<li class="tag-1">
+			  <a class="tag" href="http://codearcana.com/tag/tutorial.html">tutorial</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/malloc.html">malloc</a>
+			</li>
+			<li class="tag-2">
+			  <a class="tag" href="http://codearcana.com/tag/golang.html">golang</a>
+			</li>
+			<li class="tag-4">
+			  <a class="tag" href="http://codearcana.com/tag/libtool.html">libtool</a>
+			</li>
+			<li class="tag-2">
+			  <a class="tag" href="http://codearcana.com/tag/ctf.html">ctf</a>
+			</li>
+			<li class="tag-1">
+			  <a class="tag" href="http://codearcana.com/tag/exploitation.html">exploitation</a>
+			</li>
+		    </ul>
+		</div>
+
+
+                <div class="widget blogroll">
+                        <h2>Blogroll</h2>
+                        <ul>
+                            <li><a href="http://ppp.cylab.cmu.edu/wordpress/">PPP Blog</a></li>
+                            <li><a href="http://www.codinghorror.com/blog/">Coding Horror</a></li>
+                            <li><a href="http://blog.regehr.org/">Embedded in Academia</a></li>
+                            <li><a href="http://highscalability.com/">High Scalability</a></li>
+                            <li><a href="http://coderweekly.com/">Coder Weekly</a></li>
+                            <li><a href="http://www.phrack.org/">phrack</a></li>
+                            <li><a href="http://jbremer.org/">skier_'s blog</a></li>
+                            <li><a href="http://dtrace.org/blogs">dtrace blog</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="widget social">
+                        <h2>Social</h2>
+			<ul>
+                            <li><a href="http://codearcana.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate">atom feed</a></li>
+
+				<li><a href="https://twitter.com/awreece">twitter</a></li>
+				<li><a href="https://github.com/awreece">github</a></li>
+				<li><a href="https://plus.google.com/106589059588263736517/posts">google+</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </aside><!-- /#sidebar -->
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-40107691-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+</body>
+</html>
