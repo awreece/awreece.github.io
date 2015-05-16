@@ -58,7 +58,7 @@
 &lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="k"&gt;continue&lt;/span&gt;
 &lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;end&lt;/span&gt;
 &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;gdb&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;continue&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;</summary></entry><entry><title>Compiling with libtool on OmniOS</title><link href="http://codearcana.com/posts/2014/04/30/compiling-with-libtool-on-omnios.html" rel="alternate"></link><updated>2014-04-30T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2014-04-30:posts/2014/04/30/compiling-with-libtool-on-omnios.html</id><summary type="html">&lt;p&gt;I'm having issues compiling glib2.40.0 (a libtool compiled shared library) on Omnios.&lt;/p&gt;
+&lt;/pre&gt;&lt;/div&gt;</summary><category term="gdb"></category><category term="conditional breakpoint"></category><category term="breakpoint commands"></category></entry><entry><title>Compiling with libtool on OmniOS</title><link href="http://codearcana.com/posts/2014/04/30/compiling-with-libtool-on-omnios.html" rel="alternate"></link><updated>2014-04-30T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2014-04-30:posts/2014/04/30/compiling-with-libtool-on-omnios.html</id><summary type="html">&lt;p&gt;I'm having issues compiling glib2.40.0 (a libtool compiled shared library) on Omnios.&lt;/p&gt;
 &lt;p&gt;In particular, my shared library has a static initializer that does not get executed by the libtool linked library. I've reduced this to the test case below:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#include &amp;lt;stdio.h&amp;gt;&lt;/span&gt;
 
