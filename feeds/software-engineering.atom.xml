@@ -1,44 +1,332 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/software-engineering.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2015-05-16T00:00:00-07:00</updated><entry><title>gdb breakpoint commands and conditional breakpoints</title><link href="http://codearcana.com/posts/2015/05/16/gdb-breakpoint-commands-and-conditional-breakpoints.html" rel="alternate"></link><updated>2015-05-16T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2015-05-16:posts/2015/05/16/gdb-breakpoint-commands-and-conditional-breakpoints.html</id><summary type="html">&lt;p&gt;During my first week at my new job, I had the opportunity to teach some of my new coworkers about &lt;code&gt;gdb&lt;/code&gt; breakpoint commands and conditional breakpoints. I had a lot of fun teaching these techniques my friends here and thought others might find the story enjoyable as well.&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana - software engineering</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/software-engineering.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2017-01-21T00:00:00-08:00</updated><entry><title>A real Hello World example for react</title><link href="http://codearcana.com/posts/2017/01/21/a-real-hello-world-example-for-react.html" rel="alternate"></link><published>2017-01-21T00:00:00-08:00</published><updated>2017-01-21T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2017-01-21:/posts/2017/01/21/a-real-hello-world-example-for-react.html</id><summary type="html">&lt;p&gt;I got frustrated following the React
+&lt;a href="https://facebook.github.io/react/docs/hello-world.html"&gt;"Hello, World"&lt;/a&gt; and 
+&lt;a href="https://facebook.github.io/react/tutorial/tutorial.html"&gt;tutorial&lt;/a&gt;
+because of the implied magic. How does it actually work? Where does it fit
+into a html page? &lt;em&gt;How do I run React locally?&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;The "Hello, World" has a 4 line example that does not actually work: &lt;em&gt;this&lt;/em&gt; is
+the …&lt;/p&gt;</summary><content type="html">&lt;p&gt;I got frustrated following the React
+&lt;a href="https://facebook.github.io/react/docs/hello-world.html"&gt;"Hello, World"&lt;/a&gt; and 
+&lt;a href="https://facebook.github.io/react/tutorial/tutorial.html"&gt;tutorial&lt;/a&gt;
+because of the implied magic. How does it actually work? Where does it fit
+into a html page? &lt;em&gt;How do I run React locally?&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;The "Hello, World" has a 4 line example that does not actually work: &lt;em&gt;this&lt;/em&gt; is
+the minimal react "Hello, World":&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cp"&gt;&amp;lt;!DOCTYPE html&amp;gt;&lt;/span&gt;
+&lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nt"&gt;html&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nt"&gt;head&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+                &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nt"&gt;meta&lt;/span&gt; &lt;span class="na"&gt;charset&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;UTF-8&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;/&amp;gt;&lt;/span&gt;
+                &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nt"&gt;script&lt;/span&gt; &lt;span class="na"&gt;src&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;https://unpkg.com/react@latest/dist/react.js&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class="nt"&gt;script&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+                &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nt"&gt;script&lt;/span&gt; &lt;span class="na"&gt;src&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;https://unpkg.com/react-dom@latest/dist/react-dom.js&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class="nt"&gt;script&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+                &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nt"&gt;script&lt;/span&gt; &lt;span class="na"&gt;src&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;https://unpkg.com/babel-standalone@latest/babel.min.js&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class="nt"&gt;script&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+                &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nt"&gt;script&lt;/span&gt; &lt;span class="na"&gt;type&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;text/babel&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+                        &lt;span class="nx"&gt;ReactDOM&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;render&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+                                &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nx"&gt;h1&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="nx"&gt;Hello&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;World&lt;/span&gt;&lt;span class="o"&gt;!&amp;lt;&lt;/span&gt;&lt;span class="err"&gt;/h1&amp;gt;,&lt;/span&gt;
+                                &lt;span class="nb"&gt;document&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;getElementById&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;root&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+                        &lt;span class="p"&gt;);&lt;/span&gt;
+                &lt;span class="p"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="nt"&gt;script&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class="p"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="nt"&gt;head&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nt"&gt;body&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+                &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nt"&gt;div&lt;/span&gt; &lt;span class="na"&gt;id&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;root&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;/&amp;gt;&lt;/span&gt;
+        &lt;span class="p"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="nt"&gt;body&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+&lt;span class="p"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="nt"&gt;html&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</content><category term="react"></category><category term="helloworld"></category><category term="example"></category></entry><entry><title>Arena "leak" in glibc</title><link href="http://codearcana.com/posts/2016/07/11/arena-leak-in-glibc.html" rel="alternate"></link><published>2016-07-11T00:00:00-07:00</published><updated>2016-07-11T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2016-07-11:/posts/2016/07/11/arena-leak-in-glibc.html</id><summary type="html">&lt;p&gt;I diagnose an unexpected behavior in the glibc malloc implementation manifesting as a slow memory "leak".&lt;/p&gt;</summary><content type="html">&lt;p&gt;I was recently working on really strange memory issue. Over the course of 1-2 weeks, memory usage of &lt;code&gt;memsqld&lt;/code&gt; increased despite no change in the amount of data stored. To make matters even more interesting, &lt;code&gt;memsqld&lt;/code&gt; keeps extremely detailed accounting of memory usage (by tracking calls to &lt;code&gt;mmap&lt;/code&gt;, &lt;code&gt;malloc&lt;/code&gt;, etc). &lt;code&gt;memsqld&lt;/code&gt;'s accounting was off, reporting that we were only use ~2-3G of memory despite actually consuming ~15G of memory. What was going on?&lt;/p&gt;
+&lt;p&gt;The first thing I did was capture the output of &lt;code&gt;/proc/$PID/maps&lt;/code&gt; in the offending process and then generated a core dump so I could get &lt;code&gt;memsqld&lt;/code&gt; running again and do analysis offline. &lt;/p&gt;
+&lt;p&gt;I summed up all the different types of memory using awk and noticed that the 12GB difference appeared to be coming from ~64MB regions that were mapped &lt;code&gt;rwxp&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; cat proc_pid_maps &lt;span class="p"&gt;|&lt;/span&gt; gawk &lt;span class="s1"&gt;&amp;#39;{ split($1, a, &amp;quot;-&amp;quot;); b=strtonum(&amp;quot;0x&amp;quot; a[1]); e=strtonum(&amp;quot;0x&amp;quot; a[2]) } /stack/ { t=&amp;quot;stack&amp;quot;; } /heap/ { t=&amp;quot;heap&amp;quot;; } /\.so/ { t=&amp;quot;so&amp;quot; } /\.mu/ { t=&amp;quot;mu&amp;quot; } /\.mo/ { t=&amp;quot;mo&amp;quot;; }  (!t) { $1 = &amp;quot;&amp;quot;; t=$0} { print e-b &amp;quot; &amp;quot; t ; t=&amp;quot;&amp;quot;}&amp;#39;&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; awk &lt;span class="s1"&gt;&amp;#39;{ s=$1; $1=&amp;quot;&amp;quot;; b[$0] += s; c[$0] += 1 } END { print &amp;quot;bytes count type&amp;quot;; for (t in b) { print b[t] &amp;quot; &amp;quot; c[t] &amp;quot; &amp;quot; t } }&amp;#39;&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; sort -nk 1
+
+&lt;span class="go"&gt;bytes count type&lt;/span&gt;
+&lt;span class="go"&gt;4096 1  r-xp 00000000 00:00 0 [vsyscall]&lt;/span&gt;
+&lt;span class="go"&gt;8192 1  r--p 00000000 00:00 0 [vvar]&lt;/span&gt;
+&lt;span class="go"&gt;8192 1  r-xp 00000000 00:00 0 [vdso]&lt;/span&gt;
+&lt;span class="go"&gt;8192 1  r-xp 00000000 ca:3400 262148 /data/logs/sharding_log_0&lt;/span&gt;
+&lt;span class="go"&gt;20480 1  r-xp 00000000 ca:3400 262166 /data/logs/app_old_log_0&lt;/span&gt;
+&lt;span class="go"&gt;73728 1  r-xp 00000000 ca:3400 262157 /data/logs/app_log_0&lt;/span&gt;
+&lt;span class="go"&gt;499712 1  r-xp 00000000 00:42 86 /memsqlbin/lib/interp_ops.bc&lt;/span&gt;
+&lt;span class="go"&gt;4460544 125  mo&lt;/span&gt;
+&lt;span class="go"&gt;4796416 1  rwxp 02085000 00:42 51 /memsqlbin/memsqld&lt;/span&gt;
+&lt;span class="go"&gt;6656000 242  r-xp 00000000 00:00 0&lt;/span&gt;
+&lt;span class="go"&gt;8245248 89  mu&lt;/span&gt;
+&lt;span class="go"&gt;34103296 1  r-xp 00000000 00:42 51 /memsqlbin/memsqld&lt;/span&gt;
+&lt;span class="go"&gt;55984128 81  so&lt;/span&gt;
+&lt;span class="go"&gt;375599104 1  heap&lt;/span&gt;
+&lt;span class="go"&gt;1515778048 1037  ---p 00000000 00:00 0&lt;/span&gt;
+&lt;span class="go"&gt;2380578816 871  stack&lt;/span&gt;
+&lt;span class="go"&gt;12578443264 359  rwxp 00000000 00:00 0&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Using &lt;code&gt;perf&lt;/code&gt; to trace &lt;code&gt;mmap&lt;/code&gt;s&lt;/h2&gt;
+&lt;p&gt;I wanted to see who was allocating these large regions, so I used &lt;code&gt;perf&lt;/code&gt; to record a stack trace any time the &lt;code&gt;memsqld&lt;/code&gt; process &lt;code&gt;mmap&lt;/code&gt;ed a region of memory greater than 60MB in length&lt;sup id="fnref-1"&gt;&lt;a class="footnote-ref" href="#fn-1"&gt;1&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; sudo perf record -g -e syscalls:sys_enter_mmap --filter &lt;span class="s1"&gt;&amp;#39;len &amp;gt; 60000000&amp;#39;&lt;/span&gt; --pid &lt;span class="nv"&gt;$PID_OF_MEMSQL&lt;/span&gt; -o /path/to/storage -- sleep &lt;span class="nv"&gt;$2&lt;/span&gt;_DAYS_IN_SECONDS
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Unfortunately, this proved to be useless -- since &lt;code&gt;libc&lt;/code&gt; on Linux is typically compiled without frame pointers, the stack traces we got were &lt;em&gt;very&lt;/em&gt; short:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;memsqld   531 [003] 3033773.536620: syscalls:sys_enter_mmap: addr: 0x00000000, len: 0x08000000, prot: 0x00000000, flags: 0x00004022, fd: 0xffffffff, off: 0x00000000
+        7fb0a4d6297a mmap64 (/lib/x86_64-linux-gnu/libc-2.19.so)
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;I figured I'd use &lt;code&gt;perf probe&lt;/code&gt; to trace the &lt;code&gt;mmap64&lt;/code&gt; library call boundary so I could see the stacks, but unfortunately, this didn't work inside docker&lt;sup id="fnref-2"&gt;&lt;a class="footnote-ref" href="#fn-2"&gt;2&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;root@memsql-leaf-1-2649458094-nz33q:/data/areece#&lt;/span&gt; perf probe /lib/x86_64-linux-gnu/libc-2.19.so mmap64 &lt;span class="s1"&gt;&amp;#39;len=%si&amp;#39;&lt;/span&gt;
+&lt;span class="go"&gt;Probe point &amp;#39;mmap64&amp;#39; not found.&lt;/span&gt;
+&lt;span class="go"&gt;  Error: Failed to add events.&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;A lucky guess&lt;/h2&gt;
+&lt;p&gt;Going back to the drawing board, I looked at the data in the core dump. When I looked at the memory near those 64MB sections, I noticed that the contents looked heap-ish:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;(gdb) x/100a 0x7f8f98000000
+0x7f8f98000000: 0x7f8f98000020  0x0
+0x7f8f98000010: 0x3e27000   0x4000000
+0x7f8f98000020: 0x200000000 0x7f8f980fa580
+0x7f8f98000030: 0x0 0x7f8f9a6646e0
+0x7f8f98000040: 0x7f8f9ab025f0  0x0
+0x7f8f98000050: 0x0 0x0
+0x7f8f98000060: 0x0 0x0
+0x7f8f98000070: 0x0 0x7f8f9be069e0
+0x7f8f98000080: 0x7f8f9bdda2a0  0x7f8f9bdd9fb0
+0x7f8f98000090: 0x7f8f9bdc3210  0x7f8f980910f0
+0x7f8f980000a0: 0x7f8f980a4cb0  0x7f8f99678920
+0x7f8f980000b0: 0x7f8f9aad0b90  0x7f8f98104070
+0x7f8f980000c0: 0x7f8f98057370  0x7f8f9a649470
+0x7f8f980000d0: 0x7f8f9aac2df0  0x7f8f9808e630
+0x7f8f980000e0: 0x7f8f9a66e920  0x7f8f996222a0
+0x7f8f980000f0: 0x7f8f9bce28e0  0x7f8f9ab89030
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Furthermore, the permissions on these pages matched the permissions on our heap:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;0345b000-098c0000 rwxp 00000000 00:00 0                                  [heap]
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;I looked for ways to introspect the &lt;code&gt;glibc&lt;/code&gt; heap and found &lt;code&gt;malloc_stats(3)&lt;/code&gt;. Sure enough, this revealed the issue:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; gdb --batch --pid &lt;span class="m"&gt;6&lt;/span&gt; --ex &lt;span class="s1"&gt;&amp;#39;call malloc_stats()&amp;#39;&lt;/span&gt;
+&lt;span class="go"&gt;Arena 0:&lt;/span&gt;
+&lt;span class="go"&gt;system bytes     =  157237248&lt;/span&gt;
+&lt;span class="go"&gt;in use bytes     =   82474432&lt;/span&gt;
+&lt;span class="go"&gt;Arena 1:&lt;/span&gt;
+&lt;span class="go"&gt;system bytes     =  245886976&lt;/span&gt;
+&lt;span class="go"&gt;in use bytes     =    4931712&lt;/span&gt;
+&lt;span class="go"&gt;Arena 2:&lt;/span&gt;
+&lt;span class="go"&gt;system bytes     =  191258624&lt;/span&gt;
+&lt;span class="go"&gt;in use bytes     =    3757776&lt;/span&gt;
+&lt;span class="go"&gt;Arena 3:&lt;/span&gt;
+&lt;span class="go"&gt;system bytes     =  187617280&lt;/span&gt;
+&lt;span class="go"&gt;in use bytes     =    1905632&lt;/span&gt;
+&lt;span class="go"&gt;... &amp;lt;snip&amp;gt; &lt;/span&gt;
+&lt;span class="go"&gt;Arena 63:&lt;/span&gt;
+&lt;span class="go"&gt;system bytes     =  274530304&lt;/span&gt;
+&lt;span class="go"&gt;in use bytes     =    1173504&lt;/span&gt;
+&lt;span class="go"&gt;Total (incl. mmap):&lt;/span&gt;
+&lt;span class="go"&gt;system bytes     = 3299606528&lt;/span&gt;
+&lt;span class="go"&gt;in use bytes     =  645742704&lt;/span&gt;
+&lt;span class="go"&gt;max mmap regions =       1086&lt;/span&gt;
+&lt;span class="go"&gt;max mmap bytes   =  456876032&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;(ignore the total – &lt;code&gt;glibc&lt;/code&gt; uses a 32bit counter for total bytes which overflowed. The correct sum of each arena &lt;code&gt;system_bytes&lt;/code&gt; is 14GB)&lt;/p&gt;
+&lt;p&gt;Turns out these regions are the product of a &lt;code&gt;glibc&lt;/code&gt; &lt;code&gt;malloc&lt;/code&gt; feature: &lt;a href="https://siddhesh.in/posts/malloc-per-thread-arenas-in-glibc.html"&gt;per thread arenas&lt;/a&gt;. An arena is a self contained portion of the heap
+from which memory can be allocated; each arena is completely independent of the other arenas. The &lt;code&gt;glibc&lt;/code&gt; &lt;code&gt;malloc&lt;/code&gt; implementation attempted to improve performance by allowing all threads to use their own arena (up to a default cap &lt;code&gt;MALLOC_ARENA_MAX&lt;/code&gt; of 8 arenas per CPU core). When a thread goes to allocate memory, it tries to exclusively lock the arena it allocated from most recently; however, upon failing, the thread will switch to another arena or create a new arena if all arenas are busy. &lt;/p&gt;
+&lt;p&gt;For applications with a small number of threads that use &lt;code&gt;malloc&lt;/code&gt; heavily, this approach works well. Unfortunately, &lt;code&gt;memsqld&lt;/code&gt; uses &lt;code&gt;malloc&lt;/code&gt; very sparingly but uses a large number of threads; in this workload, we had managed to induce a pathology where we had 64 malloc arenas that were using only ~1% of about ~200MB of system memory for user data, a huge waste of memory. Fortunately, the "fix" is simple –- we set the maximum number of arenas back down to one per core by setting the &lt;code&gt;MALLOC_ARENA_MAX&lt;/code&gt; environment variable appropriately.&lt;/p&gt;
+&lt;div class="footnote"&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id="fn-1"&gt;
+&lt;p&gt;I found the name of the filter arguments via &lt;code&gt;cat /sys/kernel/debug/tracing/events/syscalls/sys_enter_mmap/format&lt;/code&gt;.&amp;#160;&lt;a class="footnote-backref" href="#fnref-1" title="Jump back to footnote 1 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn-2"&gt;
+&lt;p&gt;I suspect that &lt;code&gt;perf probe&lt;/code&gt; interacts poorly with Linux filesystem namespaces; has anyone played around here before?&amp;#160;&lt;a class="footnote-backref" href="#fnref-2" title="Jump back to footnote 2 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;</content><category term="glibc"></category><category term="perf_events"></category><category term="malloc"></category><category term="Linux"></category></entry><entry><title>A review of Drift Into Failure</title><link href="http://codearcana.com/posts/2016/03/02/a-review-of-drift-into-failure.html" rel="alternate"></link><published>2016-03-02T00:00:00-08:00</published><updated>2016-03-02T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2016-03-02:/posts/2016/03/02/a-review-of-drift-into-failure.html</id><summary type="html">&lt;p&gt;On the advice of a former colleague, I recently read &lt;a href="http://smile.amazon.com/Drift-into-Failure-Components-Understanding-ebook/dp/B009KOKXKY"&gt;&lt;em&gt;Drift into Failure: From Hunting Broken Components to Understanding Complex Systems&lt;/em&gt;&lt;/a&gt; by Sidney Dekker. &lt;/p&gt;
+&lt;h2&gt;An overview of &lt;em&gt;Drift into Failure&lt;/em&gt;&lt;/h2&gt;
+&lt;p&gt;By examining several recent disasters (ranging from the Challenger explosion to the housing market collapse of 2008), Dekker contends that …&lt;/p&gt;</summary><content type="html">&lt;p&gt;On the advice of a former colleague, I recently read &lt;a href="http://smile.amazon.com/Drift-into-Failure-Components-Understanding-ebook/dp/B009KOKXKY"&gt;&lt;em&gt;Drift into Failure: From Hunting Broken Components to Understanding Complex Systems&lt;/em&gt;&lt;/a&gt; by Sidney Dekker. &lt;/p&gt;
+&lt;h2&gt;An overview of &lt;em&gt;Drift into Failure&lt;/em&gt;&lt;/h2&gt;
+&lt;p&gt;By examining several recent disasters (ranging from the Challenger explosion to the housing market collapse of 2008), Dekker contends that root cause analysis is an inherently flawed strategy for understanding failures of large complicated systems (e.g. the NASA bureaucracy or Wall Street). Dekker believes that a single faulty component cannot be held to blame for these failures. Competing pressures (e.g. budget, publicity) can allow complicated systems to tolerate increasing levels of risk over time, leading to a slow "drift into failure" where no one component can be held truly responsible.&lt;/p&gt;
+&lt;p&gt;Dekker eventually proposes several ways to avoid this drift. He says that "high reliability organizations" tend to exhibit the following 4 characteristics:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;Senior management commitment to safety&lt;/li&gt;
+&lt;li&gt;Shared care and concern for hazards and a willingness to learn and understand how they impact people&lt;/li&gt;
+&lt;li&gt;Realistic and flexible norms and rules about hazards&lt;/li&gt;
+&lt;li&gt;Continual reflection on practice through monitoring, analysis, and feedback systems&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;The last point is the most nuanced. Since organizations will evolve over time, it is important that they continually reflect on how they are changing to ensure they evolve in the best direction for the long term health of the organization.&lt;/p&gt;
+&lt;p&gt;This kind of reflection is &lt;em&gt;hard&lt;/em&gt; for most organizations and Dekker offers some interesting suggestions for how to do it. First, he emphasizes that senior management must support this kind reflection and commitment. He then suggests:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rotating personnel from different places (but similar operations) for shorter periods can in principle be done in a variety of worlds. It represents an important lever for assuring the kind of diversity that can make small steps visible and open for discussion.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;During these discussions, Dekker says:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;The questions we should reflect on (even if we may not get clear answers) are two-fold: why did this happen, and why are we surprised that it happened? The first question is about the workings of the complex system and its environment. The second is about our (lack of) understanding of those workings.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;In addition, Dekker recommends that organizations give authority to all levels of an organization. He cites the example of the nuclear aircraft carrier:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Even the lowest ranking individual on the deck of an aircraft carrier has the authority (and in indeed the duty) to suspend immediately any take-off or landing that might pose unnecessary risk.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Lastly, he suggests that systems can use this tendency to evolve to push themselves towards safety. Rather than compliance and regulation, he suggests that&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;complex systems should have a co-evolver/counter evolver.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;This is an entity that is aware of the complexity of the organization (and will evolve with it) and strives to push the organization in a different direction than it would locally optimize for. Dekker doesn't mention it, but I think Netflix's &lt;a href="http://techblog.netflix.com/2012/07/chaos-monkey-released-into-wild.html"&gt;Chaos Monkey&lt;/a&gt; is the perfect example of this.&lt;/p&gt;
+&lt;h2&gt;A wrap up&lt;/h2&gt;
+&lt;p&gt;Overall, the book was fascinating but hard to read. Unfortunately, Dekker uses very complex language that usually muddles his argument rather than refining it. This confusion was exacerbated by the fact that he only starts proposing solutions in the last chapter. I ended up writing this review because I wanted to share the ideas of the book with other people but wasn't convinced they would read through it.&lt;/p&gt;
+&lt;h2&gt;Do startups have a moral imperative not to fail?&lt;/h2&gt;
+&lt;p&gt;One of the things that really struck me in the book was that it implicitly assumed that these systems had a moral imperative not to fail. For a mine or airline, where human lives are at stake, that case is "easier" to argue; however, I feel like that is not a core tenet of many web startups. In some sense, the motto "move fast break things" seems like a deliberate acknowledgment that there is no moral imperative to avoid failure.&lt;/p&gt;</content><category term="opinion"></category></entry><entry><title>Statically linking libstdc++</title><link href="http://codearcana.com/posts/2015/12/09/statically-linking-libstdc.html" rel="alternate"></link><published>2015-12-09T00:00:00-08:00</published><updated>2015-12-09T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2015-12-09:/posts/2015/12/09/statically-linking-libstdc.html</id><summary type="html">&lt;p&gt;In this post, I statically link &lt;code&gt;libstdc++&lt;/code&gt; into a &lt;code&gt;configure&lt;/code&gt;d library.&lt;/p&gt;</summary><content type="html">&lt;p&gt;I recently found myself wanting to statically link &lt;code&gt;libstdc++&lt;/code&gt; into a 
+library I was compiling and found it to be a surprising challenging process.&lt;/p&gt;
+&lt;h2&gt;Small example library&lt;/h2&gt;
+&lt;p&gt;I first started playing with a small example library:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cp"&gt;#include&lt;/span&gt; &lt;span class="cpf"&gt;&amp;lt;iostream&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;&lt;/span&gt;
+
+&lt;span class="n"&gt;__attribute__&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="n"&gt;noinline&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="n"&gt;bar&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="n"&gt;std&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;cout&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;__FILE__&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&amp;lt;&lt;/span&gt;  &lt;span class="s"&gt;&amp;quot; &amp;quot;&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;__func__&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;std&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;endl&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="n"&gt;foo&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="n"&gt;bar&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+  &lt;span class="n"&gt;std&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;cout&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Hello&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;std&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;endl&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Before I even got to statically compiling &lt;code&gt;libstdc++&lt;/code&gt;, I noticed something
+strange: The symbol &lt;code&gt;bar&lt;/code&gt; was getting resolved through the PLT!&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; gcc -O3 -shared -fPIC foo.cpp -o foo.so
+&lt;span class="gp"&gt;$&lt;/span&gt; gdb foo.so --batch --ex &lt;span class="s2"&gt;&amp;quot;disas foo&amp;quot;&lt;/span&gt;
+&lt;span class="go"&gt;Dump of assembler code for function _Z3foov:&lt;/span&gt;
+&lt;span class="go"&gt;   0x0000000000000b70 &amp;lt;+0&amp;gt;: push   %rbp&lt;/span&gt;
+&lt;span class="go"&gt;   0x0000000000000b71 &amp;lt;+1&amp;gt;: push   %rbx&lt;/span&gt;
+&lt;span class="go"&gt;   0x0000000000000b72 &amp;lt;+2&amp;gt;: sub    $0x8,%rsp&lt;/span&gt;
+&lt;span class="go"&gt;   0x0000000000000b76 &amp;lt;+6&amp;gt;: callq  0x960 &amp;lt;_Z3barv@plt&amp;gt;&lt;/span&gt;
+&lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;I played around with a couple of things, and eventualy figured out I could
+mark &lt;code&gt;bar&lt;/code&gt; as having hidden visibility and then it wouldn't use this PLT.&lt;/p&gt;
+&lt;h2&gt;Static &lt;code&gt;libstdc++&lt;/code&gt;?&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;g++&lt;/code&gt; has a command line option &lt;code&gt;-static-libstdc++&lt;/code&gt; which appears to do
+exactly what I want. Unfortunately, the calls to the &lt;code&gt;libstdc++&lt;/code&gt; symbols 
+are resolved via the PLT, as above with &lt;code&gt;bar&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; gcc -static-libstdc++ -O3 -shared -fPIC foo.cpp -o foo.so
+&lt;span class="gp"&gt;$&lt;/span&gt; /tmp% gdb foo.so --batch --ex &lt;span class="s2"&gt;&amp;quot;disas foo&amp;quot;&lt;/span&gt;
+&lt;span class="go"&gt;   0x0000000000000b21 &amp;lt;+1&amp;gt;: push   %rbx&lt;/span&gt;
+&lt;span class="go"&gt;   0x0000000000000b22 &amp;lt;+2&amp;gt;: sub    $0x8,%rsp&lt;/span&gt;
+&lt;span class="go"&gt;   0x0000000000000b26 &amp;lt;+6&amp;gt;: callq  0xa80 &amp;lt;_Z3barv&amp;gt;&lt;/span&gt;
+&lt;span class="go"&gt;   0x0000000000000b2b &amp;lt;+11&amp;gt;:  mov    0x20049e(%rip),%rbx        # 0x200fd0&lt;/span&gt;
+&lt;span class="go"&gt;   0x0000000000000b32 &amp;lt;+18&amp;gt;:  lea    0x7a(%rip),%rsi        # 0xbb3&lt;/span&gt;
+&lt;span class="go"&gt;   0x0000000000000b39 &amp;lt;+25&amp;gt;:  mov    $0x5,%edx&lt;/span&gt;
+&lt;span class="go"&gt;   0x0000000000000b3e &amp;lt;+30&amp;gt;:  mov    %rbx,%rdi&lt;/span&gt;
+&lt;span class="go"&gt;   0x0000000000000b41 &amp;lt;+33&amp;gt;:  callq  0x930 &amp;lt;_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l@plt&amp;gt;&lt;/span&gt;
+&lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;I tried to do a cute trick to make all the C++ functions have hidden
+visibility:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cp"&gt;#pragma GCC visibility push(hidden)&lt;/span&gt;
+&lt;span class="cp"&gt;#include&lt;/span&gt; &lt;span class="cpf"&gt;&amp;lt;iostream&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;&lt;/span&gt;
+&lt;span class="cp"&gt;#pragme GCC visibility pop&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Unfortunately, the symbols were &lt;em&gt;still&lt;/em&gt; resolved via the PLT. What was going on?
+Could I force &lt;code&gt;g++&lt;/code&gt; to just use the symbols in the binary it had a copy of rather
+than using the PLT?&lt;/p&gt;
+&lt;h2&gt;&lt;code&gt;Bsymbolic-functions&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;Some deep soul searching lead me to
+&lt;a href="http://stackoverflow.com/q/7216973"&gt;a stack overflow post&lt;/a&gt; where someone else
+had the same questions and talked about a flag that solved this exact problem.
+This allowed me to get rid of the visiblity annotation on &lt;code&gt;bar&lt;/code&gt;, but it still didn't
+solve my libstdc++ problem.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; gcc -static-libstdc++ -Wl,-Bsymbolic-functions -O3 -shared -fPIC foo.cpp -o foo.so
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;I eventually found the real issue: library order during linking. If I manually
+specified the &lt;code&gt;libstc++.a&lt;/code&gt; library as the last library, the symbols would not
+be resolved via the plt:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; gcc -static-libstdc++ -Wl,-Bsymbolic-functions -O3 -shared -fPIC foo.cpp -o foo.so &lt;span class="k"&gt;$(&lt;/span&gt;g++ &lt;span class="nv"&gt;$CXXFLAGS&lt;/span&gt; -print-file-name&lt;span class="o"&gt;=&lt;/span&gt;libstdc++.a&lt;span class="k"&gt;)&lt;/span&gt;
+&lt;span class="gp"&gt;$&lt;/span&gt; gdb foo.so --batch --ex &lt;span class="s2"&gt;&amp;quot;disas foo&amp;quot;&lt;/span&gt;
+&lt;span class="go"&gt;Dump of assembler code for function _Z3foov:&lt;/span&gt;
+&lt;span class="go"&gt;   0x00000000000422e0 &amp;lt;+0&amp;gt;: push   %rbp&lt;/span&gt;
+&lt;span class="go"&gt;   0x00000000000422e1 &amp;lt;+1&amp;gt;: push   %rbx&lt;/span&gt;
+&lt;span class="go"&gt;   0x00000000000422e2 &amp;lt;+2&amp;gt;: sub    $0x8,%rsp&lt;/span&gt;
+&lt;span class="go"&gt;   0x00000000000422e6 &amp;lt;+6&amp;gt;: callq  0x42240 &amp;lt;_Z3barv&amp;gt;&lt;/span&gt;
+&lt;span class="go"&gt;   0x00000000000422eb &amp;lt;+11&amp;gt;:  mov    0x2756ae(%rip),%rbx        # 0x2b79a0&lt;/span&gt;
+&lt;span class="go"&gt;   0x00000000000422f2 &amp;lt;+18&amp;gt;:  lea    0x518ef(%rip),%rsi        # 0x93be8&lt;/span&gt;
+&lt;span class="go"&gt;   0x00000000000422f9 &amp;lt;+25&amp;gt;:  mov    $0x5,%edx&lt;/span&gt;
+&lt;span class="go"&gt;   0x00000000000422fe &amp;lt;+30&amp;gt;:  mov    %rbx,%rdi&lt;/span&gt;
+&lt;span class="go"&gt;   0x0000000000042301 &amp;lt;+33&amp;gt;:  callq  0x45670 &amp;lt;_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l&amp;gt;&lt;/span&gt;
+&lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Specifing this static &lt;code&gt;libstdc++.a&lt;/code&gt; as a final arg worked with both the
+&lt;code&gt;#pragma GCC visibility push(hidden)&lt;/code&gt; trick and with &lt;code&gt;-Bsymbolic-functions&lt;/code&gt;.&lt;/p&gt;
+&lt;h2&gt;In &lt;code&gt;./configure&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;I had a &lt;code&gt;./configure&lt;/code&gt; library that I wanted to build with a static &lt;code&gt;libstdc++&lt;/code&gt;. Using
+what I learned above, this seemed relatively straightforward:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="go"&gt;./configure CXXFLAGS=&amp;quot;-static-libstc++&amp;quot; LDFLAGS=&amp;quot;-Bsymbolic-functions&amp;quot; LIBS=&amp;quot;$(g++ -print-file-name=libstdc++.a)&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Unfortunately, this didn't work. Using &lt;code&gt;make VERBOSE=1&lt;/code&gt;, I looked at the
+command used to link my library and saw the issue: &lt;code&gt;make&lt;/code&gt; was calling
+&lt;code&gt;gcc&lt;/code&gt; to link the library rather than &lt;code&gt;ld&lt;/code&gt; but wasn't wrapping &lt;code&gt;LDFLAGS&lt;/code&gt;.
+I did so manually and got my expected results, a static &lt;code&gt;libstdc++&lt;/code&gt; where 
+none of the symbols were resolved using the PLT. My final &lt;code&gt;configure&lt;/code&gt;
+invocation was:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="go"&gt;./configure CXXFLAGS=&amp;quot;-static-libstc++&amp;quot; LDFLAGS=&amp;quot;-Wl,-Bsymbolic-functions&amp;quot; LIBS=&amp;quot;$(g++ -print-file-name=libstdc++.a)&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</content><category term="linking"></category><category term="gcc"></category></entry><entry><title>gdb breakpoint commands and conditional breakpoints</title><link href="http://codearcana.com/posts/2015/05/16/gdb-breakpoint-commands-and-conditional-breakpoints.html" rel="alternate"></link><published>2015-05-16T00:00:00-07:00</published><updated>2015-05-16T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2015-05-16:/posts/2015/05/16/gdb-breakpoint-commands-and-conditional-breakpoints.html</id><summary type="html">&lt;p&gt;During my first week at my new job, I had the opportunity to teach some of my new coworkers about &lt;code&gt;gdb&lt;/code&gt; breakpoint commands and conditional breakpoints. I had a lot of fun teaching these techniques my friends here and thought others might find the story enjoyable as well.&lt;/p&gt;
+&lt;h2&gt;Breakpoint commands …&lt;/h2&gt;</summary><content type="html">&lt;p&gt;During my first week at my new job, I had the opportunity to teach some of my new coworkers about &lt;code&gt;gdb&lt;/code&gt; breakpoint commands and conditional breakpoints. I had a lot of fun teaching these techniques my friends here and thought others might find the story enjoyable as well.&lt;/p&gt;
 &lt;h2&gt;Breakpoint commands&lt;/h2&gt;
 &lt;p&gt;The first question I had was: &lt;em&gt;where is our server doing reads&lt;/em&gt;? To answer this question, I used an often overlooked feature of &lt;code&gt;gdb&lt;/code&gt;: breakpoint commands. At a high level, these allowed us to run an arbitrary set of &lt;code&gt;gdb&lt;/code&gt; command automatically when a break point is hit. In my case, I wanted to see what stack trace was causing the reads:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;gdb&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;break&lt;/span&gt; &lt;span class="n"&gt;read&lt;/span&gt;
-&lt;span class="n"&gt;Breakpoint&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="n"&gt;at&lt;/span&gt; &lt;span class="mh"&gt;0x7ffff7382960&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;file&lt;/span&gt; &lt;span class="p"&gt;..&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;sysdeps&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;unix&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;syscall&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;template&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;S&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;line&lt;/span&gt; &lt;span class="mf"&gt;82.&lt;/span&gt;
-&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;gdb&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;commands&lt;/span&gt;
-&lt;span class="n"&gt;End&lt;/span&gt; &lt;span class="n"&gt;with&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="n"&gt;line&lt;/span&gt; &lt;span class="n"&gt;saying&lt;/span&gt; &lt;span class="n"&gt;just&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;end&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
-&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;backtrace&lt;/span&gt;
-&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="k"&gt;continue&lt;/span&gt;
-&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;end&lt;/span&gt;
-&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;gdb&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;(gdb) break read
+Breakpoint 2 at 0x7ffff7382960: file ../sysdeps/unix/syscall-template.S, line 82.
+(gdb) commands
+End with a line saying just &amp;quot;end&amp;quot;.
+&amp;gt;backtrace
+&amp;gt;continue
+&amp;gt;end
+(gdb)
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;I put a breakpoint on the &lt;code&gt;libc&lt;/code&gt; &lt;code&gt;read&lt;/code&gt; function call and automatically do two things: print the backtrace of the thread that hit the read and then continue execution. The overall effect of this is that &lt;code&gt;gdb&lt;/code&gt; runs the program as normal but prints a backtrace every time the program reads:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nx"&gt;Breakpoint&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;read&lt;/span&gt; &lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="nx"&gt;at&lt;/span&gt; &lt;span class="nx"&gt;..&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="nx"&gt;sysdeps&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="nx"&gt;unix&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="nx"&gt;syscall&lt;/span&gt;&lt;span class="na"&gt;-template.S&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;82&lt;/span&gt;
-&lt;span class="mi"&gt;82&lt;/span&gt; &lt;span class="nx"&gt;..&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="nx"&gt;sysdeps&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="nx"&gt;unix&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="nx"&gt;syscall&lt;/span&gt;&lt;span class="na"&gt;-template.S&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="nx"&gt;No&lt;/span&gt; &lt;span class="nx"&gt;such&lt;/span&gt; &lt;span class="nb"&gt;file&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt; &lt;span class="nx"&gt;directory.&lt;/span&gt;
-&lt;span class="vi"&gt;#0&lt;/span&gt;  &lt;span class="nb"&gt;read&lt;/span&gt; &lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="nx"&gt;at&lt;/span&gt; &lt;span class="nx"&gt;..&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="nx"&gt;sysdeps&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="nx"&gt;unix&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="nx"&gt;syscall&lt;/span&gt;&lt;span class="na"&gt;-template.S&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;82&lt;/span&gt;
-&lt;span class="vi"&gt;#1&lt;/span&gt;  &lt;span class="mh"&gt;0x00007ffff7324ed8&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="nx"&gt;_IO_new_file_underflow&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;fp&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mh"&gt;0x7ffff76386c0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="nx"&gt;at&lt;/span&gt; &lt;span class="nx"&gt;fileops.c&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;606&lt;/span&gt;
-&lt;span class="vi"&gt;#2&lt;/span&gt;  &lt;span class="mh"&gt;0x00007ffff73265be&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="nx"&gt;_IO_default_uflow&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;fp&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mh"&gt;0x0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="nx"&gt;at&lt;/span&gt; &lt;span class="nx"&gt;genops.c&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;440&lt;/span&gt;
-&lt;span class="vi"&gt;#3&lt;/span&gt;  &lt;span class="mh"&gt;0x00007ffff731da9b&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="nx"&gt;_IO_getc&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;fp&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mh"&gt;0x7ffff76386c0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="nx"&gt;at&lt;/span&gt; &lt;span class="nx"&gt;getc.c&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;41&lt;/span&gt;
-&lt;span class="vi"&gt;#4&lt;/span&gt;  &lt;span class="mh"&gt;0x00007ffff7b6e63d&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="nx"&gt;__gnu_cxx&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="nl"&gt;stdio_sync_filebuf&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nx"&gt;char&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;std&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="nl"&gt;char_traits&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nx"&gt;char&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="nl"&gt;underflow&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="nb"&gt;from&lt;/span&gt; &lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="nx"&gt;usr&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="nx"&gt;lib&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="nx"&gt;x86_64&lt;/span&gt;&lt;span class="na"&gt;-linux-gnu&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="nx"&gt;libstdc&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="bp"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;so.6&lt;/span&gt;
-&lt;span class="vi"&gt;#5&lt;/span&gt;  &lt;span class="mh"&gt;0x00007ffff7b58c17&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="nx"&gt;std&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="nl"&gt;istream&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="nl"&gt;sentry&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="nl"&gt;sentry&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;std&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="nl"&gt;istream&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;bool&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;()&lt;/span&gt;
-   &lt;span class="nb"&gt;from&lt;/span&gt; &lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="nx"&gt;usr&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="nx"&gt;lib&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="nx"&gt;x86_64&lt;/span&gt;&lt;span class="na"&gt;-linux-gnu&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="nx"&gt;libstdc&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="bp"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;so.6&lt;/span&gt;
-&lt;span class="vi"&gt;#6&lt;/span&gt;  &lt;span class="mh"&gt;0x00007ffff7b59b4b&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="nx"&gt;std&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="nl"&gt;istream&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="nl"&gt;operator&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;int&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;()&lt;/span&gt;
-   &lt;span class="nb"&gt;from&lt;/span&gt; &lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="nx"&gt;usr&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="nx"&gt;lib&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="nx"&gt;x86_64&lt;/span&gt;&lt;span class="na"&gt;-linux-gnu&lt;/span&gt;&lt;span class="p"&gt;/&lt;/span&gt;&lt;span class="nx"&gt;libstdc&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="bp"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;so.6&lt;/span&gt;
-&lt;span class="vi"&gt;#7&lt;/span&gt;  &lt;span class="mh"&gt;0x0000000000400905&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="nx"&gt;main&lt;/span&gt; &lt;span class="p"&gt;()&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Breakpoint 1, read () at ../sysdeps/unix/syscall-template.S:82
+82 ../sysdeps/unix/syscall-template.S: No such file or directory.
+#0  read () at ../sysdeps/unix/syscall-template.S:82
+#1  0x00007ffff7324ed8 in _IO_new_file_underflow (fp=0x7ffff76386c0)
+    at fileops.c:606
+#2  0x00007ffff73265be in _IO_default_uflow (fp=0x0) at genops.c:440
+#3  0x00007ffff731da9b in _IO_getc (fp=0x7ffff76386c0) at getc.c:41
+#4  0x00007ffff7b6e63d in __gnu_cxx::stdio_sync_filebuf&amp;lt;char, std::char_traits&amp;lt;char&amp;gt; &amp;gt;::underflow() () from /usr/lib/x86_64-linux-gnu/libstdc++.so.6
+#5  0x00007ffff7b58c17 in std::istream::sentry::sentry(std::istream&amp;amp;, bool) ()
+   from /usr/lib/x86_64-linux-gnu/libstdc++.so.6
+#6  0x00007ffff7b59b4b in std::istream::operator&amp;gt;&amp;gt;(int&amp;amp;) ()
+   from /usr/lib/x86_64-linux-gnu/libstdc++.so.6
+#7  0x0000000000400905 in main ()
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;Conditional breakpoints&lt;/h2&gt;
 &lt;p&gt;I also noticed it was opening an interesting file, so I wanted break into a debugger to inspect the program to figure out why. Unfortunately, it opens a &lt;em&gt;lot&lt;/em&gt; of files (logs, etc), so I needed a way to filter out only the interesting calls to &lt;code&gt;open&lt;/code&gt;. To do this, I used &lt;code&gt;gdb&lt;/code&gt; conditional breakpoints. The example below creates a breakpoint on &lt;code&gt;open&lt;/code&gt; that only triggers if &lt;code&gt;/home/alex&lt;/code&gt; is a substring in the filename:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;gdb&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;break&lt;/span&gt; &lt;span class="n"&gt;open&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;strstr&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;rdi&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;/home/alex&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;Breakpoint&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="n"&gt;at&lt;/span&gt; &lt;span class="mh"&gt;0x7ffff7382770&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;file&lt;/span&gt; &lt;span class="p"&gt;..&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;sysdeps&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;unix&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;syscall&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;template&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;S&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;line&lt;/span&gt; &lt;span class="mf"&gt;82.&lt;/span&gt;
-&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;gdb&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;continue&lt;/span&gt;
-&lt;span class="n"&gt;Breakpoint&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;open64&lt;/span&gt; &lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="n"&gt;at&lt;/span&gt; &lt;span class="p"&gt;..&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;sysdeps&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;unix&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;syscall&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;template&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;S&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;82&lt;/span&gt;
-&lt;span class="mi"&gt;82&lt;/span&gt; &lt;span class="p"&gt;..&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;sysdeps&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;unix&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;syscall&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;template&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;S&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;No&lt;/span&gt; &lt;span class="n"&gt;such&lt;/span&gt; &lt;span class="n"&gt;file&lt;/span&gt; &lt;span class="n"&gt;or&lt;/span&gt; &lt;span class="n"&gt;directory&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
-&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;gdb&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;rdi&lt;/span&gt;
-&lt;span class="mh"&gt;0x400b7c&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;  &lt;span class="s"&gt;&amp;quot;/home/alex/a.out&amp;quot;&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="x"&gt;(gdb) break open if strstr(&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;rdi&lt;/span&gt;&lt;span class="x"&gt;, &amp;quot;/home/alex&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;Breakpoint 1 at 0x7ffff7382770: file ../sysdeps/unix/syscall-template.S, line 82.&lt;/span&gt;
+&lt;span class="x"&gt;(gdb) continue&lt;/span&gt;
+&lt;span class="x"&gt;Breakpoint 1, open64 () at ../sysdeps/unix/syscall-template.S:82&lt;/span&gt;
+&lt;span class="x"&gt;82 ../sysdeps/unix/syscall-template.S: No such file or directory.&lt;/span&gt;
+&lt;span class="x"&gt;(gdb) x/s &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;rdi&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;0x400b7c:  &amp;quot;/home/alex/a.out&amp;quot;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -50,17 +338,22 @@
 &lt;h2&gt;Putting it all together&lt;/h2&gt;
 &lt;p&gt;We can use these tricks together to get ad-hoc dynamic tracing of our server!&lt;/p&gt;
 &lt;p&gt;This logs the filename and the stack trace from any open call that isn't to our log directory, but otherwise runs the server as normal:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;gdb&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;break&lt;/span&gt; &lt;span class="n"&gt;open&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="n"&gt;strstr&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;rdi&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;/var/log&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;gdb&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;commands&lt;/span&gt;
-&lt;span class="n"&gt;End&lt;/span&gt; &lt;span class="n"&gt;with&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="n"&gt;line&lt;/span&gt; &lt;span class="n"&gt;saying&lt;/span&gt; &lt;span class="n"&gt;just&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;end&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
-&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;print&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;rdi&lt;/span&gt;
-&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;backtrace&lt;/span&gt;
-&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="k"&gt;continue&lt;/span&gt;
-&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;end&lt;/span&gt;
-&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;gdb&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;continue&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;</summary><category term="gdb"></category><category term="conditional breakpoint"></category><category term="breakpoint commands"></category></entry><entry><title>Compiling with libtool on OmniOS</title><link href="http://codearcana.com/posts/2014/04/30/compiling-with-libtool-on-omnios.html" rel="alternate"></link><updated>2014-04-30T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2014-04-30:posts/2014/04/30/compiling-with-libtool-on-omnios.html</id><summary type="html">&lt;p&gt;I'm having issues compiling glib2.40.0 (a libtool compiled shared library) on Omnios.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="x"&gt;(gdb) break open if !strstr(&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;rdi&lt;/span&gt;&lt;span class="x"&gt;, &amp;quot;/var/log&amp;quot;)&lt;/span&gt;
+&lt;span class="x"&gt;(gdb) commands&lt;/span&gt;
+&lt;span class="x"&gt;End with a line saying just &amp;quot;end&amp;quot;.&lt;/span&gt;
+&lt;span class="x"&gt;&amp;gt;print/s &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;rdi&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;&amp;gt;backtrace&lt;/span&gt;
+&lt;span class="x"&gt;&amp;gt;continue&lt;/span&gt;
+&lt;span class="x"&gt;&amp;gt;end&lt;/span&gt;
+&lt;span class="x"&gt;(gdb) continue&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</content><category term="gdb"></category><category term="conditional breakpoint"></category><category term="breakpoint commands"></category></entry><entry><title>Compiling with libtool on OmniOS</title><link href="http://codearcana.com/posts/2014/04/30/compiling-with-libtool-on-omnios.html" rel="alternate"></link><published>2014-04-30T00:00:00-07:00</published><updated>2014-04-30T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2014-04-30:/posts/2014/04/30/compiling-with-libtool-on-omnios.html</id><summary type="html">&lt;p&gt;I'm having issues compiling glib2.40.0 (a libtool compiled shared library) on Omnios.&lt;/p&gt;
 &lt;p&gt;In particular, my shared library has a static initializer that does not get executed by the libtool linked library. I've reduced this to the test case below:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#include &amp;lt;stdio.h&amp;gt;&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cp"&gt;#include&lt;/span&gt; &lt;span class="cpf"&gt;&amp;lt;stdio.h&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;&lt;/span&gt;
+
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;__attribute__&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="n"&gt;constructor&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="n"&gt;myctor&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;in …&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;I'm having issues compiling glib2.40.0 (a libtool compiled shared library) on Omnios.&lt;/p&gt;
+&lt;p&gt;In particular, my shared library has a static initializer that does not get executed by the libtool linked library. I've reduced this to the test case below:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cp"&gt;#include&lt;/span&gt; &lt;span class="cpf"&gt;&amp;lt;stdio.h&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;&lt;/span&gt;
 
 &lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;__attribute__&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="n"&gt;constructor&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="n"&gt;myctor&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
     &lt;span class="n"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;in myctor&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
@@ -69,7 +362,7 @@
 
 
 &lt;p&gt;I can compile with libtool and link with gcc, and get the expected behavior on LD_PRELOAD:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; libtool --mode&lt;span class="o"&gt;=&lt;/span&gt;compile gcc -c myctor.c
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; libtool --mode&lt;span class="o"&gt;=&lt;/span&gt;compile gcc -c myctor.c
 &lt;span class="go"&gt;libtool: compile:  gcc -c myctor.c  -fPIC -DPIC -o .libs/myctor.o&lt;/span&gt;
 &lt;span class="gp"&gt;$&lt;/span&gt; gcc -shared .libs/myctor.o -o libmyctor.so
 &lt;span class="gp"&gt;$&lt;/span&gt; &lt;span class="nv"&gt;LD_PRELOAD&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;&lt;span class="nb"&gt;pwd&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt;/libmyctor.so ls
@@ -79,7 +372,7 @@
 
 
 &lt;p&gt;If I link with libtool, I do not get the expected behavior:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; libtool --mode&lt;span class="o"&gt;=&lt;/span&gt;link gcc -o libmyctor.la  -rpath /usr/lib myctor.lo
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; libtool --mode&lt;span class="o"&gt;=&lt;/span&gt;link gcc -o libmyctor.la  -rpath /usr/lib myctor.lo
 &lt;span class="go"&gt;libtool: link: gcc -shared  -fPIC -DPIC -Wl,-z -Wl,text -Wl,-h -Wl,libmyctor.so.0 -o .libs/libmyctor.so.0.0.0  .libs/myctor.o      -nostdlib -lc&lt;/span&gt;
 &lt;span class="go"&gt;libtool: link: (cd &amp;quot;.libs&amp;quot; &amp;amp;&amp;amp; rm -f &amp;quot;libmyctor.so.0&amp;quot; &amp;amp;&amp;amp; ln -s &amp;quot;libmyctor.so.0.0.0&amp;quot; &amp;quot;libmyctor.so.0&amp;quot;)&lt;/span&gt;
 &lt;span class="go"&gt;libtool: link: (cd &amp;quot;.libs&amp;quot; &amp;amp;&amp;amp; rm -f &amp;quot;libmyctor.so&amp;quot; &amp;amp;&amp;amp; ln -s &amp;quot;libmyctor.so.0.0.0&amp;quot; &amp;quot;libmyctor.so&amp;quot;)&lt;/span&gt;
@@ -90,7 +383,7 @@
 
 
 &lt;p&gt;I performed some trial and error experiments with the displayed gcc command invocation, and determined that "-nostdlib" is the flag that causes the constructor to no longer be called:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; gcc -shared  -fPIC -DPIC -Wl,-z -Wl,text -Wl,-h -Wl,libmyctor.so.0 -o .libs/libmyctor.so.0.0.0  .libs/myctor.o
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; gcc -shared  -fPIC -DPIC -Wl,-z -Wl,text -Wl,-h -Wl,libmyctor.so.0 -o .libs/libmyctor.so.0.0.0  .libs/myctor.o
 &lt;span class="gp"&gt;$&lt;/span&gt; &lt;span class="nv"&gt;LD_PRELOAD&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;&lt;span class="nb"&gt;pwd&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt;/.libs/libmyctor.so.0.0.0 ls
 &lt;span class="go"&gt;in myctor&lt;/span&gt;
 &lt;span class="go"&gt;libmyctor.la  libmyctor.so  myctor.c      myctor.lo&lt;/span&gt;
@@ -102,7 +395,7 @@
 
 
 &lt;p&gt;Illumos / Solaris has its own peculiarities for static initializers (&lt;a href="https://blogs.oracle.com/ahl/entry/the_mysteries_of_init"&gt;https://blogs.oracle.com/ahl/entry/the_mysteries_of_init&lt;/a&gt; was a helpful blogpost). The ".init" section for the gcc linked library has the expected contents:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; dis -t .init libmyctor.so
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; dis -t .init libmyctor.so
 &lt;span class="go"&gt;disassembly for libmyctor.so&lt;/span&gt;
 
 
@@ -125,7 +418,7 @@
 
 
 &lt;p&gt;But the ".init" section for the libtool linked library doesn't exist&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; dis -t .init .libs/libmyctor.so
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; dis -t .init .libs/libmyctor.so
 &lt;span class="go"&gt;disassembly for .libs/libmyctor.so&lt;/span&gt;
 
 &lt;span class="go"&gt;dis: warning: failed to find section &amp;#39;.init&amp;#39; in &amp;#39;.libs/libmyctor.so&amp;#39;&lt;/span&gt;
@@ -133,7 +426,7 @@
 
 
 &lt;p&gt;Digging a bit deeper (and reading that blog post), I see that I need to add &lt;code&gt;/usr/lib/crti.o&lt;/code&gt; and &lt;code&gt;/usr/lib/crtn.o&lt;/code&gt;. If I add these to the command line, I get an ".init" section that seems to be only partially complete:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="go"&gt;section .init&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="go"&gt;section .init&lt;/span&gt;
 &lt;span class="go"&gt;_init()&lt;/span&gt;
 &lt;span class="go"&gt;    _init:      55                 pushl  %ebp&lt;/span&gt;
 &lt;span class="go"&gt;    _init+0x1:  89 e5              movl   %esp,%ebp&lt;/span&gt;
@@ -150,19 +443,23 @@
 
 
 &lt;p&gt;The problem is that we also need to pass some gcc artifacts (&lt;code&gt;/opt/gcc-4.8.1/lib/gcc/i386-pc-solaris2.11/4.8.1/crt{begin,end}.o&lt;/code&gt;) to get this to work. If I add all the relevant artifacts, I can get the constructor to behave correctly with &lt;code&gt;-nostdlib&lt;/code&gt;:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; gcc -shared -nostdlib -lc -lgcc -lgcc_s /usr/lib/crti.o  /opt/gcc-4.8.1/lib/gcc/i386-pc-solaris2.11/4.8.1/crtbegin.o .libs/myctor.o /opt/gcc-4.8.1/lib/gcc/i386-pc-solaris2.11/4.8.1/crtend.o /usr/lib/crtn.o -o libmyctor.so
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; gcc -shared -nostdlib -lc -lgcc -lgcc_s /usr/lib/crti.o  /opt/gcc-4.8.1/lib/gcc/i386-pc-solaris2.11/4.8.1/crtbegin.o .libs/myctor.o /opt/gcc-4.8.1/lib/gcc/i386-pc-solaris2.11/4.8.1/crtend.o /usr/lib/crtn.o -o libmyctor.so
 &lt;span class="gp"&gt;$&lt;/span&gt; &lt;span class="nv"&gt;LD_PRELOAD&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;&lt;span class="nb"&gt;pwd&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt;/libmyctor.so ls
 &lt;span class="go"&gt;in myctor&lt;/span&gt;
 &lt;span class="go"&gt;libmyctor.so  myctor.c      myctor.lo&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Fortunately, this all turns out to be unnecessary - a good spot by Rich Lowe turned up some voodoo in the omnios build infrastructure: the &lt;code&gt;-nostdlib&lt;/code&gt; was inexplicably added to the libtool options &lt;a href="https://github.com/omniti-labs/omnios-build/commit/16fdea8b57a52d74876606d6b118b50753603395"&gt;"glib2 -nostdlib"&lt;/a&gt; (For more fun, check out &lt;a href="https://github.com/omniti-labs/omnios-build/commit/18800320ec1119aab568efc72f50c3689e30c687"&gt;"generic libtool unfucking support"&lt;/a&gt;). Removing this allows us to compile our library with the expected behavior.&lt;/p&gt;</summary><category term="libtool"></category><category term="omnios"></category></entry><entry><title>Reading resumes</title><link href="http://codearcana.com/posts/2013/09/25/reading-resumes.html" rel="alternate"></link><updated>2013-09-25T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-09-25:posts/2013/09/25/reading-resumes.html</id><summary type="html">&lt;p&gt;Tonight, I sat down and read through every resume in the 2013 SCS senior
+&lt;p&gt;Fortunately, this all turns out to be unnecessary - a good spot by Rich Lowe turned up some voodoo in the omnios build infrastructure: the &lt;code&gt;-nostdlib&lt;/code&gt; was inexplicably added to the libtool options &lt;a href="https://github.com/omniti-labs/omnios-build/commit/16fdea8b57a52d74876606d6b118b50753603395"&gt;"glib2 -nostdlib"&lt;/a&gt; (For more fun, check out &lt;a href="https://github.com/omniti-labs/omnios-build/commit/18800320ec1119aab568efc72f50c3689e30c687"&gt;"generic libtool unfucking support"&lt;/a&gt;). Removing this allows us to compile our library with the expected behavior.&lt;/p&gt;</content><category term="libtool"></category><category term="omnios"></category></entry><entry><title>Reading resumes</title><link href="http://codearcana.com/posts/2013/09/25/reading-resumes.html" rel="alternate"></link><published>2013-09-25T00:00:00-07:00</published><updated>2013-09-25T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-09-25:/posts/2013/09/25/reading-resumes.html</id><summary type="html">&lt;p&gt;Tonight, I sat down and read through every resume in the 2013 SCS senior
+resume book. Reading resumes for a company is really interesting, because
+I find myself looking at them very differently. As a student, I didn't
+really understand what sections of the resume are important. I thought
+it …&lt;/p&gt;</summary><content type="html">&lt;p&gt;Tonight, I sat down and read through every resume in the 2013 SCS senior
 resume book. Reading resumes for a company is really interesting, because
 I find myself looking at them very differently. As a student, I didn't
 really understand what sections of the resume are important. I thought
 it would be interesting to give a brief walk through of my resume scan
-process&lt;sup id="fnref:1"&gt;&lt;a class="footnote-ref" href="#fn:1" rel="footnote"&gt;1&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
+process&lt;sup id="fnref-1"&gt;&lt;a class="footnote-ref" href="#fn-1"&gt;1&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
 &lt;p&gt;I look at the sections of the resume in roughly this order:&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;
@@ -238,13 +535,20 @@ people I'm still not sure about, I will look at two more pieces of information:&
     meaningful out of that. Also, which semesters you were a TA can be helpful.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;div class="footnote"&gt;
-&lt;hr /&gt;
+&lt;hr&gt;
 &lt;ol&gt;
-&lt;li id="fn:1"&gt;
-&lt;p&gt;Note this is the process I use for CMU resumes, where I know the courses intimately.&amp;#160;&lt;a class="footnote-backref" href="#fnref:1" rev="footnote" title="Jump back to footnote 1 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;li id="fn-1"&gt;
+&lt;p&gt;Note this is the process I use for CMU resumes, where I know the courses intimately.&amp;#160;&lt;a class="footnote-backref" href="#fnref-1" title="Jump back to footnote 1 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ol&gt;
-&lt;/div&gt;</summary></entry><entry><title>My zsh theme</title><link href="http://codearcana.com/posts/2013/06/11/my-zsh-theme.html" rel="alternate"></link><updated>2013-06-11T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-06-11:posts/2013/06/11/my-zsh-theme.html</id><summary type="html">&lt;p&gt;I spent some time this week switching from &lt;code&gt;bash&lt;/code&gt; to &lt;code&gt;zsh&lt;/code&gt; (I really enjoy
+&lt;/div&gt;</content><category term="opinion"></category></entry><entry><title>My zsh theme</title><link href="http://codearcana.com/posts/2013/06/11/my-zsh-theme.html" rel="alternate"></link><published>2013-06-11T00:00:00-07:00</published><updated>2013-06-11T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-06-11:/posts/2013/06/11/my-zsh-theme.html</id><summary type="html">&lt;p&gt;I spent some time this week switching from &lt;code&gt;bash&lt;/code&gt; to &lt;code&gt;zsh&lt;/code&gt; (I really enjoy
+&lt;code&gt;zsh&lt;/code&gt; - I treat it as &lt;code&gt;bash&lt;/code&gt; with floating point arithmetic and other
+niceities)
+and making a theme for
+&lt;a href="https://github.com/robbyrussell/oh-my-zsh"&gt;&lt;code&gt;oh-my-zsh&lt;/code&gt;&lt;/a&gt; and &lt;a href="https://github.com/sorin-ionescu/prezto"&gt;&lt;code&gt;prezto&lt;/code&gt;&lt;/a&gt;
+for myself. I'm not quite done, but I am pretty pleased with
+the results. &lt;/p&gt;
+&lt;p&gt;It …&lt;/p&gt;</summary><content type="html">&lt;p&gt;I spent some time this week switching from &lt;code&gt;bash&lt;/code&gt; to &lt;code&gt;zsh&lt;/code&gt; (I really enjoy
 &lt;code&gt;zsh&lt;/code&gt; - I treat it as &lt;code&gt;bash&lt;/code&gt; with floating point arithmetic and other
 niceities)
 and making a theme for
@@ -258,8 +562,8 @@ the results. &lt;/p&gt;
 &lt;li&gt;Displaying a notification (on Mac OSX) if a (long running) command completes and the terminal isn't in the foreground.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;First, a screenshot:&lt;/p&gt;
-&lt;p&gt;&lt;img alt="zsh theme" src="http://codearcana.com/images/zsh_theme.png" title="My zsh theme" /&gt;
-&lt;img alt="zsh theme popup" src="http://codearcana.com/images/zsh_theme_popup.png" title="A sample notification - click to focus on the terminal window." /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="zsh theme" src="http://codearcana.com/images/zsh_theme.png" title="My zsh theme"&gt;
+&lt;img alt="zsh theme popup" src="http://codearcana.com/images/zsh_theme_popup.png" title="A sample notification - click to focus on the terminal window."&gt;&lt;/p&gt;
 &lt;p&gt;And some more detailed explanation:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;By default, the prompt is very minimalist (the current directory and a % or a # depending on the privileges of the shell). Most extra information is hidden unless it is useful.&lt;/li&gt;
@@ -269,42 +573,44 @@ the results. &lt;/p&gt;
 &lt;li&gt;The user and hostname are displayed (only) if logged in over &lt;code&gt;ssh&lt;/code&gt;.&lt;/li&gt;
 &lt;li&gt;Since this is &lt;code&gt;zsh&lt;/code&gt;, the right hand prompt disappears if the line is long enough.&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;Source is in &lt;a href="https://github.com/awreece/oh-my-zsh/blob/master/themes/awreece.zsh-theme"&gt;my fork of &lt;code&gt;oh-my-zsh&lt;/code&gt;&lt;/a&gt; and &lt;a href="https://github.com/awreece/prezto/blob/theme/modules/prompt/functions/prompt_awreece_setup"&gt;my fork of &lt;code&gt;prezto&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;</summary><category term="zsh"></category></entry><entry><title>CS Theory with Make</title><link href="http://codearcana.com/posts/2012/03/05/cs-theory-with-make.html" rel="alternate"></link><updated>2012-03-05T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2012-03-05:posts/2012/03/05/cs-theory-with-make.html</id><summary type="html">&lt;p&gt;In this post, I play around with some make functions and eventually provide a constructive proof that the make syntax is turing complete via reduction to μ-recursion.&lt;/p&gt;
+&lt;p&gt;Source is in &lt;a href="https://github.com/awreece/oh-my-zsh/blob/master/themes/awreece.zsh-theme"&gt;my fork of &lt;code&gt;oh-my-zsh&lt;/code&gt;&lt;/a&gt; and &lt;a href="https://github.com/awreece/prezto/blob/theme/modules/prompt/functions/prompt_awreece_setup"&gt;my fork of &lt;code&gt;prezto&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;</content><category term="zsh"></category></entry><entry><title>CS Theory with Make</title><link href="http://codearcana.com/posts/2012/03/05/cs-theory-with-make.html" rel="alternate"></link><published>2012-03-05T00:00:00-08:00</published><updated>2012-03-05T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2012-03-05:/posts/2012/03/05/cs-theory-with-make.html</id><summary type="html">&lt;p&gt;In this post, I play around with some make functions and eventually provide a constructive proof that the make syntax is turing complete via reduction to μ-recursion.&lt;/p&gt;
+&lt;p&gt;First, we have to construct numbers. I used the representation of numbers as
+unary strings of the character &lt;code&gt;0&lt;/code&gt;: ie, the number 4 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;In this post, I play around with some make functions and eventually provide a constructive proof that the make syntax is turing complete via reduction to μ-recursion.&lt;/p&gt;
 &lt;p&gt;First, we have to construct numbers. I used the representation of numbers as
 unary strings of the character &lt;code&gt;0&lt;/code&gt;: ie, the number 4 is represented by &lt;code&gt;0000&lt;/code&gt;
 (zero being the empty string). We can also compute the successor of a number:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;# If this is called as a make function, $(1) will be replaced with the first&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c"&gt;# If this is called as a make function, $(1) will be replaced with the first&lt;/span&gt;
 &lt;span class="c"&gt;# function argument.&lt;/span&gt;
 &lt;span class="nv"&gt;successor&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; O&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;
 
-&lt;span class="k"&gt;$(&lt;/span&gt;info &lt;span class="k"&gt;$(&lt;/span&gt;call successor,O&lt;span class="k"&gt;))&lt;/span&gt;  &lt;span class="c"&gt;# Outputs &amp;#39;OO&amp;#39;&lt;/span&gt;
+&lt;span class="k"&gt;$(&lt;/span&gt;&lt;span class="nv"&gt;info&lt;/span&gt; &lt;span class="k"&gt;$&lt;/span&gt;(&lt;span class="nv"&gt;call&lt;/span&gt; &lt;span class="nv"&gt;successor&lt;/span&gt;,&lt;span class="nv"&gt;O&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt;&lt;span class="err"&gt;)&lt;/span&gt;  &lt;span class="c"&gt;# Outputs &amp;#39;OO&amp;#39;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;Life is a lot easier if we can compute predecesser. Luckily, this is pretty
 easy for us too:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;monus_one&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;patsubst O%,%,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;monus_one&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;patsubst O%,%,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;
 
-&lt;span class="k"&gt;$(&lt;/span&gt;info &lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,OO&lt;span class="k"&gt;))&lt;/span&gt;  &lt;span class="c"&gt;# Outputs &amp;#39;0&amp;#39;&lt;/span&gt;
+&lt;span class="k"&gt;$(&lt;/span&gt;&lt;span class="nv"&gt;info&lt;/span&gt; &lt;span class="k"&gt;$&lt;/span&gt;(&lt;span class="nv"&gt;call&lt;/span&gt; &lt;span class="nv"&gt;monus_one&lt;/span&gt;,&lt;span class="nv"&gt;OO&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt;&lt;span class="err"&gt;)&lt;/span&gt;  &lt;span class="c"&gt;# Outputs &amp;#39;0&amp;#39;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;Now lets actually do computation with this. It is hideous, but we can actually
 compute fibonacci numbers in make:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;fib&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call fib,&lt;span class="k"&gt;$(&lt;/span&gt;call &lt;span class="se"&gt;\&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;fib&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call fib,&lt;span class="k"&gt;$(&lt;/span&gt;call &lt;span class="se"&gt;\&lt;/span&gt;
   monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;&lt;span class="o"&gt;))&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;call fib,&lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))))&lt;/span&gt;,O&lt;span class="o"&gt;)&lt;/span&gt;,O&lt;span class="o"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;Let me try to break this up a bit. I'll add comments but it will no longer be
 valid make.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;# fib (n):&lt;/span&gt;
-&lt;span class="nv"&gt;fib&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;, &lt;span class="c"&gt;# If n &amp;gt; 0:&lt;/span&gt;
-          &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;, &lt;span class="c"&gt;# if n - 1 &amp;gt; 0:&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c"&gt;# fib (n):&lt;/span&gt;
+&lt;span class="nv"&gt;fib&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;, &lt;span class="c1"&gt;# If n &amp;gt; 0:&lt;/span&gt;
+          &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;, &lt;span class="c1"&gt;# if n - 1 &amp;gt; 0:&lt;/span&gt;
 &lt;span class="c"&gt;              # return fib(n-1) + fib(n-2)&lt;/span&gt;
               &lt;span class="k"&gt;$(&lt;/span&gt;call fib,&lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)))$(&lt;/span&gt;call fib,&lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;call monus_one, &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))))&lt;/span&gt;
-          ,O&lt;span class="k"&gt;)&lt;/span&gt; &lt;span class="c"&gt;# else: return 1&lt;/span&gt;
-      ,O&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="c"&gt;# else: return 1&lt;/span&gt;
+          ,O&lt;span class="k"&gt;)&lt;/span&gt; &lt;span class="c1"&gt;# else: return 1&lt;/span&gt;
+      ,O&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="c1"&gt;# else: return 1&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -312,7 +618,7 @@ valid make.&lt;/p&gt;
 couldn't do with a primitive recursive function. We can easily show that make
 is more powerful than primitive recusion by encoding the &lt;a href="https://en.wikipedia.org/wiki/Ackermann_function"&gt;Ackerman
 function&lt;/a&gt;.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;ack&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;2&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call ack,&lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call &lt;span class="se"&gt;\&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;ack&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;2&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call ack,&lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call &lt;span class="se"&gt;\&lt;/span&gt;
   ack,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;2&lt;span class="k"&gt;))&lt;/span&gt;&lt;span class="o"&gt;))&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call ack,&lt;span class="k"&gt;$(&lt;/span&gt;call monus_one,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;,O&lt;span class="k"&gt;)&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;2&lt;span class="k"&gt;)&lt;/span&gt;O&lt;span class="o"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -324,7 +630,7 @@ functions&lt;/a&gt;. They are
 the primitive recursive functions with the addition of the minimization (µ)
 operator: µ of f(x) is the minimum x such that f(x)=0. As it turns out, we can
 encode this operator in make:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;# muh f x returns the first number greater than or equal to x such&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c"&gt;# muh f x returns the first number greater than or equal to x such&lt;/span&gt;
 &lt;span class="c"&gt;# that f(x) is true.&lt;/span&gt;
 &lt;span class="nv"&gt;muh&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;call &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;2&lt;span class="k"&gt;))&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;2&lt;span class="k"&gt;)&lt;/span&gt;,&lt;span class="k"&gt;$(&lt;/span&gt;call muh,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,O&lt;span class="k"&gt;$(&lt;/span&gt;2&lt;span class="k"&gt;)))&lt;/span&gt;
 
@@ -336,7 +642,7 @@ encode this operator in make:&lt;/p&gt;
 
 &lt;p&gt;Wow! There we have it, make is turing complete. As a final piece of fun, here
 is the inverse ackerman function:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;not&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,,O&lt;span class="k"&gt;)&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;not&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(if&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)&lt;/span&gt;,,O&lt;span class="k"&gt;)&lt;/span&gt;
 
 &lt;span class="c"&gt;# lesseq_template n creates a function lesseq_y that returns y &amp;lt; x&lt;/span&gt;
 &lt;span class="cp"&gt;define lesseq_template&lt;/span&gt;
@@ -351,4 +657,4 @@ is the inverse ackerman function:&lt;/p&gt;
 
 &lt;span class="c"&gt;# invack n: Find the first value x such that ack(x) &amp;gt; n.&lt;/span&gt;
 &lt;span class="nv"&gt;invack&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;&lt;span class="nb"&gt;eval&lt;/span&gt; &lt;span class="k"&gt;$(&lt;/span&gt;call geack_template,&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;)))$(&lt;/span&gt;call mu,geack_&lt;span class="k"&gt;$(&lt;/span&gt;1&lt;span class="k"&gt;))&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;</summary><category term="make"></category><category term="theory"></category></entry></feed>
+&lt;/pre&gt;&lt;/div&gt;</content><category term="make"></category><category term="theory"></category></entry></feed>

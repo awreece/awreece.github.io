@@ -25,7 +25,6 @@
                 <nav><ul>
                     <li><a href="http://codearcana.com">Blog</a></li>
                     <li><a href="http://codearcana.com/archives.html">Archives</a></li>
-                    <li ><a href="http://codearcana.com/pages/about.html">About</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
 
@@ -35,7 +34,7 @@
         rel="bookmark" title="Permalink to Introduction to Using Profiling Tools">Introduction to Using Profiling Tools</a></h1> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="awreece">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
  </header>
 <footer class="post-info">
-        <abbr class="published" title="2013-02-26T00:00:00">
+        <abbr class="published" title="2013-02-26T00:00:00-08:00">
                 Tue 26 February 2013
         </abbr>
 
@@ -50,17 +49,17 @@
 <h3>Google <code>pprof</code></h3>
 <p>Google <code>pprof</code> is a tool available as part of the Google <a href="https://code.google.com/p/gperftools/"><code>perftools</code></a> package. It is is used with
 <code>libprofiler</code>, a sampling based profiler that is linked into your binary. There are 3 steps for using <code>pprof</code>: linking it into the binary, generating profile output, and analyzing the output. The following links a binary with <code>libprofiler</code>:</p>
-<div class="highlight"><pre><span class="gp">%</span> gcc main.c -lprofiler
+<div class="highlight"><pre><span></span><span class="gp">%</span> gcc main.c -lprofiler
 </pre></div>
 
 
 <p>For any profile linked with <code>libprofiler</code>, setting the environment variable <code>CPUPROFILE</code> enables profiling and specifies the output file. The following command runs <code>./a.out</code> and prints profiling data to <code>out.prof</code>:</p>
-<div class="highlight"><pre><span class="gp">%</span> <span class="nv">CPUPROFILE</span><span class="o">=</span>out.prof ./a.out
+<div class="highlight"><pre><span></span><span class="gp">%</span> <span class="nv">CPUPROFILE</span><span class="o">=</span>out.prof ./a.out
 </pre></div>
 
 
 <p>We can now analyze this file using <code>pprof</code>. Below, we output the sample counts for all the functions in <code>a.out</code>:</p>
-<div class="highlight"><pre><span class="gp">%</span> pprof --text ./a.out out.prof
+<div class="highlight"><pre><span></span><span class="gp">%</span> pprof --text ./a.out out.prof
 <span class="go">... &lt;snip&gt; ...</span>
 <span class="go">Total: 311 samples</span>
 <span class="go">  144  46.3%  46.3%      144  46.3% bar</span>
@@ -76,7 +75,7 @@
 <h3>Linux <code>perf</code></h3>
 <p>On Linux, the <code>perf</code> system is a powerful tool for analyzing program / system performance. It provides some nice abstractions over tracking hardware counters on different CPUs. It defines a number of events to be tracked and recorded. Run <code>perf list</code> to see a list of the events allowed on your system. </p>
 <p>To use <code>perf</code>, you run: </p>
-<div class="highlight"><pre><span class="gp">%</span> perf stat ./a.out
+<div class="highlight"><pre><span></span><span class="gp">%</span> perf stat ./a.out
 <span class="go"> Performance counter stats for &#39;./a.out&#39;:</span>
 
 <span class="go">    3121.725439 task-clock                #    0.997 CPUs utilized          </span>
@@ -87,7 +86,7 @@
 <span class="go">  5,213,187,548 stalled-cycles-frontend   #   57.15% frontend cycles idle    [83.32%]</span>
 <span class="go">    292,952,401 stalled-cycles-backend    #    3.21% backend  cycles idle    [66.68%]</span>
 <span class="go">  5,215,556,086 instructions              #    0.57  insns per cycle        </span>
-<span class="go">                                          #    1.00  stalled cycles per insn [83.35%]</span>
+<span class="gp">                                          #</span>    1.00  stalled cycles per insn <span class="o">[</span>83.35%<span class="o">]</span>
 <span class="go">  1,303,060,483 branches                  #  417.417 M/sec                   [83.35%]</span>
 <span class="go">         66,559 branch-misses             #    0.01% of all branches         [83.33%]</span>
 
@@ -96,7 +95,7 @@
 
 
 <p>In addition to <code>perf stat</code>, there quite a few other ways to use perf. Run </p>
-<div class="highlight"><pre><span class="gp">%</span> perf
+<div class="highlight"><pre><span></span><span class="gp">%</span> perf
 </pre></div>
 
 
@@ -106,14 +105,14 @@
 <p>We compile the program with <code>-lprofiler</code> so we can generate output to examine. <code>try_perf.c</code> is a C program that counts the number of even values
 in an array of random numbers. We run with 8 threads that all increment a global
 counter every time they see an even number.</p>
-<div class="highlight"><pre><span class="gp">%</span> gcc try_perf.c -g -lprofiler -lpthread
+<div class="highlight"><pre><span></span><span class="gp">%</span> gcc try_perf.c -g -lprofiler -lpthread
 <span class="gp">%</span> <span class="nv">CPUPROFILE</span><span class="o">=</span>a.out.prof ./a.out --num_threads<span class="o">=</span>8
 </pre></div>
 
 
 <p>We run pprof and get the source code annotated with the number of probes that 
 hit that instruction during the trace (result below trimmed for brevity).</p>
-<div class="highlight"><pre><span class="gp">%</span> pprof --list<span class="o">=</span>thread_scan a.out a.out.prof
+<div class="highlight"><pre><span></span><span class="gp">%</span> pprof --list<span class="o">=</span>thread_scan a.out a.out.prof
 <span class="go"> ... &lt;snip&gt; ...</span>
 <span class="go">   .      .   60: void* thread_scan(void* void_arg) {</span>
 <span class="go">   .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.</span>
@@ -131,7 +130,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 
 
 <p>The output above is actually misleading: if you look at the assembly (shown below), the instruction immediately after the atomic instruction (the <code>addq   $0x1,-0x8(%rbp)</code> after the <code>lock addq $0x1,(%rax)</code>) gets excess hits that count towards the for loop when they should probably count towards the atomic instruction.</p>
-<div class="highlight"><pre><span class="gp">%</span> pprof --disas<span class="o">=</span>thread_scan a.out a.out.prof
+<div class="highlight"><pre><span></span><span class="gp">%</span> pprof --disas<span class="o">=</span>thread_scan a.out a.out.prof
 <span class="go"> ... &lt;snip&gt; ...</span>
 <span class="go">  9    300    68: __sync_fetch_and_add(arg-&gt;num_evens, 1);</span>
 <span class="go">  4      5      4008a4: mov    -0x10(%rbp),%rax</span>
@@ -145,7 +144,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 
 <p>Hrm. Why are we spending a lot of time in <code>lock addq $0x1,(%rax)</code>?</p>
 <p>To understand this, we will use <code>perf</code>. Run: </p>
-<div class="highlight"><pre><span class="gp">%</span> perf stat ./a.out
+<div class="highlight"><pre><span></span><span class="gp">%</span> perf stat ./a.out
 <span class="go"> Performance counter stats for &#39;./a.out&#39;:</span>
 
 <span class="go">    5793.307952 task-clock                #    2.157 CPUs utilized          </span>
@@ -156,7 +155,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 <span class="go"> 10,407,719,950 stalled-cycles-frontend   #   63.54% frontend cycles idle    [83.38%]</span>
 <span class="go">  8,213,634,448 stalled-cycles-backend    #   50.15% backend  cycles idle    [66.65%]</span>
 <span class="go"> 12,070,323,273 instructions              #    0.74  insns per cycle        </span>
-<span class="go">                                          #    0.86  stalled cycles per insn [83.32%]</span>
+<span class="gp">                                          #</span>    0.86  stalled cycles per insn <span class="o">[</span>83.32%<span class="o">]</span>
 <span class="go">  2,428,236,441 branches                  #  419.145 M/sec                   [83.31%]</span>
 <span class="go">     67,558,697 branch-misses             #    2.78% of all branches         [83.35%]</span>
 
@@ -165,7 +164,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 
 
 <p>Wow, thats a lot of stalled instructions! The 8 threads are sharing the same counter, generating a lot of memory traffic. We modify the program so they all use their own counter, and then we aggregate at the end (if we do this, we don't need to use the atomic instruction).</p>
-<div class="highlight"><pre><span class="kt">size_t</span> <span class="n">counts</span><span class="p">[</span><span class="n">nthreads</span><span class="p">];</span>
+<div class="highlight"><pre><span></span><span class="kt">size_t</span> <span class="n">counts</span><span class="p">[</span><span class="n">nthreads</span><span class="p">];</span>
 <span class="kt">size_t</span> <span class="n">num_evens</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 
 <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nthreads</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
@@ -183,7 +182,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 
 
 <p>But that didn't seem to help at all! We still spend most of our time on the increment, even though we aren't using an atomic instruction: </p>
-<div class="highlight"><pre><span class="gp">%</span> pprof --list<span class="o">=</span>thread_scan a.out out.prof
+<div class="highlight"><pre><span></span><span class="gp">%</span> pprof --list<span class="o">=</span>thread_scan a.out out.prof
 <span class="go">... &lt;snip&gt; ...</span>
 <span class="go">  .      .   60: void* thread_scan(void* void_arg) {</span>
 <span class="go">  .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.</span>
@@ -201,7 +200,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 
 
 <p>Why could this be? Lets run <code>perf stat</code> again and see:</p>
-<div class="highlight"><pre><span class="gp">%</span> perf stat ./a.out
+<div class="highlight"><pre><span></span><span class="gp">%</span> perf stat ./a.out
 <span class="go"> Performance counter stats for &#39;./a.out&#39;:</span>
 
 <span class="go">      4372.474270 task-clock                #    1.882 CPUs utilized          </span>
@@ -212,7 +211,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 <span class="go">    6,270,257,100 stalled-cycles-frontend   #   50.52% frontend cycles idle    [83.33%]</span>
 <span class="go">    4,291,405,838 stalled-cycles-backend    #   34.58% backend  cycles idle    [66.78%]</span>
 <span class="go">   12,306,996,386 instructions              #    0.99  insns per cycle        </span>
-<span class="go">                                            #    0.51  stalled cycles per insn [83.39%]</span>
+<span class="gp">                                            #</span>    0.51  stalled cycles per insn <span class="o">[</span>83.39%<span class="o">]</span>
 <span class="go">    2,420,224,187 branches                  #  553.514 M/sec                   [83.40%]</span>
 <span class="go">       69,182,448 branch-misses             #    2.86% of all branches         [83.30%]</span>
 
@@ -221,13 +220,13 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 
 
 <p>What is going on now? We <em>still</em> have a lot of stalled instructions, but all those counters are different. See?</p>
-<div class="highlight"><pre><span class="kt">size_t</span> <span class="n">counts</span><span class="p">[</span><span class="n">nthreads</span><span class="p">];</span>
+<div class="highlight"><pre><span></span><span class="kt">size_t</span> <span class="n">counts</span><span class="p">[</span><span class="n">nthreads</span><span class="p">];</span>
 </pre></div>
 
 
 <p>Oh, they are all on the same cache line - we're experiencing false sharing. Let us use a thread local counter thats on a different cache line for each thread:</p>
-<div class="highlight"><pre><span class="kt">void</span><span class="o">*</span> <span class="nf">thread_scan</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">void_arg</span><span class="p">)</span> <span class="p">{</span>
-  <span class="kt">thread_arg_t</span><span class="o">*</span> <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="kt">thread_arg_t</span><span class="o">*</span><span class="p">)</span> <span class="n">void_arg</span><span class="p">;</span>
+<div class="highlight"><pre><span></span><span class="kt">void</span><span class="o">*</span> <span class="nf">thread_scan</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">void_arg</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">thread_arg_t</span><span class="o">*</span> <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">thread_arg_t</span><span class="o">*</span><span class="p">)</span> <span class="n">void_arg</span><span class="p">;</span>
   <span class="kt">size_t</span> <span class="n">i</span><span class="p">;</span>
   <span class="kt">size_t</span> <span class="n">num_evens</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 
@@ -251,7 +250,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 
 
 <p>And then look at the profile:</p>
-<div class="highlight"><pre><span class="gp">%</span> pprof --list<span class="o">=</span>thread_scan a.out out.prof
+<div class="highlight"><pre><span></span><span class="gp">%</span> pprof --list<span class="o">=</span>thread_scan a.out out.prof
 <span class="go">... &lt;snip&gt; ...</span>
 <span class="go">  .      .   60: void* thread_scan(void* void_arg) {</span>
 <span class="go">  .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.</span>
@@ -271,7 +270,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 
 
 <p>Good, our increment doesn't dominate the function anymore. We look at <code>perf stat</code> and see:</p>
-<div class="highlight"><pre><span class="gp">%</span> perf stat ./a.out
+<div class="highlight"><pre><span></span><span class="gp">%</span> perf stat ./a.out
 <span class="go"> Performance counter stats for &#39;./a.out&#39;:</span>
 
 <span class="go">    2977.781539 task-clock                #    1.472 CPUs utilized          </span>
@@ -282,7 +281,7 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 <span class="go">  2,057,253,537 stalled-cycles-frontend   #   24.14% frontend cycles idle    [83.26%]</span>
 <span class="go">    919,272,160 stalled-cycles-backend    #   10.79% backend  cycles idle    [66.70%]</span>
 <span class="go"> 12,067,358,492 instructions              #    1.42  insns per cycle        </span>
-<span class="go">                                          #    0.17  stalled cycles per insn [83.42%]</span>
+<span class="gp">                                          #</span>    0.17  stalled cycles per insn <span class="o">[</span>83.42%<span class="o">]</span>
 <span class="go">  2,454,951,795 branches                  #  824.423 M/sec                   [83.42%]</span>
 <span class="go">     67,544,262 branch-misses             #    2.75% of all branches         [83.42%]</span>
 
@@ -320,36 +319,6 @@ hit that instruction during the trace (result below trimmed for brevity).</p>
 		<div class="widget">
 		    <h2>Tags</h2>
 		    <ul class="cloud">
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/theory.html">theory</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/omnios.html">omnios</a>
-			</li>
-			<li class="tag-2">
-			  <a class="tag" href="http://codearcana.com/tag/golang.html">golang</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/tutorial.html">tutorial</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/exploitation.html">exploitation</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/gdb.html">gdb</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/profiling.html">profiling</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/make.html">make</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/malloc.html">malloc</a>
-			</li>
-			<li class="tag-2">
-			  <a class="tag" href="http://codearcana.com/tag/ctf.html">ctf</a>
-			</li>
 		    </ul>
 		</div>
 

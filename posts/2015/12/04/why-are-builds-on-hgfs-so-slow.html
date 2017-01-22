@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <title>Why are builds on HGFS so slow?</title>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="http://codearcana.com/theme/css/main.css" type="text/css" />
+        <link href="http://codearcana.com/" type="application/atom+xml" rel="alternate" title="Code Arcana ATOM Feed" />
+
+
+        <!--[if IE]>
+                <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+        <!--[if lte IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://codearcana.com/css/ie.css"/>
+                <script src="http://codearcana.com/js/IE8.js" type="text/javascript"></script><![endif]-->
+
+        <!--[if lt IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://codearcana.com/css/ie6.css"/><![endif]-->
+
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="http://codearcana.com/index.html">Code Arcana </a></h1>
+                <nav><ul>
+                    <li><a href="http://codearcana.com">Blog</a></li>
+                    <li><a href="http://codearcana.com/archives.html">Archives</a></li>
+                </ul></nav>
+        </header><!-- /#banner -->
+
+<section id="content" class="body">
+<article>
+        <header> <h1 class="entry-title"><a href="posts/2015/12/04/why-are-builds-on-hgfs-so-slow.html"
+        rel="bookmark" title="Permalink to Why are builds on HGFS so slow?">Why are builds on HGFS so slow?</a></h1> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="awreece">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
+ </header>
+<footer class="post-info">
+        <abbr class="published" title="2015-12-04T00:00:00-08:00">
+                Fri 04 December 2015
+        </abbr>
+
+        <address class="vcard author">
+                By <a class="url fn" href="http://codearcana.com/author/alex-reece.html">Alex Reece</a>
+        </address>
+<p>In <a href="http://codearcana.com/category/performance.html">performance</a>. </p>
+<p>tags: <a href="http://codearcana.com/tag/profiling.html">profiling</a><a href="http://codearcana.com/tag/vmware.html">vmware</a><a href="http://codearcana.com/tag/make.html">make</a></p></footer><!-- /.post-info --><!-- /.post-info -->
+        <div class="entry-content">
+        <h2>My configuration</h2>
+<p>I work at a company whose product builds and runs exclusively on Linux.
+Like most sane people, I prefer to live in a more user-friendly operating
+system and my laptop runs Mac OSX. To build my company's product, I use
+VMWare Fusion to run an Ubuntu 14.04 virtual machine. I use a local GUI to
+edit and search source code, only using the virtual machine to compile
+and test the built product. </p>
+<p>Until recently, I kept the files on my virtual machine in sync
+with the files on the host machine by using VMWares hgfs kernel module,
+which allows a guest to access files on the host (and vice versa).
+This configuration causes me no end of grief -- the open-vm-tools ubuntu
+package does not include hgfs so I have to manually compile and install
+VMWare's tools. This sometimes
+<a href="https://github.com/rasa/vmware-tools-patches/issues/29">breaks</a> and needs
+to be recompiled every time I update my kernel.</p>
+<h2>HGFS performance issues</h2>
+<p>On top of this, the VMWare HGFS has some serious performance issues.
+Yesterday, I got fed up with the fact that my incremental builds were
+slower than my colleagues and started doing a performance investigation.
+An incremental build in which <em>no</em> files were changed after a successful
+build took almost 10 seconds. I noticed my system had incredibly high
+CPU utilization and generated a
+<a href="http://www.brendangregg.com/flamegraphs.html">Flame Graph</a>:</p>
+<p><object data="http://codearcana.com/images/make_using_hgfs.svg" style="width:100%;"></object></p>
+<p>I was amazed -- all the HGFS stacks were spending time blocked in
+<code>mutex_spin_on_owner</code>. It looks like all file accesses have
+to go through a filesystem-wide global lock!</p>
+<div class="highlight"><pre><span></span><span class="kt">int</span>
+<span class="nf">HgfsTransportSendRequest</span><span class="p">(</span><span class="n">HgfsReq</span> <span class="o">*</span><span class="n">req</span><span class="p">)</span>   <span class="c1">// IN: Request to send</span>
+<span class="p">{</span>
+    <span class="n">HgfsReq</span> <span class="o">*</span><span class="n">origReq</span> <span class="o">=</span> <span class="n">req</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">ret</span> <span class="o">=</span> <span class="o">-</span><span class="n">EIO</span><span class="p">;</span>
+
+    <span class="n">ASSERT</span><span class="p">(</span><span class="n">req</span><span class="p">);</span>                                                                    
+    <span class="n">ASSERT</span><span class="p">(</span><span class="n">req</span><span class="o">-&gt;</span><span class="n">state</span> <span class="o">==</span> <span class="n">HGFS_REQ_STATE_UNSENT</span><span class="p">);</span>                                    
+    <span class="n">ASSERT</span><span class="p">(</span><span class="n">req</span><span class="o">-&gt;</span><span class="n">payloadSize</span> <span class="o">&lt;=</span> <span class="n">req</span><span class="o">-&gt;</span><span class="n">bufferSize</span><span class="p">);</span>
+
+    <span class="n">compat_mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">hgfsChannelLock</span><span class="p">);</span>
+</pre></div>
+
+
+<p>Once I realized this horrible performance pathology, I knew I couldn't use
+VMWare HGFS anymore. I set up Mac OSX to share the directory over nfs:</p>
+<div class="highlight"><pre><span></span><span class="gp">$</span> <span class="c1"># Only share on the vmnet8 subnet and map all accesses to be my user.</span>
+<span class="gp">$</span> <span class="nb">echo</span> <span class="s2">&quot;/Volumes/Developer -network 172.16.134.0 -mask 255.255.255.0 -mapall=areece&quot;</span> <span class="p">|</span> sudo tee -a /etc/exports
+<span class="gp">$</span> sudo nfsd update
+</pre></div>
+
+
+<p>and mounted the directory on Linux:</p>
+<div class="highlight"><pre><span></span><span class="gp">$</span> <span class="nb">echo</span> <span class="s2">&quot;172.16.134.1:/Volumes/Developer /mnt/Developer nfs&quot;</span> <span class="p">|</span> sudo tee -a /etd/fstab
+<span class="gp">$</span> sudo mount 172.16.134.1:/Volumes/Developer
+</pre></div>
+
+
+<p>This cut my build times down to 1s, almost 10x faster. Here is the revised Flame Graph:</p>
+<p><object data="http://codearcana.com/images/make_using_nfs.svg" style="width:100%;"></object></p>
+        </div><!-- /.entry-content -->
+        <div class="comments">
+        <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+               var disqus_identifier = "posts/2015/12/04/why-are-builds-on-hgfs-so-slow.html";
+               (function() {
+               var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+               dsq.src = 'http://codearcana.disqus.com/embed.js';
+               (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+              })();
+            </script>
+        </div>
+
+</article>
+</section>
+
+        <aside id="sidebar">
+                <div class="widget">
+                        <h2>Categories</h2>
+                        <ul>
+                           <li class="active"><a href="http://codearcana.com/category/performance.html">performance</a></li>
+                           <li ><a href="http://codearcana.com/category/security.html">security</a></li>
+                           <li ><a href="http://codearcana.com/category/software-engineering.html">software engineering</a></li>
+                        </ul>
+		</div>
+		<div class="widget">
+		    <h2>Tags</h2>
+		    <ul class="cloud">
+		    </ul>
+		</div>
+
+
+                <div class="widget blogroll">
+                        <h2>Blogroll</h2>
+                        <ul>
+                            <li><a href="http://ppp.cylab.cmu.edu/wordpress/">PPP Blog</a></li>
+                            <li><a href="http://www.codinghorror.com/blog/">Coding Horror</a></li>
+                            <li><a href="http://blog.regehr.org/">Embedded in Academia</a></li>
+                            <li><a href="http://highscalability.com/">High Scalability</a></li>
+                            <li><a href="http://coderweekly.com/">Coder Weekly</a></li>
+                            <li><a href="http://www.phrack.org/">phrack</a></li>
+                            <li><a href="http://jbremer.org/">skier_'s blog</a></li>
+                            <li><a href="http://dtrace.org/blogs">dtrace blog</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="widget social">
+                        <h2>Social</h2>
+			<ul>
+                            <li><a href="http://codearcana.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate">atom feed</a></li>
+
+				<li><a href="https://twitter.com/awreece">twitter</a></li>
+				<li><a href="https://github.com/awreece">github</a></li>
+				<li><a href="https://plus.google.com/106589059588263736517/posts">google+</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </aside><!-- /#sidebar -->
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-40107691-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+</body>
+</html>

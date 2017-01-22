@@ -25,7 +25,6 @@
                 <nav><ul>
                     <li><a href="http://codearcana.com">Blog</a></li>
                     <li><a href="http://codearcana.com/archives.html">Archives</a></li>
-                    <li ><a href="http://codearcana.com/pages/about.html">About</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
 
@@ -35,7 +34,7 @@
         rel="bookmark" title="Permalink to Compiling with libtool on OmniOS">Compiling with libtool on OmniOS</a></h1> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="awreece">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
  </header>
 <footer class="post-info">
-        <abbr class="published" title="2014-04-30T00:00:00">
+        <abbr class="published" title="2014-04-30T00:00:00-07:00">
                 Wed 30 April 2014
         </abbr>
 
@@ -47,7 +46,7 @@
         <div class="entry-content">
         <p>I'm having issues compiling glib2.40.0 (a libtool compiled shared library) on Omnios.</p>
 <p>In particular, my shared library has a static initializer that does not get executed by the libtool linked library. I've reduced this to the test case below:</p>
-<div class="highlight"><pre><span class="cp">#include &lt;stdio.h&gt;</span>
+<div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
 
 <span class="kt">void</span> <span class="nf">__attribute__</span><span class="p">((</span><span class="n">constructor</span><span class="p">))</span> <span class="n">myctor</span><span class="p">()</span> <span class="p">{</span>
     <span class="n">printf</span><span class="p">(</span><span class="s">&quot;in myctor</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
@@ -56,7 +55,7 @@
 
 
 <p>I can compile with libtool and link with gcc, and get the expected behavior on LD_PRELOAD:</p>
-<div class="highlight"><pre><span class="gp">$</span> libtool --mode<span class="o">=</span>compile gcc -c myctor.c
+<div class="highlight"><pre><span></span><span class="gp">$</span> libtool --mode<span class="o">=</span>compile gcc -c myctor.c
 <span class="go">libtool: compile:  gcc -c myctor.c  -fPIC -DPIC -o .libs/myctor.o</span>
 <span class="gp">$</span> gcc -shared .libs/myctor.o -o libmyctor.so
 <span class="gp">$</span> <span class="nv">LD_PRELOAD</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/libmyctor.so ls
@@ -66,7 +65,7 @@
 
 
 <p>If I link with libtool, I do not get the expected behavior:</p>
-<div class="highlight"><pre><span class="gp">$</span> libtool --mode<span class="o">=</span>link gcc -o libmyctor.la  -rpath /usr/lib myctor.lo
+<div class="highlight"><pre><span></span><span class="gp">$</span> libtool --mode<span class="o">=</span>link gcc -o libmyctor.la  -rpath /usr/lib myctor.lo
 <span class="go">libtool: link: gcc -shared  -fPIC -DPIC -Wl,-z -Wl,text -Wl,-h -Wl,libmyctor.so.0 -o .libs/libmyctor.so.0.0.0  .libs/myctor.o      -nostdlib -lc</span>
 <span class="go">libtool: link: (cd &quot;.libs&quot; &amp;&amp; rm -f &quot;libmyctor.so.0&quot; &amp;&amp; ln -s &quot;libmyctor.so.0.0.0&quot; &quot;libmyctor.so.0&quot;)</span>
 <span class="go">libtool: link: (cd &quot;.libs&quot; &amp;&amp; rm -f &quot;libmyctor.so&quot; &amp;&amp; ln -s &quot;libmyctor.so.0.0.0&quot; &quot;libmyctor.so&quot;)</span>
@@ -77,7 +76,7 @@
 
 
 <p>I performed some trial and error experiments with the displayed gcc command invocation, and determined that "-nostdlib" is the flag that causes the constructor to no longer be called:</p>
-<div class="highlight"><pre><span class="gp">$</span> gcc -shared  -fPIC -DPIC -Wl,-z -Wl,text -Wl,-h -Wl,libmyctor.so.0 -o .libs/libmyctor.so.0.0.0  .libs/myctor.o
+<div class="highlight"><pre><span></span><span class="gp">$</span> gcc -shared  -fPIC -DPIC -Wl,-z -Wl,text -Wl,-h -Wl,libmyctor.so.0 -o .libs/libmyctor.so.0.0.0  .libs/myctor.o
 <span class="gp">$</span> <span class="nv">LD_PRELOAD</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/.libs/libmyctor.so.0.0.0 ls
 <span class="go">in myctor</span>
 <span class="go">libmyctor.la  libmyctor.so  myctor.c      myctor.lo</span>
@@ -89,7 +88,7 @@
 
 
 <p>Illumos / Solaris has its own peculiarities for static initializers (<a href="https://blogs.oracle.com/ahl/entry/the_mysteries_of_init">https://blogs.oracle.com/ahl/entry/the_mysteries_of_init</a> was a helpful blogpost). The ".init" section for the gcc linked library has the expected contents:</p>
-<div class="highlight"><pre><span class="gp">$</span> dis -t .init libmyctor.so
+<div class="highlight"><pre><span></span><span class="gp">$</span> dis -t .init libmyctor.so
 <span class="go">disassembly for libmyctor.so</span>
 
 
@@ -112,7 +111,7 @@
 
 
 <p>But the ".init" section for the libtool linked library doesn't exist</p>
-<div class="highlight"><pre><span class="gp">$</span> dis -t .init .libs/libmyctor.so
+<div class="highlight"><pre><span></span><span class="gp">$</span> dis -t .init .libs/libmyctor.so
 <span class="go">disassembly for .libs/libmyctor.so</span>
 
 <span class="go">dis: warning: failed to find section &#39;.init&#39; in &#39;.libs/libmyctor.so&#39;</span>
@@ -120,7 +119,7 @@
 
 
 <p>Digging a bit deeper (and reading that blog post), I see that I need to add <code>/usr/lib/crti.o</code> and <code>/usr/lib/crtn.o</code>. If I add these to the command line, I get an ".init" section that seems to be only partially complete:</p>
-<div class="highlight"><pre><span class="go">section .init</span>
+<div class="highlight"><pre><span></span><span class="go">section .init</span>
 <span class="go">_init()</span>
 <span class="go">    _init:      55                 pushl  %ebp</span>
 <span class="go">    _init+0x1:  89 e5              movl   %esp,%ebp</span>
@@ -137,7 +136,7 @@
 
 
 <p>The problem is that we also need to pass some gcc artifacts (<code>/opt/gcc-4.8.1/lib/gcc/i386-pc-solaris2.11/4.8.1/crt{begin,end}.o</code>) to get this to work. If I add all the relevant artifacts, I can get the constructor to behave correctly with <code>-nostdlib</code>:</p>
-<div class="highlight"><pre><span class="gp">$</span> gcc -shared -nostdlib -lc -lgcc -lgcc_s /usr/lib/crti.o  /opt/gcc-4.8.1/lib/gcc/i386-pc-solaris2.11/4.8.1/crtbegin.o .libs/myctor.o /opt/gcc-4.8.1/lib/gcc/i386-pc-solaris2.11/4.8.1/crtend.o /usr/lib/crtn.o -o libmyctor.so
+<div class="highlight"><pre><span></span><span class="gp">$</span> gcc -shared -nostdlib -lc -lgcc -lgcc_s /usr/lib/crti.o  /opt/gcc-4.8.1/lib/gcc/i386-pc-solaris2.11/4.8.1/crtbegin.o .libs/myctor.o /opt/gcc-4.8.1/lib/gcc/i386-pc-solaris2.11/4.8.1/crtend.o /usr/lib/crtn.o -o libmyctor.so
 <span class="gp">$</span> <span class="nv">LD_PRELOAD</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/libmyctor.so ls
 <span class="go">in myctor</span>
 <span class="go">libmyctor.so  myctor.c      myctor.lo</span>
@@ -174,36 +173,6 @@
 		<div class="widget">
 		    <h2>Tags</h2>
 		    <ul class="cloud">
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/theory.html">theory</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/omnios.html">omnios</a>
-			</li>
-			<li class="tag-2">
-			  <a class="tag" href="http://codearcana.com/tag/golang.html">golang</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/tutorial.html">tutorial</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/exploitation.html">exploitation</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/gdb.html">gdb</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/profiling.html">profiling</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/make.html">make</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/malloc.html">malloc</a>
-			</li>
-			<li class="tag-2">
-			  <a class="tag" href="http://codearcana.com/tag/ctf.html">ctf</a>
-			</li>
 		    </ul>
 		</div>
 

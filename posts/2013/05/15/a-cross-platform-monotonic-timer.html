@@ -25,7 +25,6 @@
                 <nav><ul>
                     <li><a href="http://codearcana.com">Blog</a></li>
                     <li><a href="http://codearcana.com/archives.html">Archives</a></li>
-                    <li ><a href="http://codearcana.com/pages/about.html">About</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
 
@@ -35,7 +34,7 @@
         rel="bookmark" title="Permalink to A cross-platform monotonic timer">A cross-platform monotonic timer</a></h1> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="awreece">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
  </header>
 <footer class="post-info">
-        <abbr class="published" title="2013-05-15T00:00:00">
+        <abbr class="published" title="2013-05-15T00:00:00-07:00">
                 Wed 15 May 2013
         </abbr>
 
@@ -53,7 +52,7 @@ platform has a different way of doing it.</p>
 <p>I was trying to determine the run time of a function and wanted the most
 precise and accurate information possible.
 First, I started by using <code>gettimeofday</code>:</p>
-<div class="highlight"><pre><span class="k">struct</span> <span class="n">timeval</span> <span class="n">before</span><span class="p">,</span> <span class="n">after</span><span class="p">;</span>
+<div class="highlight"><pre><span></span><span class="k">struct</span> <span class="n">timeval</span> <span class="n">before</span><span class="p">,</span> <span class="n">after</span><span class="p">;</span>
 
 <span class="n">gettimeofday</span><span class="p">(</span><span class="o">&amp;</span><span class="n">before</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
 <span class="n">function</span><span class="p">();</span>
@@ -64,7 +63,7 @@ First, I started by using <code>gettimeofday</code>:</p>
 <p>Unfortunately, this will not always work since it is dependent on the system clock. If some other process changes the system time between the two calls to <code>gettimeofday</code>, it could report inaccurate results. We need a function that returns a monotonically increasing value.</p>
 <h1>A solution?</h1>
 <p>Luckily, such a function exists on Linux. We can use <code>clock_gettime</code> with <code>CLOCK_MONOTONIC</code>:</p>
-<div class="highlight"><pre><span class="k">struct</span> <span class="n">timespec</span> <span class="n">before</span><span class="p">,</span> <span class="n">after</span><span class="p">,</span> <span class="n">total</span><span class="p">;</span>
+<div class="highlight"><pre><span></span><span class="k">struct</span> <span class="n">timespec</span> <span class="n">before</span><span class="p">,</span> <span class="n">after</span><span class="p">,</span> <span class="n">total</span><span class="p">;</span>
 
 <span class="n">clock_gettime</span><span class="p">(</span><span class="n">CLOCK_MONOTONIC</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">before</span><span class="p">);</span>
 <span class="n">function</span><span class="p">();</span>
@@ -80,23 +79,23 @@ and on Windows we use
 <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/ms644904(v=vs.85).aspx"><code>QueryPerformanceCounter</code></a>. </p>
 <h2><code>rdtsc</code></h2>
 <p>On x86 machines where none of these are available, we can resort directly to <code>rdtsc</code>. This is a special instruction that returns the <a href="https://en.wikipedia.org/wiki/Time_Stamp_Counter">Time Stamp Counter</a>, the number of cycles since reset. Unfortunately, we have to be <em>very</em> careful when using this instruction. <a href="http://download.intel.com/embedded/software/IA/324264.pdf">This white paper</a> offers a lot of good advice on how to use it, but in short we have to take care to prevent instruction reordering. In the following code, the reordering of the <code>fdiv</code> after the <code>rdtsc</code> would lead to inaccurate timing results:</p>
-<div class="highlight"><pre><span class="nf">rdtsc</span>
+<div class="highlight"><pre><span></span><span class="nf">rdtsc</span>
 <span class="nf">fdiv</span> <span class="c"># Or another slow instruction</span>
 <span class="nf">rdtsc</span>
 </pre></div>
 
 
 <p>The instruction <code>rdtscp</code> prevents instructions that occur before the <code>rdtsc</code> from being reordered afterwards. Unfortunately, instructions that occur after the <code>rdtscp</code> can still be reordered before it. The following code could have <code>fdiv</code> reordered before the <code>rdtscp</code>, leading to inaccurate results:</p>
-<div class="highlight"><pre><span class="nf">rdtscp</span>
+<div class="highlight"><pre><span></span><span class="nf">rdtscp</span>
 <span class="nf">call</span> <span class="no">function</span>
 <span class="nf">rdtscp</span>
 <span class="nf">fdiv</span>
 </pre></div>
 
 
-<p>The suggested way to avoid the reordering is to use the <code>cpuid</code> instruction, which has the effect of preventing all instruction reordering around it. While this is a slow instruction, we can be a bit clever and ensure that we never have to execute it while between the times when we query the counter.<br />
+<p>The suggested way to avoid the reordering is to use the <code>cpuid</code> instruction, which has the effect of preventing all instruction reordering around it. While this is a slow instruction, we can be a bit clever and ensure that we never have to execute it while between the times when we query the counter.<br>
 The ideal timing code looks something like this:</p>
-<div class="highlight"><pre><span class="nf">cpuid</span>
+<div class="highlight"><pre><span></span><span class="nf">cpuid</span>
 <span class="nf">rtdsc</span>
 <span class="c"># Save %edx and %eax (the output of rtdsc).</span>
 <span class="nf">call</span> <span class="no">function</span>
@@ -137,36 +136,6 @@ The ideal timing code looks something like this:</p>
 		<div class="widget">
 		    <h2>Tags</h2>
 		    <ul class="cloud">
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/theory.html">theory</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/omnios.html">omnios</a>
-			</li>
-			<li class="tag-2">
-			  <a class="tag" href="http://codearcana.com/tag/golang.html">golang</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/tutorial.html">tutorial</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/exploitation.html">exploitation</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/gdb.html">gdb</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/profiling.html">profiling</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/make.html">make</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/malloc.html">malloc</a>
-			</li>
-			<li class="tag-2">
-			  <a class="tag" href="http://codearcana.com/tag/ctf.html">ctf</a>
-			</li>
 		    </ul>
 		</div>
 

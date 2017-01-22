@@ -25,7 +25,6 @@
                 <nav><ul>
                     <li><a href="http://codearcana.com">Blog</a></li>
                     <li><a href="http://codearcana.com/archives.html">Archives</a></li>
-                    <li ><a href="http://codearcana.com/pages/about.html">About</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
 
@@ -35,7 +34,7 @@
         rel="bookmark" title="Permalink to Why is <code>omp_get_num_procs</code> so slow?">Why is <code>omp_get_num_procs</code> so slow?</a></h1> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="awreece">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
  </header>
 <footer class="post-info">
-        <abbr class="published" title="2013-05-10T00:00:00">
+        <abbr class="published" title="2013-05-10T00:00:00-07:00">
                 Fri 10 May 2013
         </abbr>
 
@@ -52,7 +51,7 @@ multithreaded puzzle solver using OpenMP and had some difficulty using the CPU
 profiler from <a href="https://code.google.com/p/gperftools/">Google <code>perftools</code></a>.
 Basically, the profiler kept reporting that <code>omp_get_num_procs</code> was taking a
 huge portion of the program:</p>
-<div class="highlight"><pre><span class="gp">$</span>  pprof --text solver out.prof 
+<div class="highlight"><pre><span></span><span class="gp">$</span>  pprof --text solver out.prof 
 <span class="go">Using local file solver.</span>
 <span class="go">Using local file out.prof.</span>
 <span class="go">Removing _L_unlock_16 from all stack traces.</span>
@@ -82,14 +81,14 @@ huge portion of the program:</p>
 <p>This was clearly not right, so I spent some time digging around. If we look at 
 the callgraph to find which functions call <code>omp_get_num_procs</code>, we see that the 
 culprit is <code>GOMP_taskwait</code>: </p>
-<div class="highlight"><pre><span class="gp">$</span> pprof --gv --focus<span class="o">=</span>omp_get_num_procs solver out.prof
+<div class="highlight"><pre><span></span><span class="gp">$</span> pprof --gv --focus<span class="o">=</span>omp_get_num_procs solver out.prof
 </pre></div>
 
 
-<p><img alt="omp_get_num_procs call graph" src="http://codearcana.com/images/omp_get_num_procs.png" title="omp_get_num_procs call graph" /></p>
+<p><img alt="omp_get_num_procs call graph" src="http://codearcana.com/images/omp_get_num_procs.png" title="omp_get_num_procs call graph"></p>
 <p>We cannot view annotated source for this function (since we don't have source),
 but we <em>can</em> look at the annotated disassembly. </p>
-<div class="highlight"><pre><span class="gp">$</span> pprof --disas<span class="o">=</span>GOMP_taskwait solver out.prof 
+<div class="highlight"><pre><span></span><span class="gp">$</span> pprof --disas<span class="o">=</span>GOMP_taskwait solver out.prof 
 <span class="go">ROUTINE ====================== GOMP_taskwait</span>
 <span class="go">     1   1330 samples (flat, cumulative) 96.2% of total</span>
 <span class="go">... &lt;snip&gt; ...</span>
@@ -107,7 +106,7 @@ but we <em>can</em> look at the annotated disassembly. </p>
 
 
 <p>Aha! The functions are being poorly identified, so it appears that <em>all</em> calls to OpenMP library functions are being understood as calls to <code>omp_get_num_procs</code>. Unfortunately, there is nothing we can do about it - that library does not export any symbols:</p>
-<div class="highlight"><pre><span class="gp">$</span> ldd solver | grep gomp
+<div class="highlight"><pre><span></span><span class="gp">$</span> ldd solver <span class="p">|</span> grep gomp
 <span class="go">    libgomp.so.1 =&gt; /usr/lib64/libgomp.so.1 (0x00007f19e9109000)</span>
 <span class="gp">$</span> nm /usr/lib64/libgomp.so.1
 <span class="go">nm: /usr/lib64/libgomp.so.1: no symbols</span>
@@ -117,7 +116,7 @@ but we <em>can</em> look at the annotated disassembly. </p>
 <p>At least now why <code>omp_get_num_threads</code> is reported so much! We probably need to count all calls to <code>omp_get_num_threads</code> as 'overhead from OpenMP' but otherwise not trust the specific counts.
 In my opinion, the profiler should emit function addresses 
 for functions that don't map to some symbol, but I understand that is hard. For now, we will get more meaningful profiling data about our code if we do:</p>
-<div class="highlight"><pre><span class="gp">$</span> pprof --text --ignore<span class="o">=</span>omp_get_num_procs solver out.prof 
+<div class="highlight"><pre><span></span><span class="gp">$</span> pprof --text --ignore<span class="o">=</span>omp_get_num_procs solver out.prof 
 <span class="go">Using local file solver.</span>
 <span class="go">Using local file out.prof.</span>
 <span class="go">Removing _L_unlock_16 from all stack traces.</span>
@@ -169,36 +168,6 @@ for functions that don't map to some symbol, but I understand that is hard. For 
 		<div class="widget">
 		    <h2>Tags</h2>
 		    <ul class="cloud">
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/theory.html">theory</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/omnios.html">omnios</a>
-			</li>
-			<li class="tag-2">
-			  <a class="tag" href="http://codearcana.com/tag/golang.html">golang</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/tutorial.html">tutorial</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/exploitation.html">exploitation</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/gdb.html">gdb</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/profiling.html">profiling</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/make.html">make</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/malloc.html">malloc</a>
-			</li>
-			<li class="tag-2">
-			  <a class="tag" href="http://codearcana.com/tag/ctf.html">ctf</a>
-			</li>
 		    </ul>
 		</div>
 

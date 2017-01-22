@@ -25,7 +25,6 @@
                 <nav><ul>
                     <li><a href="http://codearcana.com">Blog</a></li>
                     <li><a href="http://codearcana.com/archives.html">Archives</a></li>
-                    <li ><a href="http://codearcana.com/pages/about.html">About</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
 
@@ -35,7 +34,7 @@
         rel="bookmark" title="Permalink to Pai Mei on Mac OSX 10.8">Pai Mei on Mac OSX 10.8</a></h1> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="awreece">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
  </header>
 <footer class="post-info">
-        <abbr class="published" title="2012-10-28T00:00:00">
+        <abbr class="published" title="2012-10-28T00:00:00-07:00">
                 Sun 28 October 2012
         </abbr>
 
@@ -56,7 +55,7 @@
         <li><tt>ctypes</tt>: I believe is included by default in Python 2.5 and higher.</li>
         <li><tt>MySql</tt>: I installed via <tt>brew install mysql --universal</tt> to have a universal binary (downloading from the MySql homepage means you will get a single architecture binary).</li>
         <li><tt>wxPython</tt>: I installed via <tt>brew install wxmac --universal</tt> and then manually symlinked it into correct location: </p>
-<div class="highlight"><pre><span class="gp">#</span> ln -s /usr/local/Cellar/wxmac/2.9.4.0/lib/python2.7/site-packages/wx /Library/Python/2.7/site-packages/wx
+<div class="highlight"><pre><span></span><span class="gp">#</span> ln -s /usr/local/Cellar/wxmac/2.9.4.0/lib/python2.7/site-packages/wx /Library/Python/2.7/site-packages/wx
 <span class="gp">#</span> ln -s /usr/local/Cellar/wxmac/2.9.4.0/lib/python2.7/site-packages/wxPython-2.9.4.0-py2.7.egg-info /Library/Python/2.7/site-packages/wxPython-2.9.4.0-py2.7.egg-info
 </pre></div>
 
@@ -66,12 +65,12 @@
 <h3>Installing Pai Mei</h3>
 
 <p>Pai Mei uses the <a href="https://github.com/OpenRCE/pydbg">pydbg</a> library (I believe it is linked incorrectly in the repository as a git submodule). I strongly encourage you <a href="https://github.com/gdbinit/pydbg64">this</a> version of pydbg instead, which is a port to 64 Mac OSX by Charlie Miller and fG. Cloning the repository and installing via instructions in the <tt>MacOSX/README</tt> worked fine for me. Warning: you can only use this library to debug a 32 bit process from 32 bit python and a 64 bit process from 64 bit python: to use 32 bit python, do: </p>
-<div class="highlight"><pre><span class="gp">$</span> <span class="nv">VERSIONER_PYTHON_PREFER_32_BIT</span><span class="o">=</span>yes /usr/bin/python
+<div class="highlight"><pre><span></span><span class="gp">$</span> <span class="nv">VERSIONER_PYTHON_PREFER_32_BIT</span><span class="o">=</span>yes /usr/bin/python
 </pre></div>
 
 
 <p>After installing <tt>pydbg64</tt>, I now had a directory tree that looked like:</p>
-<div class="highlight"><pre><span class="go">pydbg64/</span>
+<div class="highlight"><pre><span></span><span class="go">pydbg64/</span>
 <span class="go">├── pydbg</span>
 <span class="go">└── ...</span>
 <span class="go">paimei/</span>
@@ -84,7 +83,7 @@
 
 
 <p>I deleted the <tt>paimei/pydbg</tt> directory and added a symlink to the <tt>pydbg64/pydbg</tt> directory, then  copied the fat <tt>libmacdll.dylib</tt> from <tt>pydbg64/pydbg/libmacdll.dylib</tt> to <tt>paimei/utils</tt>. This left a directory that looked like this:</p>
-<div class="highlight"><pre><span class="go">pydbg64/</span>
+<div class="highlight"><pre><span></span><span class="go">pydbg64/</span>
 <span class="go">├── pydbg</span>
 <span class="go">└── ...</span>
 <span class="go">paimei/</span>
@@ -99,7 +98,7 @@
 
 
 <p>We now need to install all the Pai Mei packages (<tt>utils</tt>, <tt>pida</tt>, <tt>pgraph</tt>) into the correct place so python can find them.</p>
-<div class="highlight"><pre><span class="gp">#</span> ln -s /usr/local/paimei/pida /Library/Python/2.7/site-packages/pida
+<div class="highlight"><pre><span></span><span class="gp">#</span> ln -s /usr/local/paimei/pida /Library/Python/2.7/site-packages/pida
 <span class="gp">#</span> ln -s /usr/local/paimei/pgraph /Library/Python/2.7/site-packages/pgraph
 <span class="gp">#</span> ln -s /usr/local/paimei/utils /Library/Python/2.7/site-packages/utils
 </pre></div>
@@ -108,12 +107,12 @@
 <h3>Running Pai Mei</h3>
 
 <p>Before we can run Pai Mei, we must initialize the database: </p>
-<div class="highlight"><pre><span class="gp">$</span> python /usr/local/paimei/__setup_mysql.py localhost root rootpassword
+<div class="highlight"><pre><span></span><span class="gp">$</span> python /usr/local/paimei/__setup_mysql.py localhost root rootpassword
 </pre></div>
 
 
 <p>Next, we have to patch a few bugs in Pai Mei (it calls a deprecated function and the MySql modal tries to helpfully destroy itself after successfully connecting to the database, but unfortunately does so before Python is completely done with it).</p>
-<div class="highlight"><pre><span class="gh">diff --git a/console/PAIMEIconsole.pyw b/console/PAIMEIconsole.pyw</span>
+<div class="highlight"><pre><span></span><span class="gh">diff --git a/console/PAIMEIconsole.pyw b/console/PAIMEIconsole.pyw</span>
 <span class="gh">index a45cbbf..0fea2ae 100644</span>
 <span class="gd">--- a/console/PAIMEIconsole.pyw</span>
 <span class="gi">+++ b/console/PAIMEIconsole.pyw</span>
@@ -159,7 +158,7 @@
 
 <p>Now, we must make sure that python has the appropriate permisisons to monitor other processes before we can use Pai Mei. Unfortunately, this is not so easy anymore - since Snow Leopard, processes must be code signed in order to escalate privileges (a good writeup <a href="http://os-tres.net/blog/2010/02/17/mac-os-x-and-task-for-pid-mach-call/">here</a>). We could possibly patch pydbg to ask for permissions and sign it to work or disabling some system wide setting, but for now we will just run Pai Mei as root.</p>
 <p>A last disclaimer: the process stalker uses the name of the executable to find which pida module to load. Unfortunately, it truncates the process name, striping the directory, but insists that the name matches the full path to the pida module. I managed to hard code it to just always use the first pida module, but I don't know what the correct solution is. </p>
-<div class="highlight"><pre><span class="gh">diff --git a/console/modules/_PAIMEIpstalker/ProcessListCtrl.py b/console/modules/_PAIMEIpstalker/ProcessListCtrl.py</span>
+<div class="highlight"><pre><span></span><span class="gh">diff --git a/console/modules/_PAIMEIpstalker/ProcessListCtrl.py b/console/modules/_PAIMEIpstalker/ProcessListCtrl.py</span>
 <span class="gh">index b37bd01..63880e3 100644</span>
 <span class="gd">--- a/console/modules/_PAIMEIpstalker/ProcessListCtrl.py</span>
 <span class="gi">+++ b/console/modules/_PAIMEIpstalker/ProcessListCtrl.py</span>
@@ -205,36 +204,6 @@
 		<div class="widget">
 		    <h2>Tags</h2>
 		    <ul class="cloud">
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/theory.html">theory</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/omnios.html">omnios</a>
-			</li>
-			<li class="tag-2">
-			  <a class="tag" href="http://codearcana.com/tag/golang.html">golang</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/tutorial.html">tutorial</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/exploitation.html">exploitation</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/gdb.html">gdb</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/profiling.html">profiling</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/make.html">make</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/malloc.html">malloc</a>
-			</li>
-			<li class="tag-2">
-			  <a class="tag" href="http://codearcana.com/tag/ctf.html">ctf</a>
-			</li>
 		    </ul>
 		</div>
 

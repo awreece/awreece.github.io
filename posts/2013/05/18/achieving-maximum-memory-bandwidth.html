@@ -25,7 +25,6 @@
                 <nav><ul>
                     <li><a href="http://codearcana.com">Blog</a></li>
                     <li><a href="http://codearcana.com/archives.html">Archives</a></li>
-                    <li ><a href="http://codearcana.com/pages/about.html">About</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
 
@@ -35,7 +34,7 @@
         rel="bookmark" title="Permalink to Achieving maximum memory bandwidth">Achieving maximum memory bandwidth</a></h1> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="awreece">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
  </header>
 <footer class="post-info">
-        <abbr class="published" title="2013-05-18T00:00:00">
+        <abbr class="published" title="2013-05-18T00:00:00-07:00">
                 Sat 18 May 2013
         </abbr>
 
@@ -49,13 +48,13 @@
 <h2>tl;dr</h2>
 <p><em>Use non-temporal vector instructions or optimized string instructions to get the full bandwidth.</em></p>
 <h1>What is memory bandwidth?</h1>
-<p>When analyzing computer programs for performance, it is important to be aware of the hardware they will be running on. There are two important numbers to pay attention to with memory systems (i.e. RAM): <a href="https://en.wikipedia.org/wiki/SDRAM_latency">memory latency</a>, or the amount of time to satisfy an individual memory request, and <a href="https://en.wikipedia.org/wiki/Memory_bandwidth">memory bandwidth</a>, or the amount of data that can be accessed in a given amount of time<sup id="fnref:1"><a class="footnote-ref" href="#fn:1" rel="footnote">1</a></sup>. </p>
-<p>It is easy to compute the theoretically maximum memory bandwidth. <a href="http://support.apple.com/kb/sp653">My laptop</a> has 2 sticks of DDR3 SDRAM running at 1600 MHz, each connected to a 64 bit bus, for a maximum theoretical bandwidth of <a href="http://www.wolframalpha.com/input/?i=1600+MHz+*+64+bits+*+2+to+GB%2Fs">25.6 GB/s</a><sup id="fnref:4"><a class="footnote-ref" href="#fn:4" rel="footnote">2</a></sup>. This means that no matter how cleverly I write my program, the maximum amount of memory I can touch in 1 second is 25.6 GB. Unfortunately, this theoretical limit is somewhat challenging to reach with real code. </p>
+<p>When analyzing computer programs for performance, it is important to be aware of the hardware they will be running on. There are two important numbers to pay attention to with memory systems (i.e. RAM): <a href="https://en.wikipedia.org/wiki/SDRAM_latency">memory latency</a>, or the amount of time to satisfy an individual memory request, and <a href="https://en.wikipedia.org/wiki/Memory_bandwidth">memory bandwidth</a>, or the amount of data that can be accessed in a given amount of time<sup id="fnref-1"><a class="footnote-ref" href="#fn-1">1</a></sup>. </p>
+<p>It is easy to compute the theoretically maximum memory bandwidth. <a href="http://support.apple.com/kb/sp653">My laptop</a> has 2 sticks of DDR3 SDRAM running at 1600 MHz, each connected to a 64 bit bus, for a maximum theoretical bandwidth of <a href="http://www.wolframalpha.com/input/?i=1600+MHz+*+64+bits+*+2+to+GB%2Fs">25.6 GB/s</a><sup id="fnref-4"><a class="footnote-ref" href="#fn-4">2</a></sup>. This means that no matter how cleverly I write my program, the maximum amount of memory I can touch in 1 second is 25.6 GB. Unfortunately, this theoretical limit is somewhat challenging to reach with real code. </p>
 <h1>Measuring memory bandwidth</h1>
-<p>To measure the memory bandwidth for a function, I wrote a simple benchmark. For each function, I access a large<sup id="fnref:2"><a class="footnote-ref" href="#fn:2" rel="footnote">3</a></sup> array of memory and compute the bandwidth by dividing by the run time<sup id="fnref:3"><a class="footnote-ref" href="#fn:3" rel="footnote">4</a></sup>. For example, if a function takes 120 milliseconds to access 1 GB of memory, I calculate the bandwidth to be <a href="http://www.wolframalpha.com/input/?i=1+GB+%2F+120+milliseconds+to+GB%2Fs">8.33 GB/s</a>. To try to reduce the variance and timing overhead, I repeatedly accessed our array and took the smallest time over several iterations<sup id="fnref:6"><a class="footnote-ref" href="#fn:6" rel="footnote">5</a></sup>. If you're curious, all my test code is available on <a href="https://github.com/awreece/memory-bandwidth-demo">github</a>.</p>
+<p>To measure the memory bandwidth for a function, I wrote a simple benchmark. For each function, I access a large<sup id="fnref-2"><a class="footnote-ref" href="#fn-2">3</a></sup> array of memory and compute the bandwidth by dividing by the run time<sup id="fnref-3"><a class="footnote-ref" href="#fn-3">4</a></sup>. For example, if a function takes 120 milliseconds to access 1 GB of memory, I calculate the bandwidth to be <a href="http://www.wolframalpha.com/input/?i=1+GB+%2F+120+milliseconds+to+GB%2Fs">8.33 GB/s</a>. To try to reduce the variance and timing overhead, I repeatedly accessed our array and took the smallest time over several iterations<sup id="fnref-6"><a class="footnote-ref" href="#fn-6">5</a></sup>. If you're curious, all my test code is available on <a href="https://github.com/awreece/memory-bandwidth-demo">github</a>.</p>
 <h1>A first attempt</h1>
 <p>I first wrote a simple C program to just write to every value in the array.</p>
-<div class="highlight"><pre><span class="kt">void</span> <span class="nf">write_memory_loop</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">array</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
+<div class="highlight"><pre><span></span><span class="kt">void</span> <span class="nf">write_memory_loop</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">array</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
   <span class="kt">size_t</span><span class="o">*</span> <span class="n">carray</span> <span class="o">=</span> <span class="p">(</span><span class="kt">size_t</span><span class="o">*</span><span class="p">)</span> <span class="n">array</span><span class="p">;</span>
   <span class="kt">size_t</span> <span class="n">i</span><span class="p">;</span>
   <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">size</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">size_t</span><span class="p">);</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
@@ -66,7 +65,7 @@
 
 
 <p>This generated the assembly I was expecting:</p>
-<div class="highlight"><pre><span class="mh">0000000100000ac0</span> <span class="p">&lt;</span><span class="nf">_write_memory_loop</span><span class="p">&gt;:</span>
+<div class="highlight"><pre><span></span><span class="mh">0000000100000ac0</span> <span class="p">&lt;</span><span class="nf">_write_memory_loop</span><span class="p">&gt;:</span>
 <span class="x">   100000ac0:   48 c1 ee 03             shr    $0x3,%rsi</span>
 <span class="x">   100000ac4:   48 8d 04 f7             lea    (%rdi,%rsi,8),%rax</span>
 <span class="x">   100000ac8:   48 85 f6                test   %rsi,%rsi</span>
@@ -81,14 +80,14 @@
 
 
 <p>But not the bandwidth I was expecting (remember, my goal is 23.8 GiB/s):</p>
-<div class="highlight"><pre><span class="gp">$</span> ./memory_profiler
+<div class="highlight"><pre><span></span><span class="gp">$</span> ./memory_profiler
 <span class="go">               write_memory_loop:  9.23 GiB/s</span>
 </pre></div>
 
 
 <h1>Using SIMD</h1>
 <p>The first thing I tried is to use <a href="http://15418.courses.cs.cmu.edu/15418_spr13/index.php/lecture/basicarch/slide_021">Single Instruction Multiple Data (SIMD)</a> instructions to touch more memory at once. Basically, a modern processor is very complicated and has multiple Arithmetic Logic Units (ALUs). This gives it the ability to support instructions that perform an operation on multiple pieces of data simultaneously. I will use this to perform operation on more data simultaneously to get higher bandwidth. Since my processor support AVX instructions, I can perform operations on 256 bits (32 bytes) every instruction:</p>
-<div class="highlight"><pre><span class="cp">#include &lt;immintrin.h&gt;</span>
+<div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;immintrin.h&gt;</span><span class="cp"></span>
 <span class="kt">void</span> <span class="nf">write_memory_avx</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">array</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">__m256i</span><span class="o">*</span> <span class="n">varray</span> <span class="o">=</span> <span class="p">(</span><span class="n">__m256i</span><span class="o">*</span><span class="p">)</span> <span class="n">array</span><span class="p">;</span>
 
@@ -102,21 +101,21 @@
 
 
 <p>But when I use use this, I didn't get any better bandwidth than before!</p>
-<div class="highlight"><pre><span class="gp">$</span> ./memory_profiler
+<div class="highlight"><pre><span></span><span class="gp">$</span> ./memory_profiler
 <span class="go">                write_memory_avx:  9.01 GiB/s</span>
 </pre></div>
 
 
 <p>Why was I consistently getting slightly under half the theoretical memory bandwidth?</p>
-<p>The answer is a bit complicated because the cache in a modern processor is <a href="http://15418.courses.cs.cmu.edu/15418_spr13/index.php/lecture/cachecoherence1/slide_028">complicated</a><sup id="fnref:5"><a class="footnote-ref" href="#fn:5" rel="footnote">6</a></sup>. The main problem is that memory traffic on the bus is done in units of <em>cache lines</em>, which tend to be larger than 32 bytes. In order to write only 32 bytes, the cache must first <em>read</em> the entire cache line from memory and then modify it. Unfortunately, this means that my program, which only writes values, will actually cause double the memory traffic I expect because it will cause reads of cache line! As you can see from the picture below, the bus traffic (the blue lines out of the processor) per cache line is a read and a write to memory:</p>
-<p><img alt="Cache traffic for a partial cache line write" src="http://codearcana.com/images/cache_readwrite.png" title="Cache traffic for a partial cache line write" /></p>
+<p>The answer is a bit complicated because the cache in a modern processor is <a href="http://15418.courses.cs.cmu.edu/15418_spr13/index.php/lecture/cachecoherence1/slide_028">complicated</a><sup id="fnref-5"><a class="footnote-ref" href="#fn-5">6</a></sup>. The main problem is that memory traffic on the bus is done in units of <em>cache lines</em>, which tend to be larger than 32 bytes. In order to write only 32 bytes, the cache must first <em>read</em> the entire cache line from memory and then modify it. Unfortunately, this means that my program, which only writes values, will actually cause double the memory traffic I expect because it will cause reads of cache line! As you can see from the picture below, the bus traffic (the blue lines out of the processor) per cache line is a read and a write to memory:</p>
+<p><img alt="Cache traffic for a partial cache line write" src="http://codearcana.com/images/cache_readwrite.png" title="Cache traffic for a partial cache line write"></p>
 <h1>Non-temporal instructions</h1>
 <p>So how do I solve this problem? The answer lies in a little known feature: non-temporal instructions. As described in Ulrich Drepper's 100 page <a href="http://www.akkadia.org/drepper/cpumemory.pdf"><em>What every programmer should know about memory</em></a>,</p>
 <blockquote>
 <p>These non-temporal write operations do not read a cache line and then modify it; instead, the new content is directly written to memory. This might sound expensive but it does not have to be. The processor will try to use write-combining (see section 3.3.3) to ﬁll entire cache lines. If this succeeds no memory read operation is needed at all.</p>
 </blockquote>
 <p>Aha! I can use these to avoid the reads and get our full bandwidth!</p>
-<div class="highlight"><pre><span class="kt">void</span> <span class="nf">write_memory_nontemporal_avx</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">array</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
+<div class="highlight"><pre><span></span><span class="kt">void</span> <span class="nf">write_memory_nontemporal_avx</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">array</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">__m256i</span><span class="o">*</span> <span class="n">varray</span> <span class="o">=</span> <span class="p">(</span><span class="n">__m256i</span><span class="o">*</span><span class="p">)</span> <span class="n">array</span><span class="p">;</span>
 
   <span class="n">__m256i</span> <span class="n">vals</span> <span class="o">=</span> <span class="n">_mm256_set1_epi32</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
@@ -129,21 +128,21 @@
 
 
 <p>I run our new program and am disappointed again:</p>
-<div class="highlight"><pre><span class="gp">$</span> ./memory_profiler
+<div class="highlight"><pre><span></span><span class="gp">$</span> ./memory_profiler
 <span class="go">    write_memory_nontemporal_avx: 12.65 GiB/s</span>
 </pre></div>
 
 
 <p>At this point I'm getting really frustrated. Am I on the right track? I quickly compare our benchmarks to <code>memset</code>:</p>
-<div class="highlight"><pre><span class="gp">$</span> ./memory_profiler
+<div class="highlight"><pre><span></span><span class="gp">$</span> ./memory_profiler
 <span class="go">             write_memory_memset: 12.84 GiB/s</span>
 </pre></div>
 
 
 <p>and see that while I am far from the theoretical bandwidth, I'm at least on the same scale as <code>memset</code>. So now the question is: is it even <em>possible</em> to get the full bandwidth?</p>
 <h1>Repeated string instructions</h1>
-<p>At this point, I got some advice: Dillon Sharlet had a key suggestion here to use the repeated string instructions. The <a href="http://web.itu.edu.tr/kesgin/mul06/intel/instr/rep.html"><code>rep</code></a> instruction prefix repeats a special string instruction. For example, <code>rep stosq</code> will repeatedly store a word into an array - exactly what I want. For relatively recent processors<sup id="fnref:7"><a class="footnote-ref" href="#fn:7" rel="footnote">7</a></sup>, this works well. After looking up the hideous syntax for inline assembly<sup id="fnref:8"><a class="footnote-ref" href="#fn:8" rel="footnote">8</a></sup>, I get our function:</p>
-<div class="highlight"><pre><span class="kt">void</span> <span class="nf">write_memory_rep_stosq</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">buffer</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
+<p>At this point, I got some advice: Dillon Sharlet had a key suggestion here to use the repeated string instructions. The <a href="http://web.itu.edu.tr/kesgin/mul06/intel/instr/rep.html"><code>rep</code></a> instruction prefix repeats a special string instruction. For example, <code>rep stosq</code> will repeatedly store a word into an array - exactly what I want. For relatively recent processors<sup id="fnref-7"><a class="footnote-ref" href="#fn-7">7</a></sup>, this works well. After looking up the hideous syntax for inline assembly<sup id="fnref-8"><a class="footnote-ref" href="#fn-8">8</a></sup>, I get our function:</p>
+<div class="highlight"><pre><span></span><span class="kt">void</span> <span class="nf">write_memory_rep_stosq</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">buffer</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">asm</span><span class="p">(</span><span class="s">&quot;cld</span><span class="se">\n</span><span class="s">&quot;</span>
       <span class="s">&quot;rep stosq&quot;</span>
       <span class="o">:</span> <span class="o">:</span> <span class="s">&quot;D&quot;</span> <span class="p">(</span><span class="n">buffer</span><span class="p">),</span> <span class="s">&quot;c&quot;</span> <span class="p">(</span><span class="n">size</span> <span class="o">/</span> <span class="mi">8</span><span class="p">),</span> <span class="s">&quot;a&quot;</span> <span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="p">);</span>
@@ -152,7 +151,7 @@
 
 
 <p>And when I run, I get results that are really close to the peak bandwidth:</p>
-<div class="highlight"><pre><span class="gp">$</span> ./memory_profiler
+<div class="highlight"><pre><span></span><span class="gp">$</span> ./memory_profiler
 <span class="go">          write_memory_rep_stosq: 20.60 GiB/s</span>
 </pre></div>
 
@@ -160,7 +159,7 @@
 <p>Now the plot thickens. It turns out that it is <em>indeed</em> possible to get the full memory bandwidth, but I can't get close with my non-temporal AVX instructions. So what is up?</p>
 <h1>Multiple cores</h1>
 <p>Again, Dillon Sharlet provided an important insight: the goal of saturating the entire bandwidth with a single core was perhaps a bit extreme. In order to use the full bandwidth, I would need to use multiple cores. I used OpenMP to run the function over multiple cores. To avoid counting the OpenMP overhead, I computed the timings only after all threads are ready and after all threads are done. To do this, I put barriers before the timing code:</p>
-<div class="highlight"><pre><span class="cp">#pragma omp parallel  </span><span class="c1">// Set OMP_NUM_THREADS to the number of physical cores.</span>
+<div class="highlight"><pre><span></span><span class="cp">#pragma omp parallel  </span><span class="c1">// Set OMP_NUM_THREADS to the number of physical cores.</span>
 <span class="p">{</span>
 <span class="cp">#pragma omp barrier  </span><span class="c1">// Wait for all threads to be ready before starting the timer.</span>
 
@@ -178,7 +177,7 @@
 
 
 <p>When I run, I get very reasonable output (remember, the goal is 23.8 GiB/s):</p>
-<div class="highlight"><pre><span class="gp">$</span> <span class="nv">OMP_NUM_THREADS</span><span class="o">=</span>4 ./memory_profiler  <span class="c"># I only have 4 physical cores.</span>
+<div class="highlight"><pre><span></span><span class="gp">$</span> <span class="nv">OMP_NUM_THREADS</span><span class="o">=</span><span class="m">4</span> ./memory_profiler  <span class="c1"># I only have 4 physical cores.</span>
 <span class="go">            write_memory_avx_omp:  9.68 GiB/s</span>
 <span class="go">write_memory_nontemporal_avx_omp: 22.15 GiB/s</span>
 <span class="go">         write_memory_memset_omp: 22.15 GiB/s</span>
@@ -197,31 +196,31 @@
 <li>Why doesn't <code>rep scansq</code> or <code>rep lodsq</code> get the same bandwidth as <code>rep stosq</code>?</li>
 </ul>
 <div class="footnote">
-<hr />
+<hr>
 <ol>
-<li id="fn:1">
-<p><a href="http://15418.courses.cs.cmu.edu/15418_spr13/index.php/lecture/basicarch/slide_039">This lecture</a> from the course is very good at illustrating some of these concepts.&#160;<a class="footnote-backref" href="#fnref:1" rev="footnote" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+<li id="fn-1">
+<p><a href="http://15418.courses.cs.cmu.edu/15418_spr13/index.php/lecture/basicarch/slide_039">This lecture</a> from the course is very good at illustrating some of these concepts.&#160;<a class="footnote-backref" href="#fnref-1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
 </li>
-<li id="fn:4">
-<p>I'm not completely convinced this math is correct, but this number lines up with <a href="http://ark.intel.com/products/64891/Intel-Core-i7-3720QM-Processor-6M-Cache-up-to-3_60-GHz">the specs provided by Intel</a> for my processor as well.&#160;<a class="footnote-backref" href="#fnref:4" rev="footnote" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+<li id="fn-4">
+<p>I'm not completely convinced this math is correct, but this number lines up with <a href="http://ark.intel.com/products/64891/Intel-Core-i7-3720QM-Processor-6M-Cache-up-to-3_60-GHz">the specs provided by Intel</a> for my processor as well.&#160;<a class="footnote-backref" href="#fnref-4" title="Jump back to footnote 2 in the text">&#8617;</a></p>
 </li>
-<li id="fn:2">
-<p>It should be too large to fit in cache since I want to test memory throughput, not cache throughput.&#160;<a class="footnote-backref" href="#fnref:2" rev="footnote" title="Jump back to footnote 3 in the text">&#8617;</a></p>
+<li id="fn-2">
+<p>It should be too large to fit in cache since I want to test memory throughput, not cache throughput.&#160;<a class="footnote-backref" href="#fnref-2" title="Jump back to footnote 3 in the text">&#8617;</a></p>
 </li>
-<li id="fn:3">
-<p>Use a <a href="http://codearcana.com/posts/2013/05/15/a-cross-platform-monotonic-timer.html">monotonic timer</a> to avoid errors caused by the system clock.&#160;<a class="footnote-backref" href="#fnref:3" rev="footnote" title="Jump back to footnote 4 in the text">&#8617;</a></p>
+<li id="fn-3">
+<p>Use a <a href="http://codearcana.com/posts/2013/05/15/a-cross-platform-monotonic-timer.html">monotonic timer</a> to avoid errors caused by the system clock.&#160;<a class="footnote-backref" href="#fnref-3" title="Jump back to footnote 4 in the text">&#8617;</a></p>
 </li>
-<li id="fn:6">
-<p>For future work, I'll probably write a kernel module in the style of <a href="http://download.intel.com/embedded/software/IA/324264.pdf">this excellent Intel white paper</a>.&#160;<a class="footnote-backref" href="#fnref:6" rev="footnote" title="Jump back to footnote 5 in the text">&#8617;</a></p>
+<li id="fn-6">
+<p>For future work, I'll probably write a kernel module in the style of <a href="http://download.intel.com/embedded/software/IA/324264.pdf">this excellent Intel white paper</a>.&#160;<a class="footnote-backref" href="#fnref-6" title="Jump back to footnote 5 in the text">&#8617;</a></p>
 </li>
-<li id="fn:5">
-<p>Ok, the answer is actually fairly complicated and I'm going to lie just a little bit to simplify things. If you're curious how a modern cache works, you should read through the <a href="http://15418.courses.cs.cmu.edu/15418_spr13/index.php/lecture/cachecoherence1">lectures</a> on it.&#160;<a class="footnote-backref" href="#fnref:5" rev="footnote" title="Jump back to footnote 6 in the text">&#8617;</a></p>
+<li id="fn-5">
+<p>Ok, the answer is actually fairly complicated and I'm going to lie just a little bit to simplify things. If you're curious how a modern cache works, you should read through the <a href="http://15418.courses.cs.cmu.edu/15418_spr13/index.php/lecture/cachecoherence1">lectures</a> on it.&#160;<a class="footnote-backref" href="#fnref-5" title="Jump back to footnote 6 in the text">&#8617;</a></p>
 </li>
-<li id="fn:7">
-<p>Apparently, this wasn't always the case: <a href="http://stackoverflow.com/a/8429084/447288">http://stackoverflow.com/a/8429084/447288</a>. In addition, my benchmarking seems to indicate that neither <code>rep lodsq</code> or <code>rep scansq</code> benefit from the same degree of optimization that <code>rep stosq</code> received. I don't fully understand what all is going on.&#160;<a class="footnote-backref" href="#fnref:7" rev="footnote" title="Jump back to footnote 7 in the text">&#8617;</a></p>
+<li id="fn-7">
+<p>Apparently, this wasn't always the case: <a href="http://stackoverflow.com/a/8429084/447288">http://stackoverflow.com/a/8429084/447288</a>. In addition, my benchmarking seems to indicate that neither <code>rep lodsq</code> or <code>rep scansq</code> benefit from the same degree of optimization that <code>rep stosq</code> received. I don't fully understand what all is going on.&#160;<a class="footnote-backref" href="#fnref-7" title="Jump back to footnote 7 in the text">&#8617;</a></p>
 </li>
-<li id="fn:8">
-<p>The inline assembly wasn't strictly necessary here (I could have and should have written it directly in an assembly file), but I've had difficulties exporting function names in assembly portably.&#160;<a class="footnote-backref" href="#fnref:8" rev="footnote" title="Jump back to footnote 8 in the text">&#8617;</a></p>
+<li id="fn-8">
+<p>The inline assembly wasn't strictly necessary here (I could have and should have written it directly in an assembly file), but I've had difficulties exporting function names in assembly portably.&#160;<a class="footnote-backref" href="#fnref-8" title="Jump back to footnote 8 in the text">&#8617;</a></p>
 </li>
 </ol>
 </div>
@@ -254,36 +253,6 @@
 		<div class="widget">
 		    <h2>Tags</h2>
 		    <ul class="cloud">
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/theory.html">theory</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/omnios.html">omnios</a>
-			</li>
-			<li class="tag-2">
-			  <a class="tag" href="http://codearcana.com/tag/golang.html">golang</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/tutorial.html">tutorial</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/exploitation.html">exploitation</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/gdb.html">gdb</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/profiling.html">profiling</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/make.html">make</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/malloc.html">malloc</a>
-			</li>
-			<li class="tag-2">
-			  <a class="tag" href="http://codearcana.com/tag/ctf.html">ctf</a>
-			</li>
 		    </ul>
 		</div>
 

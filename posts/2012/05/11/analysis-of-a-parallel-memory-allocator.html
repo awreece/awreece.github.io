@@ -25,7 +25,6 @@
                 <nav><ul>
                     <li><a href="http://codearcana.com">Blog</a></li>
                     <li><a href="http://codearcana.com/archives.html">Archives</a></li>
-                    <li ><a href="http://codearcana.com/pages/about.html">About</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
 
@@ -35,7 +34,7 @@
         rel="bookmark" title="Permalink to Analysis of a Parallel Memory Allocator">Analysis of a Parallel Memory Allocator</a></h1> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="awreece">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
  </header>
 <footer class="post-info">
-        <abbr class="published" title="2012-05-11T00:00:00">
+        <abbr class="published" title="2012-05-11T00:00:00-07:00">
                 Fri 11 May 2012
         </abbr>
 
@@ -138,7 +137,7 @@ We compared the performance of <tt>ar_malloc</tt>, <tt>ar_malloc</tt> with a glo
 and the libc malloc on the test described in the previous section.
 </p>
 <figure>
-<img alt="Run time vs Number of threads" src="https://docs.google.com/spreadsheet/oimg?key=0AjzaNgu-PE5_dDJJUnRCaXZueks1UTlQVXBxYlFsSXc&amp;oid=4&amp;zx=1aneio5en2km" />
+<img alt="Run time vs Number of threads" src="https://docs.google.com/spreadsheet/oimg?key=0AjzaNgu-PE5_dDJJUnRCaXZueks1UTlQVXBxYlFsSXc&amp;oid=4&amp;zx=1aneio5en2km">
 <figcaption>This is chart of test run time vs number of threads for a global locked malloc, <tt>ar_malloc</tt>, and libc malloc. As 
     you can see, the global lock solution is really bad.</figcaption>
 </figure></p>
@@ -233,36 +232,6 @@ grained locking on the performance of <tt>ar_malloc</tt>.
 		<div class="widget">
 		    <h2>Tags</h2>
 		    <ul class="cloud">
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/theory.html">theory</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/omnios.html">omnios</a>
-			</li>
-			<li class="tag-2">
-			  <a class="tag" href="http://codearcana.com/tag/golang.html">golang</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/tutorial.html">tutorial</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/exploitation.html">exploitation</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/gdb.html">gdb</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/profiling.html">profiling</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/make.html">make</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/malloc.html">malloc</a>
-			</li>
-			<li class="tag-2">
-			  <a class="tag" href="http://codearcana.com/tag/ctf.html">ctf</a>
-			</li>
 		    </ul>
 		</div>
 

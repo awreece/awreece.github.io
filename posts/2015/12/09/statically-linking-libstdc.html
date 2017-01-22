@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <title>Statically linking libstdc++</title>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="http://codearcana.com/theme/css/main.css" type="text/css" />
+        <link href="http://codearcana.com/" type="application/atom+xml" rel="alternate" title="Code Arcana ATOM Feed" />
+
+
+        <!--[if IE]>
+                <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+        <!--[if lte IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://codearcana.com/css/ie.css"/>
+                <script src="http://codearcana.com/js/IE8.js" type="text/javascript"></script><![endif]-->
+
+        <!--[if lt IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://codearcana.com/css/ie6.css"/><![endif]-->
+
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="http://codearcana.com/index.html">Code Arcana </a></h1>
+                <nav><ul>
+                    <li><a href="http://codearcana.com">Blog</a></li>
+                    <li><a href="http://codearcana.com/archives.html">Archives</a></li>
+                </ul></nav>
+        </header><!-- /#banner -->
+
+<section id="content" class="body">
+<article>
+        <header> <h1 class="entry-title"><a href="posts/2015/12/09/statically-linking-libstdc.html"
+        rel="bookmark" title="Permalink to Statically linking libstdc++">Statically linking libstdc++</a></h1> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="awreece">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
+ </header>
+<footer class="post-info">
+        <abbr class="published" title="2015-12-09T00:00:00-08:00">
+                Wed 09 December 2015
+        </abbr>
+
+        <address class="vcard author">
+                By <a class="url fn" href="http://codearcana.com/author/alex-reece.html">Alex Reece</a>
+        </address>
+<p>In <a href="http://codearcana.com/category/software-engineering.html">software engineering</a>. </p>
+<p>tags: <a href="http://codearcana.com/tag/linking.html">linking</a><a href="http://codearcana.com/tag/gcc.html">gcc</a></p></footer><!-- /.post-info --><!-- /.post-info -->
+        <div class="entry-content">
+        <p>I recently found myself wanting to statically link <code>libstdc++</code> into a 
+library I was compiling and found it to be a surprising challenging process.</p>
+<h2>Small example library</h2>
+<p>I first started playing with a small example library:</p>
+<div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp"></span>
+
+<span class="n">__attribute__</span><span class="p">((</span><span class="n">noinline</span><span class="p">))</span>
+<span class="kt">void</span> <span class="n">bar</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">__FILE__</span> <span class="o">&lt;&lt;</span>  <span class="s">&quot; &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">__func__</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">foo</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="n">bar</span><span class="p">();</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Hello&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Before I even got to statically compiling <code>libstdc++</code>, I noticed something
+strange: The symbol <code>bar</code> was getting resolved through the PLT!</p>
+<div class="highlight"><pre><span></span><span class="gp">$</span> gcc -O3 -shared -fPIC foo.cpp -o foo.so
+<span class="gp">$</span> gdb foo.so --batch --ex <span class="s2">&quot;disas foo&quot;</span>
+<span class="go">Dump of assembler code for function _Z3foov:</span>
+<span class="go">   0x0000000000000b70 &lt;+0&gt;: push   %rbp</span>
+<span class="go">   0x0000000000000b71 &lt;+1&gt;: push   %rbx</span>
+<span class="go">   0x0000000000000b72 &lt;+2&gt;: sub    $0x8,%rsp</span>
+<span class="go">   0x0000000000000b76 &lt;+6&gt;: callq  0x960 &lt;_Z3barv@plt&gt;</span>
+<span class="go">... &lt;snip&gt; ...</span>
+</pre></div>
+
+
+<p>I played around with a couple of things, and eventualy figured out I could
+mark <code>bar</code> as having hidden visibility and then it wouldn't use this PLT.</p>
+<h2>Static <code>libstdc++</code>?</h2>
+<p><code>g++</code> has a command line option <code>-static-libstdc++</code> which appears to do
+exactly what I want. Unfortunately, the calls to the <code>libstdc++</code> symbols 
+are resolved via the PLT, as above with <code>bar</code>:</p>
+<div class="highlight"><pre><span></span><span class="gp">$</span> gcc -static-libstdc++ -O3 -shared -fPIC foo.cpp -o foo.so
+<span class="gp">$</span> /tmp% gdb foo.so --batch --ex <span class="s2">&quot;disas foo&quot;</span>
+<span class="go">   0x0000000000000b21 &lt;+1&gt;: push   %rbx</span>
+<span class="go">   0x0000000000000b22 &lt;+2&gt;: sub    $0x8,%rsp</span>
+<span class="go">   0x0000000000000b26 &lt;+6&gt;: callq  0xa80 &lt;_Z3barv&gt;</span>
+<span class="go">   0x0000000000000b2b &lt;+11&gt;:  mov    0x20049e(%rip),%rbx        # 0x200fd0</span>
+<span class="go">   0x0000000000000b32 &lt;+18&gt;:  lea    0x7a(%rip),%rsi        # 0xbb3</span>
+<span class="go">   0x0000000000000b39 &lt;+25&gt;:  mov    $0x5,%edx</span>
+<span class="go">   0x0000000000000b3e &lt;+30&gt;:  mov    %rbx,%rdi</span>
+<span class="go">   0x0000000000000b41 &lt;+33&gt;:  callq  0x930 &lt;_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l@plt&gt;</span>
+<span class="go">... &lt;snip&gt; ...</span>
+</pre></div>
+
+
+<p>I tried to do a cute trick to make all the C++ functions have hidden
+visibility:</p>
+<div class="highlight"><pre><span></span><span class="cp">#pragma GCC visibility push(hidden)</span>
+<span class="cp">#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp"></span>
+<span class="cp">#pragme GCC visibility pop</span>
+</pre></div>
+
+
+<p>Unfortunately, the symbols were <em>still</em> resolved via the PLT. What was going on?
+Could I force <code>g++</code> to just use the symbols in the binary it had a copy of rather
+than using the PLT?</p>
+<h2><code>Bsymbolic-functions</code></h2>
+<p>Some deep soul searching lead me to
+<a href="http://stackoverflow.com/q/7216973">a stack overflow post</a> where someone else
+had the same questions and talked about a flag that solved this exact problem.
+This allowed me to get rid of the visiblity annotation on <code>bar</code>, but it still didn't
+solve my libstdc++ problem.</p>
+<div class="highlight"><pre><span></span><span class="gp">$</span> gcc -static-libstdc++ -Wl,-Bsymbolic-functions -O3 -shared -fPIC foo.cpp -o foo.so
+</pre></div>
+
+
+<p>I eventually found the real issue: library order during linking. If I manually
+specified the <code>libstc++.a</code> library as the last library, the symbols would not
+be resolved via the plt:</p>
+<div class="highlight"><pre><span></span><span class="gp">$</span> gcc -static-libstdc++ -Wl,-Bsymbolic-functions -O3 -shared -fPIC foo.cpp -o foo.so <span class="k">$(</span>g++ <span class="nv">$CXXFLAGS</span> -print-file-name<span class="o">=</span>libstdc++.a<span class="k">)</span>
+<span class="gp">$</span> gdb foo.so --batch --ex <span class="s2">&quot;disas foo&quot;</span>
+<span class="go">Dump of assembler code for function _Z3foov:</span>
+<span class="go">   0x00000000000422e0 &lt;+0&gt;: push   %rbp</span>
+<span class="go">   0x00000000000422e1 &lt;+1&gt;: push   %rbx</span>
+<span class="go">   0x00000000000422e2 &lt;+2&gt;: sub    $0x8,%rsp</span>
+<span class="go">   0x00000000000422e6 &lt;+6&gt;: callq  0x42240 &lt;_Z3barv&gt;</span>
+<span class="go">   0x00000000000422eb &lt;+11&gt;:  mov    0x2756ae(%rip),%rbx        # 0x2b79a0</span>
+<span class="go">   0x00000000000422f2 &lt;+18&gt;:  lea    0x518ef(%rip),%rsi        # 0x93be8</span>
+<span class="go">   0x00000000000422f9 &lt;+25&gt;:  mov    $0x5,%edx</span>
+<span class="go">   0x00000000000422fe &lt;+30&gt;:  mov    %rbx,%rdi</span>
+<span class="go">   0x0000000000042301 &lt;+33&gt;:  callq  0x45670 &lt;_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l&gt;</span>
+<span class="go">... &lt;snip&gt; ...</span>
+</pre></div>
+
+
+<p>Specifing this static <code>libstdc++.a</code> as a final arg worked with both the
+<code>#pragma GCC visibility push(hidden)</code> trick and with <code>-Bsymbolic-functions</code>.</p>
+<h2>In <code>./configure</code></h2>
+<p>I had a <code>./configure</code> library that I wanted to build with a static <code>libstdc++</code>. Using
+what I learned above, this seemed relatively straightforward:</p>
+<div class="highlight"><pre><span></span><span class="go">./configure CXXFLAGS=&quot;-static-libstc++&quot; LDFLAGS=&quot;-Bsymbolic-functions&quot; LIBS=&quot;$(g++ -print-file-name=libstdc++.a)&quot;</span>
+</pre></div>
+
+
+<p>Unfortunately, this didn't work. Using <code>make VERBOSE=1</code>, I looked at the
+command used to link my library and saw the issue: <code>make</code> was calling
+<code>gcc</code> to link the library rather than <code>ld</code> but wasn't wrapping <code>LDFLAGS</code>.
+I did so manually and got my expected results, a static <code>libstdc++</code> where 
+none of the symbols were resolved using the PLT. My final <code>configure</code>
+invocation was:</p>
+<div class="highlight"><pre><span></span><span class="go">./configure CXXFLAGS=&quot;-static-libstc++&quot; LDFLAGS=&quot;-Wl,-Bsymbolic-functions&quot; LIBS=&quot;$(g++ -print-file-name=libstdc++.a)&quot;</span>
+</pre></div>
+        </div><!-- /.entry-content -->
+        <div class="comments">
+        <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+               var disqus_identifier = "posts/2015/12/09/statically-linking-libstdc.html";
+               (function() {
+               var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+               dsq.src = 'http://codearcana.disqus.com/embed.js';
+               (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+              })();
+            </script>
+        </div>
+
+</article>
+</section>
+
+        <aside id="sidebar">
+                <div class="widget">
+                        <h2>Categories</h2>
+                        <ul>
+                           <li ><a href="http://codearcana.com/category/performance.html">performance</a></li>
+                           <li ><a href="http://codearcana.com/category/security.html">security</a></li>
+                           <li class="active"><a href="http://codearcana.com/category/software-engineering.html">software engineering</a></li>
+                        </ul>
+		</div>
+		<div class="widget">
+		    <h2>Tags</h2>
+		    <ul class="cloud">
+		    </ul>
+		</div>
+
+
+                <div class="widget blogroll">
+                        <h2>Blogroll</h2>
+                        <ul>
+                            <li><a href="http://ppp.cylab.cmu.edu/wordpress/">PPP Blog</a></li>
+                            <li><a href="http://www.codinghorror.com/blog/">Coding Horror</a></li>
+                            <li><a href="http://blog.regehr.org/">Embedded in Academia</a></li>
+                            <li><a href="http://highscalability.com/">High Scalability</a></li>
+                            <li><a href="http://coderweekly.com/">Coder Weekly</a></li>
+                            <li><a href="http://www.phrack.org/">phrack</a></li>
+                            <li><a href="http://jbremer.org/">skier_'s blog</a></li>
+                            <li><a href="http://dtrace.org/blogs">dtrace blog</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="widget social">
+                        <h2>Social</h2>
+			<ul>
+                            <li><a href="http://codearcana.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate">atom feed</a></li>
+
+				<li><a href="https://twitter.com/awreece">twitter</a></li>
+				<li><a href="https://github.com/awreece">github</a></li>
+				<li><a href="https://plus.google.com/106589059588263736517/posts">google+</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </aside><!-- /#sidebar -->
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-40107691-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+</body>
+</html>

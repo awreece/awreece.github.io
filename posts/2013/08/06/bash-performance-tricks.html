@@ -25,7 +25,6 @@
                 <nav><ul>
                     <li><a href="http://codearcana.com">Blog</a></li>
                     <li><a href="http://codearcana.com/archives.html">Archives</a></li>
-                    <li ><a href="http://codearcana.com/pages/about.html">About</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
 
@@ -35,7 +34,7 @@
         rel="bookmark" title="Permalink to Bash Performance Tricks">Bash Performance Tricks</a></h1> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="awreece">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
  </header>
 <footer class="post-info">
-        <abbr class="published" title="2013-08-06T00:00:00">
+        <abbr class="published" title="2013-08-06T00:00:00-07:00">
                 Tue 06 August 2013
         </abbr>
 
@@ -60,33 +59,33 @@ and want to take great care not invoke another process while doing so (so
 Instead, we will use a <code>for</code> loop with <code>bash</code> expansions to iterate of each
 character. Finally, we will use <code>bash</code> 4.0 associative arrays map a letter to
 its corresponding index (for computing hash values).</p>
-<div class="highlight"><pre><span class="c"># We will return into this variable.</span>
+<div class="highlight"><pre><span></span><span class="c1"># We will return into this variable.</span>
 <span class="nb">declare</span> -i HASH_RESULT
-<span class="k">function </span>kr1  <span class="o">{</span>
-    <span class="nb">local </span><span class="nv">word</span><span class="o">=</span><span class="nv">$1</span>
+<span class="k">function</span> kr1  <span class="o">{</span>
+    <span class="nb">local</span> <span class="nv">word</span><span class="o">=</span><span class="nv">$1</span>
     <span class="nv">HASH_RESULT</span><span class="o">=</span>0
-    <span class="k">for</span> <span class="o">((</span> <span class="nv">i</span> <span class="o">=</span> 0; i &lt;<span class="k">${#</span><span class="nv">word</span><span class="k">}</span>; i++<span class="o">))</span>; <span class="k">do</span>
-<span class="k">        </span><span class="nb">local </span><span class="nv">letter</span><span class="o">=</span><span class="k">${</span><span class="nv">word</span><span class="p">:</span><span class="nv">$i</span><span class="p">:</span><span class="nv">1</span><span class="k">}</span>
+    <span class="k">for</span> <span class="o">((</span> <span class="nv">i</span> <span class="o">=</span> 0<span class="p">;</span> i &lt;<span class="si">${#</span><span class="nv">word</span><span class="si">}</span><span class="p">;</span> i++<span class="o">))</span><span class="p">;</span> <span class="k">do</span>
+        <span class="nb">local</span> <span class="nv">letter</span><span class="o">=</span><span class="si">${</span><span class="nv">word</span><span class="p">:</span><span class="nv">$i</span><span class="p">:</span><span class="nv">1</span><span class="si">}</span>
         <span class="o">((</span> HASH_RESULT +<span class="o">=</span> letter_value<span class="o">[</span><span class="nv">$letter</span><span class="o">]</span> <span class="o">))</span>
     <span class="k">done</span>
 <span class="o">}</span>
 </pre></div>
 
 
-<p>Full program source below<sup id="fnref:1"><a class="footnote-ref" href="#fn:1" rel="footnote">1</a></sup>. With the hash function implemented, it is fairly
+<p>Full program source below<sup id="fnref-1"><a class="footnote-ref" href="#fn-1">1</a></sup>. With the hash function implemented, it is fairly
 straightforward to finish the rest of the program:</p>
-<div class="highlight"><pre><span class="k">while </span><span class="nb">read </span>word; <span class="k">do</span>
-<span class="k">    </span>kr1 <span class="nv">$word</span>
+<div class="highlight"><pre><span></span><span class="k">while</span> <span class="nb">read</span> word<span class="p">;</span> <span class="k">do</span>
+    kr1 <span class="nv">$word</span>
 
     <span class="o">((</span> hash_to_count<span class="o">[</span><span class="nv">$HASH_RESULT</span><span class="o">]</span>++ <span class="o">))</span>
-    hash_to_words<span class="o">[</span><span class="nv">$HASH_RESULT</span><span class="o">]</span>+<span class="o">=</span><span class="s2">&quot; $word&quot;</span>
+    hash_to_words<span class="o">[</span><span class="nv">$HASH_RESULT</span><span class="o">]</span>+<span class="o">=</span><span class="s2">&quot; </span><span class="nv">$word</span><span class="s2">&quot;</span>
 
-    <span class="k">if</span> <span class="o">((</span> hash_to_count<span class="o">[</span><span class="nv">$HASH_RESULT</span><span class="o">]</span> &gt; max_count <span class="o">))</span>; <span class="k">then</span>
-<span class="k">        </span><span class="nv">max_count</span><span class="o">=</span><span class="k">${</span><span class="nv">hash_to_count</span><span class="p">[</span><span class="nv">$HASH_RESULT</span><span class="p">]</span><span class="k">}</span>
+    <span class="k">if</span> <span class="o">((</span> hash_to_count<span class="o">[</span><span class="nv">$HASH_RESULT</span><span class="o">]</span> &gt; max_count <span class="o">))</span><span class="p">;</span> <span class="k">then</span>
+        <span class="nv">max_count</span><span class="o">=</span><span class="si">${</span><span class="nv">hash_to_count</span><span class="p">[</span><span class="nv">$HASH_RESULT</span><span class="p">]</span><span class="si">}</span>
         <span class="nv">max_hash</span><span class="o">=</span><span class="nv">$HASH_RESULT</span>
     <span class="k">fi</span>
 <span class="k">done</span> &lt;word.lst
-<span class="nb">echo</span> <span class="k">${</span><span class="nv">hash_to_words</span><span class="p">[</span><span class="nv">$max_hash</span><span class="p">]</span><span class="k">}</span>
+<span class="nb">echo</span> <span class="si">${</span><span class="nv">hash_to_words</span><span class="p">[</span><span class="nv">$max_hash</span><span class="p">]</span><span class="si">}</span>
 </pre></div>
 
 
@@ -94,42 +93,42 @@ straightforward to finish the rest of the program:</p>
 other <code>bash</code> solutions by a fair margin, but I wanted to see if I could do better.
 I ran it under a profiler and saw that it was spending all its time in many
 nested layers of <code>execute_command</code>.</p>
-<p><img alt="bash profiling run" src="http://codearcana.com/images/bash_perf_stack_trace.png" title="hash.bash has many nested calls to execute_command" /></p>
+<p><img alt="bash profiling run" src="http://codearcana.com/images/bash_perf_stack_trace.png" title="hash.bash has many nested calls to execute_command"></p>
 <p>This gave me the idea to try inlining the function call. Quickly prototyping a
 variation using an inlined function call, I run some trials (and collect statistics
-with my favorite tool, <code>histogram.py</code><sup id="fnref:2"><a class="footnote-ref" href="#fn:2" rel="footnote">2</a></sup>):</p>
-<div class="highlight"><pre><span class="k">for </span>variation in hash.bash hash.bash.inlined; <span class="k">do</span>
-<span class="k">  </span><span class="nb">echo</span> <span class="nv">$variation</span>
-  <span class="k">for </span>trial in <span class="o">{</span>1..30<span class="o">}</span>; <span class="k">do</span>
-<span class="k">    </span><span class="nv">start</span><span class="o">=</span><span class="nv">$EPOCHREALTIME</span>
+with my favorite tool, <code>histogram.py</code><sup id="fnref-2"><a class="footnote-ref" href="#fn-2">2</a></sup>):</p>
+<div class="highlight"><pre><span></span><span class="k">for</span> variation in hash.bash hash.bash.inlined<span class="p">;</span> <span class="k">do</span>
+  <span class="nb">echo</span> <span class="nv">$variation</span>
+  <span class="k">for</span> trial in <span class="o">{</span>1..30<span class="o">}</span><span class="p">;</span> <span class="k">do</span>
+    <span class="nv">start</span><span class="o">=</span><span class="nv">$EPOCHREALTIME</span>
     bash <span class="nv">$variation</span> &gt; /dev/null
     <span class="nb">echo</span> <span class="k">$((</span>EPOCHREALTIME <span class="o">-</span> start<span class="k">))</span>
-  <span class="k">done</span> | histogram.py --confidence<span class="o">=</span>.90 | head -n 2
+  <span class="k">done</span> <span class="p">|</span> histogram.py --confidence<span class="o">=</span>.90 <span class="p">|</span> head -n 2
   <span class="nb">echo</span>
 <span class="k">done</span>
 hash.bash
-<span class="c"># NumSamples = 30; Min = 3.43; Max = 3.99</span>
-<span class="c"># Mean = 3.529906 (+/- 0.028584); Variance = 0.009060; SD = 0.095184; Median 3.509426</span>
+<span class="c1"># NumSamples = 30; Min = 3.43; Max = 3.99</span>
+<span class="c1"># Mean = 3.529906 (+/- 0.028584); Variance = 0.009060; SD = 0.095184; Median 3.509426</span>
 
 hash.bash.inlined
-<span class="c"># NumSamples = 30; Min = 2.84; Max = 3.16</span>
-<span class="c"># Mean = 2.932449 (+/- 0.016860); Variance = 0.003152; SD = 0.056141; Median 2.917874</span>
+<span class="c1"># NumSamples = 30; Min = 2.84; Max = 3.16</span>
+<span class="c1"># Mean = 2.932449 (+/- 0.016860); Variance = 0.003152; SD = 0.056141; Median 2.917874</span>
 </pre></div>
 
 
 <p>As you can see, there is a greater than 15% improvement gain from inlining the
 function! We take this approach further, removing the local variable <code>letter</code> and
 making our code compact:</p>
-<div class="highlight"><pre><span class="k">for</span> <span class="o">((</span> <span class="nv">i</span> <span class="o">=</span> 0; i &lt;<span class="k">${#</span><span class="nv">word</span><span class="k">}</span>; i++<span class="o">))</span>; <span class="k">do</span>
-    <span class="o">((</span> HASH_RESULT +<span class="o">=</span> letter_value<span class="o">[</span><span class="k">${</span><span class="nv">word</span><span class="p">:</span><span class="nv">$i</span><span class="p">:</span><span class="nv">1</span><span class="k">}</span><span class="o">]</span> <span class="o">))</span>
+<div class="highlight"><pre><span></span><span class="k">for</span> <span class="o">((</span> <span class="nv">i</span> <span class="o">=</span> 0<span class="p">;</span> i &lt;<span class="si">${#</span><span class="nv">word</span><span class="si">}</span><span class="p">;</span> i++<span class="o">))</span><span class="p">;</span> <span class="k">do</span>
+    <span class="o">((</span> HASH_RESULT +<span class="o">=</span> letter_value<span class="o">[</span><span class="si">${</span><span class="nv">word</span><span class="p">:</span><span class="nv">$i</span><span class="p">:</span><span class="nv">1</span><span class="si">}</span><span class="o">]</span> <span class="o">))</span>
 <span class="k">done</span>
 </pre></div>
 
 
 <p>Running with this variation, we see yet another significant improvement:</p>
-<div class="highlight"><pre>hash.bash.inline_nolocals
-<span class="c"># NumSamples = 30; Min = 2.69; Max = 2.84</span>
-<span class="c"># Mean = 2.749286 (+/- 0.010406); Variance = 0.001201; SD = 0.034651; Median 2.746643</span>
+<div class="highlight"><pre><span></span>hash.bash.inline_nolocals
+<span class="c1"># NumSamples = 30; Min = 2.69; Max = 2.84</span>
+<span class="c1"># Mean = 2.749286 (+/- 0.010406); Variance = 0.001201; SD = 0.034651; Median 2.746643</span>
 </pre></div>
 
 
@@ -137,49 +136,49 @@ making our code compact:</p>
 first time the runtime of an <code>execute_command</code> call isn't dominated by another
 recursive call to <code>execute_command</code>, the function <code>eval_arith_for_expr</code> consumes
 a large portion of the time.</p>
-<p><img alt="optimized bash perf" src="http://codearcana.com/images/bash_perf_eval_arith.png" title="eval_arith_for_expr is a serious part of this function's runtime" /></p>
+<p><img alt="optimized bash perf" src="http://codearcana.com/images/bash_perf_eval_arith.png" title="eval_arith_for_expr is a serious part of this function's runtime"></p>
 <p>Furthermore, we see that a large portion of the rest of the time is eventually spent
 in <code>expand_word_list_internal</code>:</p>
-<p><img alt="optimized bash perf" src="http://codearcana.com/images/bash_perf_expand_word.png" title="expand_word_list_internal is also a serious part of this function's runtime" /></p>
+<p><img alt="optimized bash perf" src="http://codearcana.com/images/bash_perf_expand_word.png" title="expand_word_list_internal is also a serious part of this function's runtime"></p>
 <p>These observations lead us to another technique - we will use only one character
 variable names to try to optimize for these two functions. Running again with all of
 these optimizations, we get a huge performance improvement:</p>
-<div class="highlight"><pre>hash.bash.one_char_names
-<span class="c"># NumSamples = 30; Min = 2.33; Max = 2.44</span>
-<span class="c"># Mean = 2.371499 (+/- 0.008031); Variance = 0.000715; SD = 0.026743; Median 2.363547</span>
+<div class="highlight"><pre><span></span>hash.bash.one_char_names
+<span class="c1"># NumSamples = 30; Min = 2.33; Max = 2.44</span>
+<span class="c1"># Mean = 2.371499 (+/- 0.008031); Variance = 0.000715; SD = 0.026743; Median 2.363547</span>
 </pre></div>
 
 
 <p>We can take this further, but I think I'm going to quit here for now - I improved
 performance by almost 50% by using a profiler and some <code>bash</code>-foo. Final program
-below<sup id="fnref:3"><a class="footnote-ref" href="#fn:3" rel="footnote">3</a></sup>. One final note -
+below<sup id="fnref-3"><a class="footnote-ref" href="#fn-3">3</a></sup>. One final note -
 for the love of all that is holy, don't write performant programs in <code>bash</code>! </p>
 <div class="footnote">
-<hr />
+<hr>
 <ol>
-<li id="fn:1">
+<li id="fn-1">
 <p>Initial program.</p>
-<div class="highlight"><pre><span class="c">#!/usr/bin/env bash</span>
+<div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env bash</span>
 
-<span class="k">if</span> <span class="o">((</span>BASH_VERSINFO<span class="o">[</span>0<span class="o">]</span> &lt; 4<span class="o">))</span>; <span class="k">then</span>
-<span class="k">  </span><span class="nb">echo</span> <span class="s2">&quot;Sorry, you need at least bash-4.0 to run this script.&quot;</span> &gt;&amp;2
-  <span class="nb">exit </span>1
+<span class="k">if</span> <span class="o">((</span>BASH_VERSINFO<span class="o">[</span>0<span class="o">]</span> &lt; 4<span class="o">))</span><span class="p">;</span> <span class="k">then</span>
+  <span class="nb">echo</span> <span class="s2">&quot;Sorry, you need at least bash-4.0 to run this script.&quot;</span> &gt;<span class="p">&amp;</span>2
+  <span class="nb">exit</span> 1
 <span class="k">fi</span>
 
-<span class="c"># An associate array mapping each letter to its index.</span>
+<span class="c1"># An associate array mapping each letter to its index.</span>
 <span class="nb">declare</span> -A letter_value
-<span class="nv">i</span><span class="o">=</span>97  <span class="c"># ascii &#39;a&#39;.</span>
-<span class="k">for </span>letter in a b c d e f g h i j k l m n o p q r s t u v w x y z; <span class="k">do</span>
-<span class="k">  </span>letter_value<span class="o">[</span><span class="nv">$letter</span><span class="o">]=</span><span class="k">$((</span>i++<span class="k">))</span>
+<span class="nv">i</span><span class="o">=</span><span class="m">97</span>  <span class="c1"># ascii &#39;a&#39;.</span>
+<span class="k">for</span> letter in a b c d e f g h i j k l m n o p q r s t u v w x y z<span class="p">;</span> <span class="k">do</span>
+  letter_value<span class="o">[</span><span class="nv">$letter</span><span class="o">]=</span><span class="k">$((</span>i++<span class="k">))</span>
 <span class="k">done</span>
 
-<span class="c"># We will return into this variable.</span>
+<span class="c1"># We will return into this variable.</span>
 <span class="nb">declare</span> -i HASH_RESULT
-<span class="k">function </span>kr1  <span class="o">{</span>
-    <span class="nb">local </span><span class="nv">word</span><span class="o">=</span><span class="nv">$1</span>
+<span class="k">function</span> kr1  <span class="o">{</span>
+    <span class="nb">local</span> <span class="nv">word</span><span class="o">=</span><span class="nv">$1</span>
     <span class="nv">HASH_RESULT</span><span class="o">=</span>0
-    <span class="k">for</span> <span class="o">((</span> <span class="nv">i</span> <span class="o">=</span> 0; i &lt;<span class="k">${#</span><span class="nv">word</span><span class="k">}</span>; i++<span class="o">))</span>; <span class="k">do</span>
-<span class="k">        </span><span class="nb">local </span><span class="nv">letter</span><span class="o">=</span><span class="k">${</span><span class="nv">word</span><span class="p">:</span><span class="nv">$i</span><span class="p">:</span><span class="nv">1</span><span class="k">}</span>
+    <span class="k">for</span> <span class="o">((</span> <span class="nv">i</span> <span class="o">=</span> 0<span class="p">;</span> i &lt;<span class="si">${#</span><span class="nv">word</span><span class="si">}</span><span class="p">;</span> i++<span class="o">))</span><span class="p">;</span> <span class="k">do</span>
+        <span class="nb">local</span> <span class="nv">letter</span><span class="o">=</span><span class="si">${</span><span class="nv">word</span><span class="p">:</span><span class="nv">$i</span><span class="p">:</span><span class="nv">1</span><span class="si">}</span>
         <span class="o">((</span> HASH_RESULT +<span class="o">=</span> letter_value<span class="o">[</span><span class="nv">$letter</span><span class="o">]</span> <span class="o">))</span>
     <span class="k">done</span>
 <span class="o">}</span>
@@ -190,43 +189,43 @@ for the love of all that is holy, don't write performant programs in <code>bash<
 <span class="nb">declare</span> -i <span class="nv">max_count</span><span class="o">=</span>0
 <span class="nb">declare</span> -i <span class="nv">max_hash</span><span class="o">=</span>-1
 
-<span class="k">while </span><span class="nb">read </span>word; <span class="k">do</span>
-<span class="k">    </span>kr1 <span class="nv">$word</span>
+<span class="k">while</span> <span class="nb">read</span> word<span class="p">;</span> <span class="k">do</span>
+    kr1 <span class="nv">$word</span>
 
     <span class="o">((</span> hash_to_count<span class="o">[</span><span class="nv">$HASH_RESULT</span><span class="o">]</span>++ <span class="o">))</span>
-    hash_to_words<span class="o">[</span><span class="nv">$HASH_RESULT</span><span class="o">]</span>+<span class="o">=</span><span class="s2">&quot; $word&quot;</span>
+    hash_to_words<span class="o">[</span><span class="nv">$HASH_RESULT</span><span class="o">]</span>+<span class="o">=</span><span class="s2">&quot; </span><span class="nv">$word</span><span class="s2">&quot;</span>
 
-    <span class="k">if</span> <span class="o">((</span> hash_to_count<span class="o">[</span><span class="nv">$HASH_RESULT</span><span class="o">]</span> &gt; max_count <span class="o">))</span>; <span class="k">then</span>
-<span class="k">        </span><span class="nv">max_count</span><span class="o">=</span><span class="k">${</span><span class="nv">hash_to_count</span><span class="p">[</span><span class="nv">$HASH_RESULT</span><span class="p">]</span><span class="k">}</span>
+    <span class="k">if</span> <span class="o">((</span> hash_to_count<span class="o">[</span><span class="nv">$HASH_RESULT</span><span class="o">]</span> &gt; max_count <span class="o">))</span><span class="p">;</span> <span class="k">then</span>
+        <span class="nv">max_count</span><span class="o">=</span><span class="si">${</span><span class="nv">hash_to_count</span><span class="p">[</span><span class="nv">$HASH_RESULT</span><span class="p">]</span><span class="si">}</span>
         <span class="nv">max_hash</span><span class="o">=</span><span class="nv">$HASH_RESULT</span>
     <span class="k">fi</span>
 <span class="k">done</span> &lt;word.lst
 
-<span class="nb">echo</span> <span class="k">${</span><span class="nv">hash_to_words</span><span class="p">[</span><span class="nv">$max_hash</span><span class="p">]</span><span class="k">}</span>
+<span class="nb">echo</span> <span class="si">${</span><span class="nv">hash_to_words</span><span class="p">[</span><span class="nv">$max_hash</span><span class="p">]</span><span class="si">}</span>
 </pre></div>
 
 
-<p><a class="footnote-backref" href="#fnref:1" rev="footnote" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+<p><a class="footnote-backref" href="#fnref-1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
 </li>
-<li id="fn:2">
+<li id="fn-2">
 <p>Here I'm using a <a href="https://github.com/awreece/data_hacks">modified version</a>
   of <code>bitly/data_hacks</code> that includes the flag <code>--confidence</code> specifying a
-     confidence interval around the mean to report.&#160;<a class="footnote-backref" href="#fnref:2" rev="footnote" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+     confidence interval around the mean to report.&#160;<a class="footnote-backref" href="#fnref-2" title="Jump back to footnote 2 in the text">&#8617;</a></p>
 </li>
-<li id="fn:3">
+<li id="fn-3">
 <p>Final program.</p>
-<div class="highlight"><pre><span class="c">#!/usr/local/bin/bash</span>
+<div class="highlight"><pre><span></span><span class="ch">#!/usr/local/bin/bash</span>
 
-<span class="k">if</span> <span class="o">((</span>BASH_VERSINFO<span class="o">[</span>0<span class="o">]</span> &lt; 4<span class="o">))</span>; <span class="k">then</span>
-<span class="k">  </span><span class="nb">echo</span> <span class="s2">&quot;Sorry, you need at least bash-4.0 to run this script.&quot;</span> &gt;&amp;2
-  <span class="nb">exit </span>1
+<span class="k">if</span> <span class="o">((</span>BASH_VERSINFO<span class="o">[</span>0<span class="o">]</span> &lt; 4<span class="o">))</span><span class="p">;</span> <span class="k">then</span>
+  <span class="nb">echo</span> <span class="s2">&quot;Sorry, you need at least bash-4.0 to run this script.&quot;</span> &gt;<span class="p">&amp;</span>2
+  <span class="nb">exit</span> 1
 <span class="k">fi</span>
 
-<span class="c"># An associate array mapping each letter to its index.</span>
+<span class="c1"># An associate array mapping each letter to its index.</span>
 <span class="nb">declare</span> -A l
-<span class="nv">i</span><span class="o">=</span>97  <span class="c"># ascii &#39;a&#39;.</span>
-<span class="k">for </span>letter in a b c d e f g h i j k l m n o p q r s t u v w x y z; <span class="k">do</span>
-<span class="k">  </span>l<span class="o">[</span><span class="nv">$letter</span><span class="o">]=</span><span class="k">$((</span>i++<span class="k">))</span>
+<span class="nv">i</span><span class="o">=</span><span class="m">97</span>  <span class="c1"># ascii &#39;a&#39;.</span>
+<span class="k">for</span> letter in a b c d e f g h i j k l m n o p q r s t u v w x y z<span class="p">;</span> <span class="k">do</span>
+  l<span class="o">[</span><span class="nv">$letter</span><span class="o">]=</span><span class="k">$((</span>i++<span class="k">))</span>
 <span class="k">done</span>
 
 <span class="nb">declare</span> -a c
@@ -235,26 +234,26 @@ for the love of all that is holy, don't write performant programs in <code>bash<
 <span class="nb">declare</span> -i <span class="nv">m</span><span class="o">=</span>0
 <span class="nb">declare</span> -i <span class="nv">n</span><span class="o">=</span>-1
 
-<span class="k">while </span><span class="nb">read </span>w; <span class="k">do</span>
-<span class="k">    </span><span class="nv">h</span><span class="o">=</span>0
-    <span class="k">for</span> <span class="o">((</span> <span class="nv">i</span> <span class="o">=</span> 0; i &lt;<span class="k">${#</span><span class="nv">w</span><span class="k">}</span>; i++<span class="o">))</span>; <span class="k">do</span>
-        <span class="o">((</span> h +<span class="o">=</span> l<span class="o">[</span><span class="k">${</span><span class="nv">w</span><span class="p">:</span><span class="nv">$i</span><span class="p">:</span><span class="nv">1</span><span class="k">}</span><span class="o">]</span> <span class="o">))</span>
+<span class="k">while</span> <span class="nb">read</span> w<span class="p">;</span> <span class="k">do</span>
+    <span class="nv">h</span><span class="o">=</span>0
+    <span class="k">for</span> <span class="o">((</span> <span class="nv">i</span> <span class="o">=</span> 0<span class="p">;</span> i &lt;<span class="si">${#</span><span class="nv">w</span><span class="si">}</span><span class="p">;</span> i++<span class="o">))</span><span class="p">;</span> <span class="k">do</span>
+        <span class="o">((</span> h +<span class="o">=</span> l<span class="o">[</span><span class="si">${</span><span class="nv">w</span><span class="p">:</span><span class="nv">$i</span><span class="p">:</span><span class="nv">1</span><span class="si">}</span><span class="o">]</span> <span class="o">))</span>
     <span class="k">done</span>
 
     <span class="o">((</span> c<span class="o">[</span><span class="nv">$h</span><span class="o">]</span>++ <span class="o">))</span>
-    v<span class="o">[</span><span class="nv">$h</span><span class="o">]</span>+<span class="o">=</span><span class="s2">&quot; $w&quot;</span>
+    v<span class="o">[</span><span class="nv">$h</span><span class="o">]</span>+<span class="o">=</span><span class="s2">&quot; </span><span class="nv">$w</span><span class="s2">&quot;</span>
 
-    <span class="k">if</span> <span class="o">((</span> c<span class="o">[</span><span class="nv">$h</span><span class="o">]</span> &gt; m <span class="o">))</span>; <span class="k">then</span>
-<span class="k">        </span><span class="nv">m</span><span class="o">=</span><span class="k">${</span><span class="nv">c</span><span class="p">[</span><span class="nv">$h</span><span class="p">]</span><span class="k">}</span>
+    <span class="k">if</span> <span class="o">((</span> c<span class="o">[</span><span class="nv">$h</span><span class="o">]</span> &gt; m <span class="o">))</span><span class="p">;</span> <span class="k">then</span>
+        <span class="nv">m</span><span class="o">=</span><span class="si">${</span><span class="nv">c</span><span class="p">[</span><span class="nv">$h</span><span class="p">]</span><span class="si">}</span>
         <span class="nv">n</span><span class="o">=</span><span class="nv">$h</span>
     <span class="k">fi</span>
 <span class="k">done</span> &lt;word.lst
 
-<span class="nb">echo</span> <span class="k">${</span><span class="nv">v</span><span class="p">[</span><span class="nv">$n</span><span class="p">]</span><span class="k">}</span>
+<span class="nb">echo</span> <span class="si">${</span><span class="nv">v</span><span class="p">[</span><span class="nv">$n</span><span class="p">]</span><span class="si">}</span>
 </pre></div>
 
 
-<p><a class="footnote-backref" href="#fnref:3" rev="footnote" title="Jump back to footnote 3 in the text">&#8617;</a></p>
+<p><a class="footnote-backref" href="#fnref-3" title="Jump back to footnote 3 in the text">&#8617;</a></p>
 </li>
 </ol>
 </div>
@@ -287,36 +286,6 @@ for the love of all that is holy, don't write performant programs in <code>bash<
 		<div class="widget">
 		    <h2>Tags</h2>
 		    <ul class="cloud">
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/theory.html">theory</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/omnios.html">omnios</a>
-			</li>
-			<li class="tag-2">
-			  <a class="tag" href="http://codearcana.com/tag/golang.html">golang</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/tutorial.html">tutorial</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/exploitation.html">exploitation</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/gdb.html">gdb</a>
-			</li>
-			<li class="tag-1">
-			  <a class="tag" href="http://codearcana.com/tag/profiling.html">profiling</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/make.html">make</a>
-			</li>
-			<li class="tag-4">
-			  <a class="tag" href="http://codearcana.com/tag/malloc.html">malloc</a>
-			</li>
-			<li class="tag-2">
-			  <a class="tag" href="http://codearcana.com/tag/ctf.html">ctf</a>
-			</li>
 		    </ul>
 		</div>
 

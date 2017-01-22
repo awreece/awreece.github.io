@@ -1,5 +1,384 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/performance.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2013-08-06T00:00:00-07:00</updated><entry><title>Bash Performance Tricks</title><link href="http://codearcana.com/posts/2013/08/06/bash-performance-tricks.html" rel="alternate"></link><updated>2013-08-06T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-08-06:posts/2013/08/06/bash-performance-tricks.html</id><summary type="html">&lt;p&gt;My coworkers presented a silly programming interview style question to
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana - performance</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/performance.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2016-07-21T00:00:00-07:00</updated><entry><title>Fast query log with tcpdump and tshark</title><link href="http://codearcana.com/posts/2016/07/21/fast-query-log-with-tcpdump-and-tshark.html" rel="alternate"></link><published>2016-07-21T00:00:00-07:00</published><updated>2016-07-21T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2016-07-21:/posts/2016/07/21/fast-query-log-with-tcpdump-and-tshark.html</id><summary type="html">&lt;p&gt;&lt;a href="http://blog.memsql.com/dbbench-active-benchmarking/"&gt;&lt;code&gt;dbbench&lt;/code&gt;&lt;/a&gt; is a tool I've been working on for a while at MemSQL. It is an open source database workload driver engineers at MemSQL and I use for performance testing. One often-overlooked feature in &lt;code&gt;dbbench&lt;/code&gt; is the ability to replay query log files. Previously, this was a somewhat manual process …&lt;/p&gt;</summary><content type="html">&lt;p&gt;&lt;a href="http://blog.memsql.com/dbbench-active-benchmarking/"&gt;&lt;code&gt;dbbench&lt;/code&gt;&lt;/a&gt; is a tool I've been working on for a while at MemSQL. It is an open source database workload driver engineers at MemSQL and I use for performance testing. One often-overlooked feature in &lt;code&gt;dbbench&lt;/code&gt; is the ability to replay query log files. Previously, this was a somewhat manual process; however, I recently figured out how to generate a &lt;code&gt;dbbench&lt;/code&gt; compatible query log file from a &lt;code&gt;tcpdump&lt;/code&gt; packet capture.&lt;/p&gt;
+&lt;p&gt;Make sure to filter for only packets &lt;em&gt;to&lt;/em&gt; this host and only packets &lt;em&gt;to&lt;/em&gt; &lt;code&gt;memsql&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; sudo tcpdump -w - &lt;span class="s1"&gt;&amp;#39;dst net 172.16.134.129 and tcp port 3306&amp;#39;&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+&lt;span class="go"&gt;    tshark -Y &amp;#39;mysql.command == query&amp;#39; -Tfields -e &amp;#39;frame.time_epoch&amp;#39; -e&amp;#39;mysql.query&amp;#39; -r - -Eseparator=, | \&lt;/span&gt;
+&lt;span class="go"&gt;    awk -F, -v OFS=, &amp;#39;{ $1=int($1 * 1000000); print}&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This generates a &lt;code&gt;dbbench&lt;/code&gt; compatible query log file:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;1469147706082709,select @@version_comment limit 1
+1469147706083398,SELECT DATABASE()
+1469147706084257,select database()
+1469147706084701,select 1+1
+1469147706085110,select &amp;#39;alex&amp;#39;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;If you see packet drops, you can try to filter mysql queries in the kernel:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; sudo tcpdump -w - &lt;span class="s1"&gt;&amp;#39;dst net 172.16.134.129 and tcp port 3306 and tcp[36] == 3&amp;#39;&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+&lt;span class="go"&gt;    tshark -Tfields -e &amp;#39;frame.time_epoch&amp;#39; -e&amp;#39;mysql.query&amp;#39; -r - -Eseparator=, | \&lt;/span&gt;
+&lt;span class="go"&gt;    awk -F, -v OFS=, &amp;#39;{ $1=int($1 * 1000000); print}&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This is a bit spooky, because the tcp header length can actually change a bit (e.g. if special tcp options are used).&lt;sup id="fnref-1"&gt;&lt;a class="footnote-ref" href="#fn-1"&gt;1&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
+&lt;p&gt;You can also capture the packets into a pcap file and process them elsewhere if you want:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; cat out.pcap &lt;span class="p"&gt;|&lt;/span&gt; tshark -Y &lt;span class="s1"&gt;&amp;#39;mysql.command == query&amp;#39;&lt;/span&gt; -Tfields -e &lt;span class="s1"&gt;&amp;#39;frame.time_epoch&amp;#39;&lt;/span&gt; -e&lt;span class="s1"&gt;&amp;#39;mysql.query&amp;#39;&lt;/span&gt; -r - -Eseparator&lt;span class="o"&gt;=&lt;/span&gt;, &lt;span class="p"&gt;|&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+&lt;span class="go"&gt;    awk -F, -v OFS=, &amp;#39;{ $1=int($1 * 1000000); print}&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Note you can use &lt;code&gt;frame.time_relative&lt;/code&gt; if you want; then the timestamps for each query will be relative to the start of the file. &lt;/p&gt;
+&lt;div class="footnote"&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id="fn-1"&gt;
+&lt;p&gt;Is it possible to filter on &lt;code&gt;tcp.data[]&lt;/code&gt; in the &lt;code&gt;tcpdump&lt;/code&gt; syntax? I'll buy a (root)beer for anyone who shows me how.&amp;#160;&lt;a class="footnote-backref" href="#fnref-1" title="Jump back to footnote 1 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;</content><category term="Linux"></category><category term="tcpdump"></category><category term="wireshark"></category><category term="dbbench"></category></entry><entry><title>An informal survey of Linux dynamic tracers</title><link href="http://codearcana.com/posts/2016/01/09/an-informal-survey-of-linux-dynamic-tracers.html" rel="alternate"></link><published>2016-01-09T00:00:00-08:00</published><updated>2016-01-09T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2016-01-09:/posts/2016/01/09/an-informal-survey-of-linux-dynamic-tracers.html</id><summary type="html">&lt;p&gt;I survey some dynamic tracers (e.g. perf, sysdig) available on Linux.&lt;/p&gt;</summary><content type="html">&lt;p&gt;I've gotten some questions about the choice of &lt;code&gt;perf&lt;/code&gt; over all the other
+available Linux tracers. This blog post is a quick overview of my personal
+experiencing trying several tracers; it is not intended to be authoritative.&lt;/p&gt;
+&lt;h2&gt;My requirements&lt;/h2&gt;
+&lt;p&gt;Since I use dynamic tracers to iteratively answer
+&lt;a href="http://codearcana.com/posts/2016/01/03/dtrace-isnt-just-a-tool-its-a-philosophy.html"&gt;questions&lt;/a&gt; about production systems, I have
+several requirements. I'll order them here based on their priority to me:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;A good tracing tool is stable. I do not want my production systems crashing.&lt;/li&gt;
+&lt;li&gt;A good tracing tool is low overhead. I want to use it in production
+     environments, so it cannot substantially affect system performance.
+     This usually means I want some sort of selective filtering or early
+     output aggregation.&lt;/li&gt;
+&lt;li&gt;A good tracing tool can collect userspace stacks. The most frequent
+     question I ask is "Why is my application X", and userspace stacks are the
+     number one way I answer this question.&lt;/li&gt;
+&lt;li&gt;A good tracing tool has visibility into the kernel. I am frequently asking
+     questions about the system (e.g. "Why am I descheduled?" or "Why am I doing
+     disk IO?") that can only be answered effectively with kernel support.&lt;/li&gt;
+&lt;li&gt;A good tracing tool is easily usable on old (e.g. pre-3.2 kernel)
+     systems. For many of my customers, upgrading (especially to mainline
+     kernel) is a frightening proposition.&lt;/li&gt;
+&lt;li&gt;A good tracing tool already exists on the system. A great tracing tool
+     doesn't require special packages to be installed. For many of my customers,
+     installing new software (especially on a production server) is a
+     challenging or painful process.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;Tracers I have tried&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://elinux.org/Ftrace"&gt;&lt;code&gt;ftrace&lt;/code&gt;&lt;/a&gt;: Powerful building block that doesn't
+    have a satisfactory front
+    end yet. Brendan Gregg has some good tools in his
+    &lt;a href="https://github.com/brendangregg/perf-tools"&gt;perf-tools&lt;/a&gt; package.
+    Enabled by default even on old kernels and usable with no external packages,
+    but requires root.
+    Has some quirks: for example, I had difficulty getting userspace stacks to
+    work reliably across all events when I tried it.&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href="https://perf.wiki.kernel.org/index.php/Main_Page"&gt;&lt;code&gt;perf&lt;/code&gt;&lt;/a&gt;: Rapidly growing
+    frontend for many other kernel tracing subsystems,
+    including parts of &lt;code&gt;ftrace&lt;/code&gt;. Has a huge surface area in the kernel and
+    in userspace. Kernel support for &lt;code&gt;perf&lt;/code&gt; is very common, although the
+    userspace frontent requires a package to be installed. Provides little
+    to no support&lt;sup id="fnref-1"&gt;&lt;a class="footnote-ref" href="#fn-1"&gt;1&lt;/a&gt;&lt;/sup&gt; for in-kernel aggregation (some support for event filtering)
+    so all data must be post-processed in userspace -- this can have a large
+    performance effect for very frequent events (e.g. scheduler events).
+    For this reason, I find the interface pretty clunky.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;perf&lt;/code&gt; is my current favorite tracer because of the support, surface area, and
+because it can be used in production environments without custom kernel
+modules.    &lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href="https://sourceware.org/systemtap/"&gt;&lt;code&gt;systemtap&lt;/code&gt;&lt;/a&gt;: I can't really find
+    evidence of people using this legitimately
+    except to do kernel development. Was hard to install (required massive
+    download of debug symbols and a custom kernel??). I have concerns about its
+    viability for production environments.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://www.sysdig.org/"&gt;&lt;code&gt;sysdig&lt;/code&gt;&lt;/a&gt;: A glorious user interface and easy to
+    install, but definitely the
+    new kid on the block. Requires a custom kernel module to be installed.
+    Only traces at the syscall boundary, which is good enough for some use
+    cases, but I generally prefer more visibility into the kernel (for example,
+    to see that we're getting descheduled due to page faults, etc).
+    Doesn't have a way to filter or aggregate in-kernel events (by design) and
+    cannot collect stack traces. These developers seemed very open
+    to outside contributors and upstream their work pretty quickly, so maybe
+    contributions here could actually be used customers in my lifetime.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Tracers I have investigated&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://lttng.org/"&gt;&lt;code&gt;lttng&lt;/code&gt;&lt;/a&gt;: Incredible docs, but requires a kernel module
+    to trace kernel events. Appears to have strong support for a variety of
+    userspace applications. Does not appear to do in-kernel aggregation. 
+    Can this collect stack traces?&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://www.ktap.org/"&gt;&lt;code&gt;ktap&lt;/code&gt;&lt;/a&gt;: Haven't played around with this but the
+    interface is really pretty. I have some concerns about its
+    &lt;a href="https://github.com/ktap/ktap/issues"&gt;stability&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://lwn.net/Articles/603983/"&gt;&lt;code&gt;eBPF&lt;/code&gt;&lt;/a&gt;: Looks flexible and will be
+    mainline in the kernel, but isn't there on old kernels and doesn't have a
+    good frontend yet. I'm watching &lt;a href="https://github.com/iovisor/bcc"&gt;iovisor&lt;/a&gt;
+    for that.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Feel free to chime in with any other tracers or commentary.&lt;/p&gt;
+&lt;div class="footnote"&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id="fn-1"&gt;
+&lt;p&gt;&lt;code&gt;perf stat&lt;/code&gt; can do some aggregation, but unfortunately cannot aggregate on
+very complicated things (e.g. stacks).&amp;#160;&lt;a class="footnote-backref" href="#fnref-1" title="Jump back to footnote 1 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;</content><category term="Linux"></category><category term="tracing"></category><category term="opinion"></category><category term="perf_events"></category></entry><entry><title>Dtrace isn't just a tool; it's a philosophy</title><link href="http://codearcana.com/posts/2016/01/03/dtrace-isnt-just-a-tool-its-a-philosophy.html" rel="alternate"></link><published>2016-01-03T00:00:00-08:00</published><updated>2016-01-03T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2016-01-03:/posts/2016/01/03/dtrace-isnt-just-a-tool-its-a-philosophy.html</id><summary type="html">&lt;p&gt;I document some pain points from recent performance investigations and then speculate that such issues are endemic to the Linux community.&lt;/p&gt;</summary><content type="html">&lt;p&gt;My most recent &lt;a href="http://codearcana.com/posts/2015/12/20/using-off-cpu-flame-graphs-on-linux.html"&gt;post&lt;/a&gt; was a story about a successful performance investigation. Unfortunately, this happy post was intentionally simplified for the audience of my company's blog. The reality is that I frequently find doing performance investigations on Linux a frustrating process due to the lack of adequate tooling. In this blog post, I document some recent pain points and then speculate that such issues are endemic to Linux.&lt;/p&gt;
+&lt;h2&gt;Some pain points&lt;/h2&gt;
+&lt;p&gt;Compare how we answer the following questions&lt;sup id="fnref-1"&gt;&lt;a class="footnote-ref" href="#fn-1"&gt;1&lt;/a&gt;&lt;/sup&gt; (in production) in Linux and FreeBSD/Solaris: &lt;/p&gt;
+&lt;h3&gt;Why am I going off CPU?&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;FreeBSD/Solaris: &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;#&lt;/span&gt; dtrace -n &lt;span class="s1"&gt;&amp;#39;sched:::off-cpu /pid==$target/ { self-&amp;gt;ts = timestamp; } sched::on-cpu /self-&amp;gt;ts/ { @[stack(), ustack()] = quantize(timestamp - self-&amp;gt;ts); self-&amp;gt;ts = 0}&amp;#39;&lt;/span&gt; -p &lt;span class="nv"&gt;$PID&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Linux: &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;#&lt;/span&gt; perf record -g -e &lt;span class="s1"&gt;&amp;#39;sched:sched_switch&amp;#39;&lt;/span&gt; -e &lt;span class="s1"&gt;&amp;#39;sched:sched_stat_sleep&amp;#39;&lt;/span&gt; -e &lt;span class="s1"&gt;&amp;#39;sched:sched_stat_blocked&amp;#39;&lt;/span&gt; -p &lt;span class="nv"&gt;$PID&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Then post process with &lt;code&gt;perf inject -s&lt;/code&gt; (if you have it) or my 200 line &lt;code&gt;stackcollapse-perf-sched.awk&lt;/code&gt; script. Unfortunately, tracing all scheduler events is very high overhead in perf and the lack of in-kernel aggregation means that events probably will be dropped if load is high. Even more alarmingly, there appear to be bugs in perf that prevent it from reliably getting consistent traces (even with large trace buffers), causing it to produce empty perf.data files with error messages of the form: &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;0x952790 [0x736d]: failed to process type: 3410
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Since this failure is not deterministic, re-executing &lt;code&gt;perf record&lt;/code&gt; will eventually succeed; however, it then can sometimes be hard to catch the pathology.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Why am I calling &lt;code&gt;malloc&lt;/code&gt;?&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;FreeBSD/Solaris: &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;#&lt;/span&gt; dtrace -n &lt;span class="s1"&gt;&amp;#39;pid$target::malloc:entry { @[ustack()] = count(arg0); } -p $PID&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Linux: It is possible you could write a &lt;code&gt;gdb&lt;/code&gt; script, although I'd be scared to do this in production. Another alternative is use the &lt;code&gt;uprobe&lt;/code&gt; interface:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;#&lt;/span&gt; perf probe /lib/x86_64-linux-gnu/libc.so.6 malloc &lt;span class="s1"&gt;&amp;#39;size=%di&amp;#39;&lt;/span&gt;
+&lt;span class="gp"&gt;#&lt;/span&gt; perf record -e probe_libc:malloc -g --pid &lt;span class="nv"&gt;$PID&lt;/span&gt;&lt;span class="sb"&gt;`&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Aside from the common message about the overhead of not having in kernel aggregates, I've found this interface to be particularly brittle. Even scarier, &lt;a href="http://www.brendangregg.com/blog/2015-06-28/linux-ftrace-uprobe.html"&gt;Brendan Gregg&lt;/a&gt; also warns about issues that would make it unsuitable for production environments (I haven't personally seen this when using &lt;code&gt;perf&lt;/code&gt; yet):&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;frequently hit issues where the target process either crashes or enters an endless spin loop&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;What files am I reading?&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;FreeBSD/Solaris: &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;#&lt;/span&gt; dtrace -n &lt;span class="s1"&gt;&amp;#39;syscall::read:entry { @[fds[arg0].fi_pathname] = sum(arg2); }&amp;#39;&lt;/span&gt; -p &lt;span class="nv"&gt;$PID&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Linux: &lt;code&gt;strace&lt;/code&gt; used to be a traditional solution, although it has high overhead. With &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;#&lt;/span&gt; perf trace -eread -p &lt;span class="nv"&gt;$PID&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;You can now save the data and post process (although I must repeat the message about the overhead of not having in kernel aggregates).&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;The problem with stack traces.&lt;/h3&gt;
+&lt;p&gt;Almost all of the questions I have are of the form: "Why is my application X", and are answered by looking at userspace stack traces. Unfortunately, this is almost impossible to do in my Linux distribution. Ubuntu compiles &lt;code&gt;libc&lt;/code&gt; with &lt;code&gt;-fomit-frame-pointer&lt;/code&gt; (the &lt;code&gt;gcc&lt;/code&gt; default for &lt;code&gt;-O2&lt;/code&gt; and above), which stymies &lt;code&gt;perf&lt;/code&gt;s ability to walk stacks that go through the most commonly used system library. Worse, it is &lt;a href="https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1248289"&gt;not clear&lt;/a&gt; that the &lt;code&gt;perf&lt;/code&gt; on Ubuntu properly supports walking &lt;code&gt;dwarf&lt;/code&gt; unwind information. I've used &lt;code&gt;--call-graph=dwarf&lt;/code&gt; only moderately successfully, as it appears to lose frames compared to the stacks in &lt;code&gt;gdb&lt;/code&gt;, etc.&lt;/p&gt;
+&lt;p&gt;When Linux applications omit frame pointers, they are eschewing future visibility for the sake of an immediate micro-optimization. Some applications choose a compromise of merely omitting frame pointers for leaf functions (causing the &lt;em&gt;second to last&lt;/em&gt; frame of every stack to be omitted). In either, aggressive function inlining causes the resulting stack trace to be an approximation of the logical stack trace. As a stark contrast, the Illumos kernel forces frame pointers and prohibits small functions from being &lt;a href="https://github.com/illumos/illumos-gate/blob/6249f9725f411468c70516176806c553ac983270/usr/src/uts/Makefile.uts#L237"&gt;automatically inlined&lt;/a&gt; to guarantee precise stack traces. Since the most convenient place to add dynamic tracepoints via &lt;code&gt;dtrace&lt;/code&gt; is at function call boundaries, this also ensures that there will be a plethora of options if it ever become necessary to debug some new component.&lt;/p&gt;
+&lt;h2&gt;Introspection in Linux&lt;/h2&gt;
+&lt;p&gt;It seems to me that the Linux community does not support the same level of kernel/system introspection as Solaris and I think this issue is cultural, not technical. Take a look at a famous quote&lt;sup id="fnref-2"&gt;&lt;a class="footnote-ref" href="#fn-2"&gt;2&lt;/a&gt;&lt;/sup&gt; from &lt;a href="https://lwn.net/2000/0914/a/lt-debugger.php3"&gt;Linus himself&lt;/a&gt; in 2000 on why he eschews the use of a kernel debugger:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;I don't think kernel development should be "easy". ... I do not think that extra visibility into the system is necessarily a good thing.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;In Linux, the kernel is a complicated, mysterious system that is only intended to be fully understood by the authors, so tools like kernel debuggers are not necessary. &lt;/p&gt;
+&lt;p&gt;Compare to a recent quote from an equally opinionated former Solaris kernel engineer, &lt;a href="https://www.youtube.com/watch?v=sYQ8j02wbCY"&gt;Bryan Cantrill&lt;/a&gt;, on why it is important to have observability into Docker containers:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Don't just reboot your pc, goddammnit, debug it! Come on, you're an educated person, right? Or at least you want to act like one around other educated people!&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;In that talk, Bryan emphatically calls for bigger observability into a Linux subsystem so that complicated problems in production can be diagnosed and fixed. He condemns the engineering anti-pattern of only adding observability when something has gone wrong, pointing out that this puts the engineer in the position of trying to reproduce a potentially transient issue. Flexible dynamic tracing tools with the power to deeply introspect the kernel, like &lt;code&gt;dtrace&lt;/code&gt;, are necessary to observe and debug such issues in production.&lt;/p&gt;
+&lt;h2&gt;A question driven methodology&lt;/h2&gt;
+&lt;p&gt;The thing about &lt;code&gt;dtrace&lt;/code&gt; is that it is so powerful and so flexible that it encourages a &lt;em&gt;question&lt;/em&gt; driven methodology rather than &lt;em&gt;tool&lt;/em&gt; driven methodology. Rather than merely trying to infer problems from some &lt;code&gt;sar&lt;/code&gt; utility, we ask simple and specific questions to root cause an issue. The common tools (&lt;code&gt;iostat&lt;/code&gt;, &lt;code&gt;top&lt;/code&gt;, &lt;code&gt;sar&lt;/code&gt;, etc.) are useful as a means to prompt these questions but are rarely useful on their own. When Brendan Gregg advocates for the &lt;a href="http://www.brendangregg.com/usemethod.html"&gt;USE method&lt;/a&gt; or the &lt;a href="http://www.brendangregg.com/tsamethod.html"&gt;TSA method&lt;/a&gt;, he is providing frameworks for converting these &lt;code&gt;sar&lt;/code&gt; metrics into useful questions.&lt;/p&gt;
+&lt;p&gt;I have a story that illustrates this point quite well. A couple of years ago, I did a mock technical interview with Adam Leventhal where he walked me through a real performance investigation he had previously done. For the interview, he described a faulty server to me and asked me to debug it using only a "magical oracle" that could answer any question about the system -- over the course of the interview, he explained how he had used &lt;code&gt;dtrace&lt;/code&gt; to answer every question we had put to the "oracle". By looking beyound the simple &lt;code&gt;sar&lt;/code&gt; metrics and asking focused questions, we were able to "resolve" in an hour an issue that would be nigh impossible to understand otherwise.&lt;/p&gt;
+&lt;p&gt;Linux supports some dynamic tracing tools that enable these types of investigations, but (at least until recently) they remain second class citizens. &lt;code&gt;perf&lt;/code&gt; and &lt;code&gt;ftrace&lt;/code&gt; feel  brittle and limited compared to the deep visibility of &lt;code&gt;dtrace&lt;/code&gt;. In contrast, dynamic tracing is so valuable to Solaris that the kernel is built specifically with &lt;code&gt;dtrace&lt;/code&gt; in mind. High fidelity dynamic tracing of production is too important to be approximated by separate tools; it is baked into every layer of the system.&lt;/p&gt;
+&lt;h2&gt;What can we do about this?&lt;/h2&gt;
+&lt;p&gt;The question driven methodology that I've learned from my mentors from the Solaris community has proven challenging for me as I start working more within my Linux-based company. I'm slowly learning to use &lt;code&gt;perf&lt;/code&gt; to answer my questions and I'm slowly changing the culture at my current company. Some highlights:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;We compile with &lt;code&gt;-fno-omit-frame-pointer&lt;/code&gt;, which increases the fidelity of our CPU stacks collected from &lt;code&gt;perf&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;We're slowly cutting back on the amount of unnecessary function inlining and have simple tools in place to detect eggregious examples of this.&lt;/li&gt;
+&lt;li&gt;We have hooks to increase debuggability (via recording JIT-ed symbols for &lt;code&gt;perf&lt;/code&gt;, etc) that can be dynamically enabled at run time for ad-hoc investigations. Previously, they required a server restart.&lt;/li&gt;
+&lt;li&gt;Almost all engineers at the company use flame graphs to do performance investigations. They quickly answer the first question of "where is my cpu time being spent" and it has become uncommon to see a performance regression bug filed without an attached flame graph.&lt;/li&gt;
+&lt;li&gt;The most recent iteration of performance tests were &lt;a href="http://www.brendangregg.com/activebenchmarking.html"&gt;actively benchmarked&lt;/a&gt; with flame graphs as they were written. Through this process, we caught and corrected several tests that were testing the wrong path.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="footnote"&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id="fn-1"&gt;
+&lt;p&gt;I acknowledge that these questions are particularly painful to answer with &lt;code&gt;perf&lt;/code&gt;, but I am not nearly as frustrated at the awkwardness of doing so with &lt;code&gt;perf&lt;/code&gt; than I am scared of the instability in &lt;code&gt;perf&lt;/code&gt; when answering them. I want my system introspection tool to feel rock solid and I don't quite have that confidence with &lt;code&gt;perf&lt;/code&gt;.&amp;#160;&lt;a class="footnote-backref" href="#fnref-1" title="Jump back to footnote 1 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id="fn-2"&gt;
+&lt;p&gt;I acknowledge both quotes are taken &lt;em&gt;only slightly&lt;/em&gt; out of context to get the most exciting blurb, but I believe I honestly captured the sentiment of their authors in my analysis.&amp;#160;&lt;a class="footnote-backref" href="#fnref-2" title="Jump back to footnote 2 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;</content><category term="Linux"></category><category term="perf_events"></category><category term="opinion"></category></entry><entry><title>Using off-cpu flame graphs on Linux</title><link href="http://codearcana.com/posts/2015/12/20/using-off-cpu-flame-graphs-on-linux.html" rel="alternate"></link><published>2015-12-20T00:00:00-08:00</published><updated>2015-12-20T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2015-12-20:/posts/2015/12/20/using-off-cpu-flame-graphs-on-linux.html</id><summary type="html">&lt;p&gt;I use off-cpu flame graphs to identify that repeated mmap calls are slowing my database.&lt;/p&gt;</summary><content type="html">&lt;h2&gt;The setup&lt;/h2&gt;
+&lt;p&gt;I recently got to debug a pretty strange performance issue in a test build
+of our product. It was running under a synthetic workload where we had 16
+threads (one for each CPU core) each running a very simple query
+(&lt;code&gt;select count(*) from t where i &amp;gt; 5&lt;/code&gt;) that would have to visit almost all of
+the table's 1 million rows. In theory, this would be a CPU bound operation
+since it would be reading from a file that was already in disk buffer cache.
+In practice, our cores were spending about 50% of their time idle:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Each core is spending about half it's time idle." src="http://codearcana.com/images/low_cpu_usage.png" title="Each core is spending about half it's time idle."&gt;&lt;/p&gt;
+&lt;h2&gt;What were our threads doing?&lt;/h2&gt;
+&lt;p&gt;After confirming that our workload was indeed using 16 threads, etc, I took a
+look what state our various threads were in. In every refresh of my
+&lt;a href="http://hisham.hm/htop/"&gt;&lt;code&gt;htop&lt;/code&gt;&lt;/a&gt; window, I saw that a handful of our threads
+were in the
+&lt;a href="http://blog.kevac.org/2013/02/uninterruptible-sleep-d-state.html"&gt;&lt;code&gt;D&lt;/code&gt;&lt;/a&gt;
+state corresponding to "Uninterruptible sleep":&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="go"&gt;  PID USER      PRI  NI  VIRT   RES   SHR S CPU% MEM%   TIME+  Command&lt;/span&gt;
+&lt;span class="go"&gt;55308 neil       21   1 11.6G 3825M 36804 S 530.  3.4 21h44:11 ./memsqld&lt;/span&gt;
+&lt;span class="go"&gt;55969 neil       20   0 11.5G 3825M 36804 R 35.8  3.4 30:31.52 ./memsqld&lt;/span&gt;
+&lt;span class="go"&gt;56121 neil       20   0 11.6G 3825M 36804 D 35.8  3.4 34:55.03 ./memsqld&lt;/span&gt;
+&lt;span class="go"&gt;56120 neil       20   0 11.6G 3825M 36804 D 34.4  3.4 36:27.53 ./memsqld&lt;/span&gt;
+&lt;span class="go"&gt;56109 neil       20   0 11.6G 3825M 36804 R 33.7  3.4 31:57.14 ./memsqld&lt;/span&gt;
+&lt;span class="go"&gt;56088 neil       20   0 11.6G 3825M 36804 D 33.7  3.4 50:08.92 ./memsqld&lt;/span&gt;
+&lt;span class="go"&gt;56099 neil       20   0 11.6G 3825M 36804 D 33.7  3.4 31:58.06 ./memsqld&lt;/span&gt;
+&lt;span class="go"&gt;56069 neil       20   0 11.6G 3825M 36804 R 33.1  3.4 31:01.54 ./memsqld&lt;/span&gt;
+&lt;span class="go"&gt;56101 neil       20   0 11.6G 3825M 36804 D 32.4  3.4 28:41.27 ./memsqld&lt;/span&gt;
+&lt;span class="go"&gt;56104 neil       20   0 11.6G 3825M 36804 D 32.4  3.4 31:54.41 ./memsqld&lt;/span&gt;
+&lt;span class="go"&gt;55976 neil       20   0 11.5G 3825M 36804 D 32.4  3.4 30:18.72 ./memsqld&lt;/span&gt;
+&lt;span class="go"&gt;55518 neil       20   0 11.5G 3825M 36804 D 32.4  3.4 29:48.51 ./memsqld&lt;/span&gt;
+&lt;span class="go"&gt;55966 neil       20   0 11.5G 3825M 36804 D 32.4  3.4 36:51.50 ./memsqld&lt;/span&gt;
+&lt;span class="go"&gt;55971 neil       20   0 11.5G 3825M 36804 R 32.4  3.4 27:22.96 ./memsqld&lt;/span&gt;
+&lt;span class="go"&gt;55959 neil       20   0 11.5G 3825M 36804 D 32.4  3.4 38:13.50 ./memsqld&lt;/span&gt;
+&lt;span class="go"&gt;55975 neil       20   0 11.5G 3825M 36804 R 31.7  3.4 30:18.38 ./memsqld&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Why were we going off CPU?&lt;/h2&gt;
+&lt;p&gt;At this point, I generated an
+&lt;a href="http://www.brendangregg.com/blog/2015-02-26/linux-perf-off-cpu-flame-graph.html"&gt;off-cpu flamegraph&lt;/a&gt;
+using Linux &lt;code&gt;perf_events&lt;/code&gt;, to see why were entering this state. The machine I
+was testing on was old enough that it didn't have &lt;code&gt;perf inject&lt;/code&gt;, so I had to
+use an
+&lt;a href="https://github.com/awreece/FlameGraph/blob/6f3e75f10923d1f97e4b2b0a40d8ec3c9d063974/stackcollapse-perf-sched.awk"&gt;&lt;code&gt;awk&lt;/code&gt; script&lt;/a&gt;
+I'd previously written:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; sudo perf record --call-graph&lt;span class="o"&gt;=&lt;/span&gt;fp -e &lt;span class="s1"&gt;&amp;#39;sched:sched_switch&amp;#39;&lt;/span&gt; -e &lt;span class="s1"&gt;&amp;#39;sched:sched_stat_sleep&amp;#39;&lt;/span&gt; -e &lt;span class="s1"&gt;&amp;#39;sched:sched_stat_blocked&amp;#39;&lt;/span&gt; --pid &lt;span class="k"&gt;$(&lt;/span&gt;pgrep memsqld &lt;span class="p"&gt;|&lt;/span&gt; head -n 1&lt;span class="k"&gt;)&lt;/span&gt; -- sleep 1
+&lt;span class="go"&gt;[ perf record: Woken up 1 times to write data ]&lt;/span&gt;
+&lt;span class="go"&gt;[ perf record: Captured and wrote 1.343 MB perf.data (~58684 samples) ]&lt;/span&gt;
+&lt;span class="gp"&gt;$&lt;/span&gt; sudo perf script -f time,comm,pid,tid,event,ip,sym,dso,trace -i sched.data &lt;span class="p"&gt;|&lt;/span&gt; ~/FlameGraph/stackcollapse-perf-sched.awk &lt;span class="p"&gt;|&lt;/span&gt; ~/FlameGraph/flamegraph.pl --color&lt;span class="o"&gt;=&lt;/span&gt;io --countname&lt;span class="o"&gt;=&lt;/span&gt;us &amp;gt;off-cpu.svg
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;em&gt;Note: recording scheduler events via &lt;code&gt;perf record&lt;/code&gt; can have a very large overhead and should be used cautiously in production environments. This is why I wrap the &lt;code&gt;perf record&lt;/code&gt; around a &lt;code&gt;sleep 1&lt;/code&gt; to limit the duration.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;object data="http://codearcana.com/images/mmap_off_cpu.svg" style="width:100%;"&gt;&lt;/object&gt;&lt;/p&gt;
+&lt;p&gt;From the repeated calls to &lt;code&gt;rwsem_down_read_failed&lt;/code&gt; and &lt;code&gt;rwsem_down_write_failed&lt;/code&gt;, we see that culprit was &lt;code&gt;mmap&lt;/code&gt;contending in the kernel on the &lt;code&gt;mm-&amp;gt;mmap_sem&lt;/code&gt; lock:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;down_write&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;mm&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;mmap_sem&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="n"&gt;ret&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;do_mmap_pgoff&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;file&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;addr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;len&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;prot&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;flag&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;pgoff&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                    &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;populate&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="n"&gt;up_write&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;mm&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;mmap_sem&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This was causing every &lt;code&gt;mmap&lt;/code&gt; syscall to take 10-20ms (almost half the latency of the query itself):&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; sudo perf trace -emmap --pid &lt;span class="k"&gt;$(&lt;/span&gt;pgrep memsqld &lt;span class="p"&gt;|&lt;/span&gt; head -n 1&lt;span class="k"&gt;)&lt;/span&gt; -- sleep 5
+&lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
+&lt;span class="go"&gt;12453.692 ( 9.060 ms): memsqld/55950 mmap(len: 1265444, prot: READ, flags: PRIVATE|POPULATE, fd: 65&amp;lt;/mnt/rob/memsqlbin/data/columns/bi/4/634/12883&amp;gt;) = 0x7f95ece9f000&lt;/span&gt;
+&lt;span class="go"&gt;12453.777 ( 8.924 ms): memsqld/55956 mmap(len: 1265444, prot: READ, flags: PRIVATE|POPULATE, fd: 67&amp;lt;/mnt/rob/memsqlbin/data/columns/bi/4/634/12883&amp;gt;) = 0x7f95ecbf5000&lt;/span&gt;
+&lt;span class="go"&gt;12456.748 (15.170 ms): memsqld/56112 mmap(len: 1265444, prot: READ, flags: PRIVATE|POPULATE, fd: 77&amp;lt;/mnt/rob/memsqlbin/data/columns/bi/4/634/12883&amp;gt;) = 0x7f95ec48d000&lt;/span&gt;
+&lt;span class="go"&gt;12461.476 (19.846 ms): memsqld/56091 mmap(len: 1265444, prot: READ, flags: PRIVATE|POPULATE, fd: 79&amp;lt;/mnt/rob/memsqlbin/data/columns/bi/4/634/12883&amp;gt;) = 0x7f95ec1e3000&lt;/span&gt;
+&lt;span class="go"&gt;12461.664 (12.226 ms): memsqld/55514 mmap(len: 1265444, prot: READ, flags: PRIVATE|POPULATE, fd: 84&amp;lt;/mnt/rob/memsqlbin/data/columns/bi/4/634/12883&amp;gt;) = 0x7f95ebe84000&lt;/span&gt;
+&lt;span class="go"&gt;12461.722 (12.240 ms): memsqld/56100 mmap(len: 1265444, prot: READ, flags: PRIVATE|POPULATE, fd: 85&amp;lt;/mnt/rob/memsqlbin/data/columns/bi/4/634/12883&amp;gt;) = 0x7f95ebd2f000&lt;/span&gt;
+&lt;span class="go"&gt;12461.761 (20.127 ms): memsqld/55522 mmap(len: 1265444, prot: READ, flags: PRIVATE|POPULATE, fd: 82&amp;lt;/mnt/rob/memsqlbin/data/columns/bi/4/634/12883&amp;gt;) = 0x7f95ebfb9000&lt;/span&gt;
+&lt;span class="go"&gt;12463.473 (17.544 ms): memsqld/56113 mmap(len: 1265444, prot: READ, flags: PRIVATE|POPULATE, fd: 75&amp;lt;/mnt/rob/memsqlbin/data/columns/bi/4/634/12883&amp;gt;) = 0x7f95eb990000&lt;/span&gt;
+&lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Fortunately, the fix was simple -- we switched from using &lt;code&gt;mmap&lt;/code&gt; to using
+the traditional file &lt;code&gt;read&lt;/code&gt; interface. After this change, we nearly doubled
+our throughput and became CPU bound as we expected:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Almost 100% CPU utilization" src="http://codearcana.com/images/high_cpu_usage.png" title="Almost 100% CPU utilization"&gt;&lt;/p&gt;
+&lt;h2&gt;Open questions&lt;/h2&gt;
+&lt;p&gt;I'll buy a {root,}beer/beverage of choice for anyone who can help me with these
+questions:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Is there a good tool in Linux to see (in periodic updates) what % of time a thread spends in each of the various possible thread states?&lt;/li&gt;
+&lt;li&gt;Why do the time spent sleeping / executing mmap as recorded by by the sched probes not align with the latency of mmap calls if the mmap calls don't show in cpu stack traces? (I suspect that &lt;code&gt;mm_populate&lt;/code&gt; or &lt;code&gt;rwsem_down_read_failed&lt;/code&gt; does an alarming amount of work while having disabled bottom half interrupts, which is interfering with &lt;code&gt;perf&lt;/code&gt;)&lt;/li&gt;
+&lt;/ul&gt;</content><category term="Linux"></category><category term="perf_events"></category><category term="flamegraph"></category></entry><entry><title>Why are builds on HGFS so slow?</title><link href="http://codearcana.com/posts/2015/12/04/why-are-builds-on-hgfs-so-slow.html" rel="alternate"></link><published>2015-12-04T00:00:00-08:00</published><updated>2015-12-04T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2015-12-04:/posts/2015/12/04/why-are-builds-on-hgfs-so-slow.html</id><summary type="html">&lt;p&gt;We use flame graphs to identify that hgfs is the bottleneck in my build.&lt;/p&gt;</summary><content type="html">&lt;h2&gt;My configuration&lt;/h2&gt;
+&lt;p&gt;I work at a company whose product builds and runs exclusively on Linux.
+Like most sane people, I prefer to live in a more user-friendly operating
+system and my laptop runs Mac OSX. To build my company's product, I use
+VMWare Fusion to run an Ubuntu 14.04 virtual machine. I use a local GUI to
+edit and search source code, only using the virtual machine to compile
+and test the built product. &lt;/p&gt;
+&lt;p&gt;Until recently, I kept the files on my virtual machine in sync
+with the files on the host machine by using VMWares hgfs kernel module,
+which allows a guest to access files on the host (and vice versa).
+This configuration causes me no end of grief -- the open-vm-tools ubuntu
+package does not include hgfs so I have to manually compile and install
+VMWare's tools. This sometimes
+&lt;a href="https://github.com/rasa/vmware-tools-patches/issues/29"&gt;breaks&lt;/a&gt; and needs
+to be recompiled every time I update my kernel.&lt;/p&gt;
+&lt;h2&gt;HGFS performance issues&lt;/h2&gt;
+&lt;p&gt;On top of this, the VMWare HGFS has some serious performance issues.
+Yesterday, I got fed up with the fact that my incremental builds were
+slower than my colleagues and started doing a performance investigation.
+An incremental build in which &lt;em&gt;no&lt;/em&gt; files were changed after a successful
+build took almost 10 seconds. I noticed my system had incredibly high
+CPU utilization and generated a
+&lt;a href="http://www.brendangregg.com/flamegraphs.html"&gt;Flame Graph&lt;/a&gt;:&lt;/p&gt;
+&lt;p&gt;&lt;object data="http://codearcana.com/images/make_using_hgfs.svg" style="width:100%;"&gt;&lt;/object&gt;&lt;/p&gt;
+&lt;p&gt;I was amazed -- all the HGFS stacks were spending time blocked in
+&lt;code&gt;mutex_spin_on_owner&lt;/code&gt;. It looks like all file accesses have
+to go through a filesystem-wide global lock!&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt;
+&lt;span class="nf"&gt;HgfsTransportSendRequest&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;HgfsReq&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;req&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;   &lt;span class="c1"&gt;// IN: Request to send&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;HgfsReq&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;origReq&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;req&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;ret&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;EIO&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="n"&gt;ASSERT&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;req&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;                                                                    
+    &lt;span class="n"&gt;ASSERT&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;req&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;state&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;HGFS_REQ_STATE_UNSENT&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;                                    
+    &lt;span class="n"&gt;ASSERT&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;req&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;payloadSize&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;=&lt;/span&gt; &lt;span class="n"&gt;req&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;bufferSize&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+    &lt;span class="n"&gt;compat_mutex_lock&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;hgfsChannelLock&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Once I realized this horrible performance pathology, I knew I couldn't use
+VMWare HGFS anymore. I set up Mac OSX to share the directory over nfs:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; &lt;span class="c1"&gt;# Only share on the vmnet8 subnet and map all accesses to be my user.&lt;/span&gt;
+&lt;span class="gp"&gt;$&lt;/span&gt; &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;/Volumes/Developer -network 172.16.134.0 -mask 255.255.255.0 -mapall=areece&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; sudo tee -a /etc/exports
+&lt;span class="gp"&gt;$&lt;/span&gt; sudo nfsd update
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;and mounted the directory on Linux:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;172.16.134.1:/Volumes/Developer /mnt/Developer nfs&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; sudo tee -a /etd/fstab
+&lt;span class="gp"&gt;$&lt;/span&gt; sudo mount 172.16.134.1:/Volumes/Developer
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This cut my build times down to 1s, almost 10x faster. Here is the revised Flame Graph:&lt;/p&gt;
+&lt;p&gt;&lt;object data="http://codearcana.com/images/make_using_nfs.svg" style="width:100%;"&gt;&lt;/object&gt;&lt;/p&gt;</content><category term="profiling"></category><category term="vmware"></category><category term="make"></category></entry><entry><title>Bash Performance Tricks</title><link href="http://codearcana.com/posts/2013/08/06/bash-performance-tricks.html" rel="alternate"></link><published>2013-08-06T00:00:00-07:00</published><updated>2013-08-06T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-08-06:/posts/2013/08/06/bash-performance-tricks.html</id><summary type="html">&lt;p&gt;My coworkers presented a silly programming interview style question to
+me the other day: given a list of words, find the largest set of words from
+that list that all have the same hash value. Everyone was playing around
+with a different language, and someone made the claim that it …&lt;/p&gt;</summary><content type="html">&lt;p&gt;My coworkers presented a silly programming interview style question to
 me the other day: given a list of words, find the largest set of words from
 that list that all have the same hash value. Everyone was playing around
 with a different language, and someone made the claim that it couldn't be done
@@ -14,33 +393,33 @@ and want to take great care not invoke another process while doing so (so
 Instead, we will use a &lt;code&gt;for&lt;/code&gt; loop with &lt;code&gt;bash&lt;/code&gt; expansions to iterate of each
 character. Finally, we will use &lt;code&gt;bash&lt;/code&gt; 4.0 associative arrays map a letter to
 its corresponding index (for computing hash values).&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;# We will return into this variable.&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# We will return into this variable.&lt;/span&gt;
 &lt;span class="nb"&gt;declare&lt;/span&gt; -i HASH_RESULT
-&lt;span class="k"&gt;function &lt;/span&gt;kr1  &lt;span class="o"&gt;{&lt;/span&gt;
-    &lt;span class="nb"&gt;local &lt;/span&gt;&lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$1&lt;/span&gt;
+&lt;span class="k"&gt;function&lt;/span&gt; kr1  &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="nb"&gt;local&lt;/span&gt; &lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$1&lt;/span&gt;
     &lt;span class="nv"&gt;HASH_RESULT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0
-    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt; &lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; 0; i &amp;lt;&lt;span class="k"&gt;${#&lt;/span&gt;&lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;; i++&lt;span class="o"&gt;))&lt;/span&gt;; &lt;span class="k"&gt;do&lt;/span&gt;
-&lt;span class="k"&gt;        &lt;/span&gt;&lt;span class="nb"&gt;local &lt;/span&gt;&lt;span class="nv"&gt;letter&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;$i&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;1&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt; &lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; 0&lt;span class="p"&gt;;&lt;/span&gt; i &amp;lt;&lt;span class="si"&gt;${#&lt;/span&gt;&lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; i++&lt;span class="o"&gt;))&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt;
+        &lt;span class="nb"&gt;local&lt;/span&gt; &lt;span class="nv"&gt;letter&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;$i&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;1&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
         &lt;span class="o"&gt;((&lt;/span&gt; HASH_RESULT +&lt;span class="o"&gt;=&lt;/span&gt; letter_value&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$letter&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt; &lt;span class="o"&gt;))&lt;/span&gt;
     &lt;span class="k"&gt;done&lt;/span&gt;
 &lt;span class="o"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Full program source below&lt;sup id="fnref:1"&gt;&lt;a class="footnote-ref" href="#fn:1" rel="footnote"&gt;1&lt;/a&gt;&lt;/sup&gt;. With the hash function implemented, it is fairly
+&lt;p&gt;Full program source below&lt;sup id="fnref-1"&gt;&lt;a class="footnote-ref" href="#fn-1"&gt;1&lt;/a&gt;&lt;/sup&gt;. With the hash function implemented, it is fairly
 straightforward to finish the rest of the program:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;while &lt;/span&gt;&lt;span class="nb"&gt;read &lt;/span&gt;word; &lt;span class="k"&gt;do&lt;/span&gt;
-&lt;span class="k"&gt;    &lt;/span&gt;kr1 &lt;span class="nv"&gt;$word&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="nb"&gt;read&lt;/span&gt; word&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt;
+    kr1 &lt;span class="nv"&gt;$word&lt;/span&gt;
 
     &lt;span class="o"&gt;((&lt;/span&gt; hash_to_count&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$HASH_RESULT&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;++ &lt;span class="o"&gt;))&lt;/span&gt;
-    hash_to_words&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$HASH_RESULT&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;+&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot; $word&amp;quot;&lt;/span&gt;
+    hash_to_words&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$HASH_RESULT&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;+&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot; &lt;/span&gt;&lt;span class="nv"&gt;$word&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
 
-    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt; hash_to_count&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$HASH_RESULT&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt; &amp;gt; max_count &lt;span class="o"&gt;))&lt;/span&gt;; &lt;span class="k"&gt;then&lt;/span&gt;
-&lt;span class="k"&gt;        &lt;/span&gt;&lt;span class="nv"&gt;max_count&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;hash_to_count&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$HASH_RESULT&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt; hash_to_count&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$HASH_RESULT&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt; &amp;gt; max_count &lt;span class="o"&gt;))&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;then&lt;/span&gt;
+        &lt;span class="nv"&gt;max_count&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;hash_to_count&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$HASH_RESULT&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
         &lt;span class="nv"&gt;max_hash&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$HASH_RESULT&lt;/span&gt;
     &lt;span class="k"&gt;fi&lt;/span&gt;
 &lt;span class="k"&gt;done&lt;/span&gt; &amp;lt;word.lst
-&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="k"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;hash_to_words&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$max_hash&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;
+&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;hash_to_words&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$max_hash&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -48,42 +427,42 @@ straightforward to finish the rest of the program:&lt;/p&gt;
 other &lt;code&gt;bash&lt;/code&gt; solutions by a fair margin, but I wanted to see if I could do better.
 I ran it under a profiler and saw that it was spending all its time in many
 nested layers of &lt;code&gt;execute_command&lt;/code&gt;.&lt;/p&gt;
-&lt;p&gt;&lt;img alt="bash profiling run" src="http://codearcana.com/images/bash_perf_stack_trace.png" title="hash.bash has many nested calls to execute_command" /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="bash profiling run" src="http://codearcana.com/images/bash_perf_stack_trace.png" title="hash.bash has many nested calls to execute_command"&gt;&lt;/p&gt;
 &lt;p&gt;This gave me the idea to try inlining the function call. Quickly prototyping a
 variation using an inlined function call, I run some trials (and collect statistics
-with my favorite tool, &lt;code&gt;histogram.py&lt;/code&gt;&lt;sup id="fnref:2"&gt;&lt;a class="footnote-ref" href="#fn:2" rel="footnote"&gt;2&lt;/a&gt;&lt;/sup&gt;):&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;for &lt;/span&gt;variation in hash.bash hash.bash.inlined; &lt;span class="k"&gt;do&lt;/span&gt;
-&lt;span class="k"&gt;  &lt;/span&gt;&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="nv"&gt;$variation&lt;/span&gt;
-  &lt;span class="k"&gt;for &lt;/span&gt;trial in &lt;span class="o"&gt;{&lt;/span&gt;1..30&lt;span class="o"&gt;}&lt;/span&gt;; &lt;span class="k"&gt;do&lt;/span&gt;
-&lt;span class="k"&gt;    &lt;/span&gt;&lt;span class="nv"&gt;start&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$EPOCHREALTIME&lt;/span&gt;
+with my favorite tool, &lt;code&gt;histogram.py&lt;/code&gt;&lt;sup id="fnref-2"&gt;&lt;a class="footnote-ref" href="#fn-2"&gt;2&lt;/a&gt;&lt;/sup&gt;):&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;for&lt;/span&gt; variation in hash.bash hash.bash.inlined&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt;
+  &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="nv"&gt;$variation&lt;/span&gt;
+  &lt;span class="k"&gt;for&lt;/span&gt; trial in &lt;span class="o"&gt;{&lt;/span&gt;1..30&lt;span class="o"&gt;}&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt;
+    &lt;span class="nv"&gt;start&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$EPOCHREALTIME&lt;/span&gt;
     bash &lt;span class="nv"&gt;$variation&lt;/span&gt; &amp;gt; /dev/null
     &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="k"&gt;$((&lt;/span&gt;EPOCHREALTIME &lt;span class="o"&gt;-&lt;/span&gt; start&lt;span class="k"&gt;))&lt;/span&gt;
-  &lt;span class="k"&gt;done&lt;/span&gt; | histogram.py --confidence&lt;span class="o"&gt;=&lt;/span&gt;.90 | head -n 2
+  &lt;span class="k"&gt;done&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; histogram.py --confidence&lt;span class="o"&gt;=&lt;/span&gt;.90 &lt;span class="p"&gt;|&lt;/span&gt; head -n 2
   &lt;span class="nb"&gt;echo&lt;/span&gt;
 &lt;span class="k"&gt;done&lt;/span&gt;
 hash.bash
-&lt;span class="c"&gt;# NumSamples = 30; Min = 3.43; Max = 3.99&lt;/span&gt;
-&lt;span class="c"&gt;# Mean = 3.529906 (+/- 0.028584); Variance = 0.009060; SD = 0.095184; Median 3.509426&lt;/span&gt;
+&lt;span class="c1"&gt;# NumSamples = 30; Min = 3.43; Max = 3.99&lt;/span&gt;
+&lt;span class="c1"&gt;# Mean = 3.529906 (+/- 0.028584); Variance = 0.009060; SD = 0.095184; Median 3.509426&lt;/span&gt;
 
 hash.bash.inlined
-&lt;span class="c"&gt;# NumSamples = 30; Min = 2.84; Max = 3.16&lt;/span&gt;
-&lt;span class="c"&gt;# Mean = 2.932449 (+/- 0.016860); Variance = 0.003152; SD = 0.056141; Median 2.917874&lt;/span&gt;
+&lt;span class="c1"&gt;# NumSamples = 30; Min = 2.84; Max = 3.16&lt;/span&gt;
+&lt;span class="c1"&gt;# Mean = 2.932449 (+/- 0.016860); Variance = 0.003152; SD = 0.056141; Median 2.917874&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;As you can see, there is a greater than 15% improvement gain from inlining the
 function! We take this approach further, removing the local variable &lt;code&gt;letter&lt;/code&gt; and
 making our code compact:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt; &lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; 0; i &amp;lt;&lt;span class="k"&gt;${#&lt;/span&gt;&lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;; i++&lt;span class="o"&gt;))&lt;/span&gt;; &lt;span class="k"&gt;do&lt;/span&gt;
-    &lt;span class="o"&gt;((&lt;/span&gt; HASH_RESULT +&lt;span class="o"&gt;=&lt;/span&gt; letter_value&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="k"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;$i&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;1&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt; &lt;span class="o"&gt;))&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt; &lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; 0&lt;span class="p"&gt;;&lt;/span&gt; i &amp;lt;&lt;span class="si"&gt;${#&lt;/span&gt;&lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; i++&lt;span class="o"&gt;))&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt;
+    &lt;span class="o"&gt;((&lt;/span&gt; HASH_RESULT +&lt;span class="o"&gt;=&lt;/span&gt; letter_value&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;$i&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;1&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt; &lt;span class="o"&gt;))&lt;/span&gt;
 &lt;span class="k"&gt;done&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;Running with this variation, we see yet another significant improvement:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;hash.bash.inline_nolocals
-&lt;span class="c"&gt;# NumSamples = 30; Min = 2.69; Max = 2.84&lt;/span&gt;
-&lt;span class="c"&gt;# Mean = 2.749286 (+/- 0.010406); Variance = 0.001201; SD = 0.034651; Median 2.746643&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;hash.bash.inline_nolocals
+&lt;span class="c1"&gt;# NumSamples = 30; Min = 2.69; Max = 2.84&lt;/span&gt;
+&lt;span class="c1"&gt;# Mean = 2.749286 (+/- 0.010406); Variance = 0.001201; SD = 0.034651; Median 2.746643&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -91,49 +470,49 @@ making our code compact:&lt;/p&gt;
 first time the runtime of an &lt;code&gt;execute_command&lt;/code&gt; call isn't dominated by another
 recursive call to &lt;code&gt;execute_command&lt;/code&gt;, the function &lt;code&gt;eval_arith_for_expr&lt;/code&gt; consumes
 a large portion of the time.&lt;/p&gt;
-&lt;p&gt;&lt;img alt="optimized bash perf" src="http://codearcana.com/images/bash_perf_eval_arith.png" title="eval_arith_for_expr is a serious part of this function's runtime" /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="optimized bash perf" src="http://codearcana.com/images/bash_perf_eval_arith.png" title="eval_arith_for_expr is a serious part of this function's runtime"&gt;&lt;/p&gt;
 &lt;p&gt;Furthermore, we see that a large portion of the rest of the time is eventually spent
 in &lt;code&gt;expand_word_list_internal&lt;/code&gt;:&lt;/p&gt;
-&lt;p&gt;&lt;img alt="optimized bash perf" src="http://codearcana.com/images/bash_perf_expand_word.png" title="expand_word_list_internal is also a serious part of this function's runtime" /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="optimized bash perf" src="http://codearcana.com/images/bash_perf_expand_word.png" title="expand_word_list_internal is also a serious part of this function's runtime"&gt;&lt;/p&gt;
 &lt;p&gt;These observations lead us to another technique - we will use only one character
 variable names to try to optimize for these two functions. Running again with all of
 these optimizations, we get a huge performance improvement:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;hash.bash.one_char_names
-&lt;span class="c"&gt;# NumSamples = 30; Min = 2.33; Max = 2.44&lt;/span&gt;
-&lt;span class="c"&gt;# Mean = 2.371499 (+/- 0.008031); Variance = 0.000715; SD = 0.026743; Median 2.363547&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;hash.bash.one_char_names
+&lt;span class="c1"&gt;# NumSamples = 30; Min = 2.33; Max = 2.44&lt;/span&gt;
+&lt;span class="c1"&gt;# Mean = 2.371499 (+/- 0.008031); Variance = 0.000715; SD = 0.026743; Median 2.363547&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;We can take this further, but I think I'm going to quit here for now - I improved
 performance by almost 50% by using a profiler and some &lt;code&gt;bash&lt;/code&gt;-foo. Final program
-below&lt;sup id="fnref:3"&gt;&lt;a class="footnote-ref" href="#fn:3" rel="footnote"&gt;3&lt;/a&gt;&lt;/sup&gt;. One final note -
+below&lt;sup id="fnref-3"&gt;&lt;a class="footnote-ref" href="#fn-3"&gt;3&lt;/a&gt;&lt;/sup&gt;. One final note -
 for the love of all that is holy, don't write performant programs in &lt;code&gt;bash&lt;/code&gt;! &lt;/p&gt;
 &lt;div class="footnote"&gt;
-&lt;hr /&gt;
+&lt;hr&gt;
 &lt;ol&gt;
-&lt;li id="fn:1"&gt;
+&lt;li id="fn-1"&gt;
 &lt;p&gt;Initial program.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;#!/usr/bin/env bash&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="ch"&gt;#!/usr/bin/env bash&lt;/span&gt;
 
-&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt;BASH_VERSINFO&lt;span class="o"&gt;[&lt;/span&gt;0&lt;span class="o"&gt;]&lt;/span&gt; &amp;lt; 4&lt;span class="o"&gt;))&lt;/span&gt;; &lt;span class="k"&gt;then&lt;/span&gt;
-&lt;span class="k"&gt;  &lt;/span&gt;&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Sorry, you need at least bash-4.0 to run this script.&amp;quot;&lt;/span&gt; &amp;gt;&amp;amp;2
-  &lt;span class="nb"&gt;exit &lt;/span&gt;1
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt;BASH_VERSINFO&lt;span class="o"&gt;[&lt;/span&gt;0&lt;span class="o"&gt;]&lt;/span&gt; &amp;lt; 4&lt;span class="o"&gt;))&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;then&lt;/span&gt;
+  &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Sorry, you need at least bash-4.0 to run this script.&amp;quot;&lt;/span&gt; &amp;gt;&lt;span class="p"&gt;&amp;amp;&lt;/span&gt;2
+  &lt;span class="nb"&gt;exit&lt;/span&gt; 1
 &lt;span class="k"&gt;fi&lt;/span&gt;
 
-&lt;span class="c"&gt;# An associate array mapping each letter to its index.&lt;/span&gt;
+&lt;span class="c1"&gt;# An associate array mapping each letter to its index.&lt;/span&gt;
 &lt;span class="nb"&gt;declare&lt;/span&gt; -A letter_value
-&lt;span class="nv"&gt;i&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;97  &lt;span class="c"&gt;# ascii &amp;#39;a&amp;#39;.&lt;/span&gt;
-&lt;span class="k"&gt;for &lt;/span&gt;letter in a b c d e f g h i j k l m n o p q r s t u v w x y z; &lt;span class="k"&gt;do&lt;/span&gt;
-&lt;span class="k"&gt;  &lt;/span&gt;letter_value&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$letter&lt;/span&gt;&lt;span class="o"&gt;]=&lt;/span&gt;&lt;span class="k"&gt;$((&lt;/span&gt;i++&lt;span class="k"&gt;))&lt;/span&gt;
+&lt;span class="nv"&gt;i&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;97&lt;/span&gt;  &lt;span class="c1"&gt;# ascii &amp;#39;a&amp;#39;.&lt;/span&gt;
+&lt;span class="k"&gt;for&lt;/span&gt; letter in a b c d e f g h i j k l m n o p q r s t u v w x y z&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt;
+  letter_value&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$letter&lt;/span&gt;&lt;span class="o"&gt;]=&lt;/span&gt;&lt;span class="k"&gt;$((&lt;/span&gt;i++&lt;span class="k"&gt;))&lt;/span&gt;
 &lt;span class="k"&gt;done&lt;/span&gt;
 
-&lt;span class="c"&gt;# We will return into this variable.&lt;/span&gt;
+&lt;span class="c1"&gt;# We will return into this variable.&lt;/span&gt;
 &lt;span class="nb"&gt;declare&lt;/span&gt; -i HASH_RESULT
-&lt;span class="k"&gt;function &lt;/span&gt;kr1  &lt;span class="o"&gt;{&lt;/span&gt;
-    &lt;span class="nb"&gt;local &lt;/span&gt;&lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$1&lt;/span&gt;
+&lt;span class="k"&gt;function&lt;/span&gt; kr1  &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="nb"&gt;local&lt;/span&gt; &lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$1&lt;/span&gt;
     &lt;span class="nv"&gt;HASH_RESULT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0
-    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt; &lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; 0; i &amp;lt;&lt;span class="k"&gt;${#&lt;/span&gt;&lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;; i++&lt;span class="o"&gt;))&lt;/span&gt;; &lt;span class="k"&gt;do&lt;/span&gt;
-&lt;span class="k"&gt;        &lt;/span&gt;&lt;span class="nb"&gt;local &lt;/span&gt;&lt;span class="nv"&gt;letter&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;$i&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;1&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt; &lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; 0&lt;span class="p"&gt;;&lt;/span&gt; i &amp;lt;&lt;span class="si"&gt;${#&lt;/span&gt;&lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; i++&lt;span class="o"&gt;))&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt;
+        &lt;span class="nb"&gt;local&lt;/span&gt; &lt;span class="nv"&gt;letter&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;word&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;$i&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;1&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
         &lt;span class="o"&gt;((&lt;/span&gt; HASH_RESULT +&lt;span class="o"&gt;=&lt;/span&gt; letter_value&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$letter&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt; &lt;span class="o"&gt;))&lt;/span&gt;
     &lt;span class="k"&gt;done&lt;/span&gt;
 &lt;span class="o"&gt;}&lt;/span&gt;
@@ -144,43 +523,43 @@ for the love of all that is holy, don't write performant programs in &lt;code&gt
 &lt;span class="nb"&gt;declare&lt;/span&gt; -i &lt;span class="nv"&gt;max_count&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0
 &lt;span class="nb"&gt;declare&lt;/span&gt; -i &lt;span class="nv"&gt;max_hash&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;-1
 
-&lt;span class="k"&gt;while &lt;/span&gt;&lt;span class="nb"&gt;read &lt;/span&gt;word; &lt;span class="k"&gt;do&lt;/span&gt;
-&lt;span class="k"&gt;    &lt;/span&gt;kr1 &lt;span class="nv"&gt;$word&lt;/span&gt;
+&lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="nb"&gt;read&lt;/span&gt; word&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt;
+    kr1 &lt;span class="nv"&gt;$word&lt;/span&gt;
 
     &lt;span class="o"&gt;((&lt;/span&gt; hash_to_count&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$HASH_RESULT&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;++ &lt;span class="o"&gt;))&lt;/span&gt;
-    hash_to_words&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$HASH_RESULT&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;+&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot; $word&amp;quot;&lt;/span&gt;
+    hash_to_words&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$HASH_RESULT&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;+&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot; &lt;/span&gt;&lt;span class="nv"&gt;$word&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
 
-    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt; hash_to_count&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$HASH_RESULT&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt; &amp;gt; max_count &lt;span class="o"&gt;))&lt;/span&gt;; &lt;span class="k"&gt;then&lt;/span&gt;
-&lt;span class="k"&gt;        &lt;/span&gt;&lt;span class="nv"&gt;max_count&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;hash_to_count&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$HASH_RESULT&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt; hash_to_count&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$HASH_RESULT&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt; &amp;gt; max_count &lt;span class="o"&gt;))&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;then&lt;/span&gt;
+        &lt;span class="nv"&gt;max_count&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;hash_to_count&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$HASH_RESULT&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
         &lt;span class="nv"&gt;max_hash&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$HASH_RESULT&lt;/span&gt;
     &lt;span class="k"&gt;fi&lt;/span&gt;
 &lt;span class="k"&gt;done&lt;/span&gt; &amp;lt;word.lst
 
-&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="k"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;hash_to_words&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$max_hash&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;
+&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;hash_to_words&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$max_hash&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;&lt;a class="footnote-backref" href="#fnref:1" rev="footnote" title="Jump back to footnote 1 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a class="footnote-backref" href="#fnref-1" title="Jump back to footnote 1 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
 &lt;/li&gt;
-&lt;li id="fn:2"&gt;
+&lt;li id="fn-2"&gt;
 &lt;p&gt;Here I'm using a &lt;a href="https://github.com/awreece/data_hacks"&gt;modified version&lt;/a&gt;
   of &lt;code&gt;bitly/data_hacks&lt;/code&gt; that includes the flag &lt;code&gt;--confidence&lt;/code&gt; specifying a
-     confidence interval around the mean to report.&amp;#160;&lt;a class="footnote-backref" href="#fnref:2" rev="footnote" title="Jump back to footnote 2 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+     confidence interval around the mean to report.&amp;#160;&lt;a class="footnote-backref" href="#fnref-2" title="Jump back to footnote 2 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
 &lt;/li&gt;
-&lt;li id="fn:3"&gt;
+&lt;li id="fn-3"&gt;
 &lt;p&gt;Final program.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;#!/usr/local/bin/bash&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="ch"&gt;#!/usr/local/bin/bash&lt;/span&gt;
 
-&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt;BASH_VERSINFO&lt;span class="o"&gt;[&lt;/span&gt;0&lt;span class="o"&gt;]&lt;/span&gt; &amp;lt; 4&lt;span class="o"&gt;))&lt;/span&gt;; &lt;span class="k"&gt;then&lt;/span&gt;
-&lt;span class="k"&gt;  &lt;/span&gt;&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Sorry, you need at least bash-4.0 to run this script.&amp;quot;&lt;/span&gt; &amp;gt;&amp;amp;2
-  &lt;span class="nb"&gt;exit &lt;/span&gt;1
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt;BASH_VERSINFO&lt;span class="o"&gt;[&lt;/span&gt;0&lt;span class="o"&gt;]&lt;/span&gt; &amp;lt; 4&lt;span class="o"&gt;))&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;then&lt;/span&gt;
+  &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Sorry, you need at least bash-4.0 to run this script.&amp;quot;&lt;/span&gt; &amp;gt;&lt;span class="p"&gt;&amp;amp;&lt;/span&gt;2
+  &lt;span class="nb"&gt;exit&lt;/span&gt; 1
 &lt;span class="k"&gt;fi&lt;/span&gt;
 
-&lt;span class="c"&gt;# An associate array mapping each letter to its index.&lt;/span&gt;
+&lt;span class="c1"&gt;# An associate array mapping each letter to its index.&lt;/span&gt;
 &lt;span class="nb"&gt;declare&lt;/span&gt; -A l
-&lt;span class="nv"&gt;i&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;97  &lt;span class="c"&gt;# ascii &amp;#39;a&amp;#39;.&lt;/span&gt;
-&lt;span class="k"&gt;for &lt;/span&gt;letter in a b c d e f g h i j k l m n o p q r s t u v w x y z; &lt;span class="k"&gt;do&lt;/span&gt;
-&lt;span class="k"&gt;  &lt;/span&gt;l&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$letter&lt;/span&gt;&lt;span class="o"&gt;]=&lt;/span&gt;&lt;span class="k"&gt;$((&lt;/span&gt;i++&lt;span class="k"&gt;))&lt;/span&gt;
+&lt;span class="nv"&gt;i&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;97&lt;/span&gt;  &lt;span class="c1"&gt;# ascii &amp;#39;a&amp;#39;.&lt;/span&gt;
+&lt;span class="k"&gt;for&lt;/span&gt; letter in a b c d e f g h i j k l m n o p q r s t u v w x y z&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt;
+  l&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$letter&lt;/span&gt;&lt;span class="o"&gt;]=&lt;/span&gt;&lt;span class="k"&gt;$((&lt;/span&gt;i++&lt;span class="k"&gt;))&lt;/span&gt;
 &lt;span class="k"&gt;done&lt;/span&gt;
 
 &lt;span class="nb"&gt;declare&lt;/span&gt; -a c
@@ -189,39 +568,39 @@ for the love of all that is holy, don't write performant programs in &lt;code&gt
 &lt;span class="nb"&gt;declare&lt;/span&gt; -i &lt;span class="nv"&gt;m&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0
 &lt;span class="nb"&gt;declare&lt;/span&gt; -i &lt;span class="nv"&gt;n&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;-1
 
-&lt;span class="k"&gt;while &lt;/span&gt;&lt;span class="nb"&gt;read &lt;/span&gt;w; &lt;span class="k"&gt;do&lt;/span&gt;
-&lt;span class="k"&gt;    &lt;/span&gt;&lt;span class="nv"&gt;h&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0
-    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt; &lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; 0; i &amp;lt;&lt;span class="k"&gt;${#&lt;/span&gt;&lt;span class="nv"&gt;w&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;; i++&lt;span class="o"&gt;))&lt;/span&gt;; &lt;span class="k"&gt;do&lt;/span&gt;
-        &lt;span class="o"&gt;((&lt;/span&gt; h +&lt;span class="o"&gt;=&lt;/span&gt; l&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="k"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;w&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;$i&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;1&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt; &lt;span class="o"&gt;))&lt;/span&gt;
+&lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="nb"&gt;read&lt;/span&gt; w&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt;
+    &lt;span class="nv"&gt;h&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt; &lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; 0&lt;span class="p"&gt;;&lt;/span&gt; i &amp;lt;&lt;span class="si"&gt;${#&lt;/span&gt;&lt;span class="nv"&gt;w&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; i++&lt;span class="o"&gt;))&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt;
+        &lt;span class="o"&gt;((&lt;/span&gt; h +&lt;span class="o"&gt;=&lt;/span&gt; l&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;w&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;$i&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="nv"&gt;1&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt; &lt;span class="o"&gt;))&lt;/span&gt;
     &lt;span class="k"&gt;done&lt;/span&gt;
 
     &lt;span class="o"&gt;((&lt;/span&gt; c&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$h&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;++ &lt;span class="o"&gt;))&lt;/span&gt;
-    v&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$h&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;+&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot; $w&amp;quot;&lt;/span&gt;
+    v&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$h&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;+&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot; &lt;/span&gt;&lt;span class="nv"&gt;$w&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
 
-    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt; c&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$h&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt; &amp;gt; m &lt;span class="o"&gt;))&lt;/span&gt;; &lt;span class="k"&gt;then&lt;/span&gt;
-&lt;span class="k"&gt;        &lt;/span&gt;&lt;span class="nv"&gt;m&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;c&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$h&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt; c&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$h&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt; &amp;gt; m &lt;span class="o"&gt;))&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;then&lt;/span&gt;
+        &lt;span class="nv"&gt;m&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;c&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$h&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
         &lt;span class="nv"&gt;n&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$h&lt;/span&gt;
     &lt;span class="k"&gt;fi&lt;/span&gt;
 &lt;span class="k"&gt;done&lt;/span&gt; &amp;lt;word.lst
 
-&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="k"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;v&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$n&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;
+&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;v&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;$n&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;&lt;a class="footnote-backref" href="#fnref:3" rev="footnote" title="Jump back to footnote 3 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a class="footnote-backref" href="#fnref-3" title="Jump back to footnote 3 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ol&gt;
-&lt;/div&gt;</summary><category term="bash"></category><category term="profiling"></category></entry><entry><title>Achieving maximum memory bandwidth</title><link href="http://codearcana.com/posts/2013/05/18/achieving-maximum-memory-bandwidth.html" rel="alternate"></link><updated>2013-05-18T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-05-18:posts/2013/05/18/achieving-maximum-memory-bandwidth.html</id><summary type="html">&lt;p&gt;These past few months I was a teaching assistant for a class on &lt;a href="http://15418.courses.cs.cmu.edu/15418_spr13/"&gt;parallel computer architecture&lt;/a&gt;. One of the questions on our first homework assignment asked the students to analyze a function and realize that it could not be optimized any further because it was already at maximum memory bandwidth. But a student pointed out, rightly, that it was only at &lt;em&gt;half&lt;/em&gt; the maximum bandwidth. In an attempt to understand what was going on, I embarked on a quest to write a program that achieved the theoretical maximum memory bandwidth.&lt;/p&gt;
+&lt;/div&gt;</content><category term="bash"></category><category term="profiling"></category></entry><entry><title>Achieving maximum memory bandwidth</title><link href="http://codearcana.com/posts/2013/05/18/achieving-maximum-memory-bandwidth.html" rel="alternate"></link><published>2013-05-18T00:00:00-07:00</published><updated>2013-05-18T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-05-18:/posts/2013/05/18/achieving-maximum-memory-bandwidth.html</id><summary type="html">&lt;p&gt;I embarked upon a quest to understand some unexpected behavior and write a program that achieved the theoretical maximum memory bandwidth.&lt;/p&gt;</summary><content type="html">&lt;p&gt;These past few months I was a teaching assistant for a class on &lt;a href="http://15418.courses.cs.cmu.edu/15418_spr13/"&gt;parallel computer architecture&lt;/a&gt;. One of the questions on our first homework assignment asked the students to analyze a function and realize that it could not be optimized any further because it was already at maximum memory bandwidth. But a student pointed out, rightly, that it was only at &lt;em&gt;half&lt;/em&gt; the maximum bandwidth. In an attempt to understand what was going on, I embarked on a quest to write a program that achieved the theoretical maximum memory bandwidth.&lt;/p&gt;
 &lt;h2&gt;tl;dr&lt;/h2&gt;
 &lt;p&gt;&lt;em&gt;Use non-temporal vector instructions or optimized string instructions to get the full bandwidth.&lt;/em&gt;&lt;/p&gt;
 &lt;h1&gt;What is memory bandwidth?&lt;/h1&gt;
-&lt;p&gt;When analyzing computer programs for performance, it is important to be aware of the hardware they will be running on. There are two important numbers to pay attention to with memory systems (i.e. RAM): &lt;a href="https://en.wikipedia.org/wiki/SDRAM_latency"&gt;memory latency&lt;/a&gt;, or the amount of time to satisfy an individual memory request, and &lt;a href="https://en.wikipedia.org/wiki/Memory_bandwidth"&gt;memory bandwidth&lt;/a&gt;, or the amount of data that can be accessed in a given amount of time&lt;sup id="fnref:1"&gt;&lt;a class="footnote-ref" href="#fn:1" rel="footnote"&gt;1&lt;/a&gt;&lt;/sup&gt;. &lt;/p&gt;
-&lt;p&gt;It is easy to compute the theoretically maximum memory bandwidth. &lt;a href="http://support.apple.com/kb/sp653"&gt;My laptop&lt;/a&gt; has 2 sticks of DDR3 SDRAM running at 1600 MHz, each connected to a 64 bit bus, for a maximum theoretical bandwidth of &lt;a href="http://www.wolframalpha.com/input/?i=1600+MHz+*+64+bits+*+2+to+GB%2Fs"&gt;25.6 GB/s&lt;/a&gt;&lt;sup id="fnref:4"&gt;&lt;a class="footnote-ref" href="#fn:4" rel="footnote"&gt;2&lt;/a&gt;&lt;/sup&gt;. This means that no matter how cleverly I write my program, the maximum amount of memory I can touch in 1 second is 25.6 GB. Unfortunately, this theoretical limit is somewhat challenging to reach with real code. &lt;/p&gt;
+&lt;p&gt;When analyzing computer programs for performance, it is important to be aware of the hardware they will be running on. There are two important numbers to pay attention to with memory systems (i.e. RAM): &lt;a href="https://en.wikipedia.org/wiki/SDRAM_latency"&gt;memory latency&lt;/a&gt;, or the amount of time to satisfy an individual memory request, and &lt;a href="https://en.wikipedia.org/wiki/Memory_bandwidth"&gt;memory bandwidth&lt;/a&gt;, or the amount of data that can be accessed in a given amount of time&lt;sup id="fnref-1"&gt;&lt;a class="footnote-ref" href="#fn-1"&gt;1&lt;/a&gt;&lt;/sup&gt;. &lt;/p&gt;
+&lt;p&gt;It is easy to compute the theoretically maximum memory bandwidth. &lt;a href="http://support.apple.com/kb/sp653"&gt;My laptop&lt;/a&gt; has 2 sticks of DDR3 SDRAM running at 1600 MHz, each connected to a 64 bit bus, for a maximum theoretical bandwidth of &lt;a href="http://www.wolframalpha.com/input/?i=1600+MHz+*+64+bits+*+2+to+GB%2Fs"&gt;25.6 GB/s&lt;/a&gt;&lt;sup id="fnref-4"&gt;&lt;a class="footnote-ref" href="#fn-4"&gt;2&lt;/a&gt;&lt;/sup&gt;. This means that no matter how cleverly I write my program, the maximum amount of memory I can touch in 1 second is 25.6 GB. Unfortunately, this theoretical limit is somewhat challenging to reach with real code. &lt;/p&gt;
 &lt;h1&gt;Measuring memory bandwidth&lt;/h1&gt;
-&lt;p&gt;To measure the memory bandwidth for a function, I wrote a simple benchmark. For each function, I access a large&lt;sup id="fnref:2"&gt;&lt;a class="footnote-ref" href="#fn:2" rel="footnote"&gt;3&lt;/a&gt;&lt;/sup&gt; array of memory and compute the bandwidth by dividing by the run time&lt;sup id="fnref:3"&gt;&lt;a class="footnote-ref" href="#fn:3" rel="footnote"&gt;4&lt;/a&gt;&lt;/sup&gt;. For example, if a function takes 120 milliseconds to access 1 GB of memory, I calculate the bandwidth to be &lt;a href="http://www.wolframalpha.com/input/?i=1+GB+%2F+120+milliseconds+to+GB%2Fs"&gt;8.33 GB/s&lt;/a&gt;. To try to reduce the variance and timing overhead, I repeatedly accessed our array and took the smallest time over several iterations&lt;sup id="fnref:6"&gt;&lt;a class="footnote-ref" href="#fn:6" rel="footnote"&gt;5&lt;/a&gt;&lt;/sup&gt;. If you're curious, all my test code is available on &lt;a href="https://github.com/awreece/memory-bandwidth-demo"&gt;github&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;To measure the memory bandwidth for a function, I wrote a simple benchmark. For each function, I access a large&lt;sup id="fnref-2"&gt;&lt;a class="footnote-ref" href="#fn-2"&gt;3&lt;/a&gt;&lt;/sup&gt; array of memory and compute the bandwidth by dividing by the run time&lt;sup id="fnref-3"&gt;&lt;a class="footnote-ref" href="#fn-3"&gt;4&lt;/a&gt;&lt;/sup&gt;. For example, if a function takes 120 milliseconds to access 1 GB of memory, I calculate the bandwidth to be &lt;a href="http://www.wolframalpha.com/input/?i=1+GB+%2F+120+milliseconds+to+GB%2Fs"&gt;8.33 GB/s&lt;/a&gt;. To try to reduce the variance and timing overhead, I repeatedly accessed our array and took the smallest time over several iterations&lt;sup id="fnref-6"&gt;&lt;a class="footnote-ref" href="#fn-6"&gt;5&lt;/a&gt;&lt;/sup&gt;. If you're curious, all my test code is available on &lt;a href="https://github.com/awreece/memory-bandwidth-demo"&gt;github&lt;/a&gt;.&lt;/p&gt;
 &lt;h1&gt;A first attempt&lt;/h1&gt;
 &lt;p&gt;I first wrote a simple C program to just write to every value in the array.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;write_memory_loop&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;array&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;write_memory_loop&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;array&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
   &lt;span class="kt"&gt;size_t&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;carray&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;size_t&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;array&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
   &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
   &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="k"&gt;sizeof&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;size_t&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
@@ -232,7 +611,7 @@ for the love of all that is holy, don't write performant programs in &lt;code&gt
 
 
 &lt;p&gt;This generated the assembly I was expecting:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="mh"&gt;0000000100000ac0&lt;/span&gt; &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nf"&gt;_write_memory_loop&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;:&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="mh"&gt;0000000100000ac0&lt;/span&gt; &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nf"&gt;_write_memory_loop&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;:&lt;/span&gt;
 &lt;span class="x"&gt;   100000ac0:   48 c1 ee 03             shr    $0x3,%rsi&lt;/span&gt;
 &lt;span class="x"&gt;   100000ac4:   48 8d 04 f7             lea    (%rdi,%rsi,8),%rax&lt;/span&gt;
 &lt;span class="x"&gt;   100000ac8:   48 85 f6                test   %rsi,%rsi&lt;/span&gt;
@@ -247,14 +626,14 @@ for the love of all that is holy, don't write performant programs in &lt;code&gt
 
 
 &lt;p&gt;But not the bandwidth I was expecting (remember, my goal is 23.8 GiB/s):&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./memory_profiler
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./memory_profiler
 &lt;span class="go"&gt;               write_memory_loop:  9.23 GiB/s&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h1&gt;Using SIMD&lt;/h1&gt;
 &lt;p&gt;The first thing I tried is to use &lt;a href="http://15418.courses.cs.cmu.edu/15418_spr13/index.php/lecture/basicarch/slide_021"&gt;Single Instruction Multiple Data (SIMD)&lt;/a&gt; instructions to touch more memory at once. Basically, a modern processor is very complicated and has multiple Arithmetic Logic Units (ALUs). This gives it the ability to support instructions that perform an operation on multiple pieces of data simultaneously. I will use this to perform operation on more data simultaneously to get higher bandwidth. Since my processor support AVX instructions, I can perform operations on 256 bits (32 bytes) every instruction:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#include &amp;lt;immintrin.h&amp;gt;&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cp"&gt;#include&lt;/span&gt; &lt;span class="cpf"&gt;&amp;lt;immintrin.h&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;&lt;/span&gt;
 &lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;write_memory_avx&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;array&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
   &lt;span class="n"&gt;__m256i&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;varray&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;__m256i&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;array&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 
@@ -268,21 +647,21 @@ for the love of all that is holy, don't write performant programs in &lt;code&gt
 
 
 &lt;p&gt;But when I use use this, I didn't get any better bandwidth than before!&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./memory_profiler
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./memory_profiler
 &lt;span class="go"&gt;                write_memory_avx:  9.01 GiB/s&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;Why was I consistently getting slightly under half the theoretical memory bandwidth?&lt;/p&gt;
-&lt;p&gt;The answer is a bit complicated because the cache in a modern processor is &lt;a href="http://15418.courses.cs.cmu.edu/15418_spr13/index.php/lecture/cachecoherence1/slide_028"&gt;complicated&lt;/a&gt;&lt;sup id="fnref:5"&gt;&lt;a class="footnote-ref" href="#fn:5" rel="footnote"&gt;6&lt;/a&gt;&lt;/sup&gt;. The main problem is that memory traffic on the bus is done in units of &lt;em&gt;cache lines&lt;/em&gt;, which tend to be larger than 32 bytes. In order to write only 32 bytes, the cache must first &lt;em&gt;read&lt;/em&gt; the entire cache line from memory and then modify it. Unfortunately, this means that my program, which only writes values, will actually cause double the memory traffic I expect because it will cause reads of cache line! As you can see from the picture below, the bus traffic (the blue lines out of the processor) per cache line is a read and a write to memory:&lt;/p&gt;
-&lt;p&gt;&lt;img alt="Cache traffic for a partial cache line write" src="http://codearcana.com/images/cache_readwrite.png" title="Cache traffic for a partial cache line write" /&gt;&lt;/p&gt;
+&lt;p&gt;The answer is a bit complicated because the cache in a modern processor is &lt;a href="http://15418.courses.cs.cmu.edu/15418_spr13/index.php/lecture/cachecoherence1/slide_028"&gt;complicated&lt;/a&gt;&lt;sup id="fnref-5"&gt;&lt;a class="footnote-ref" href="#fn-5"&gt;6&lt;/a&gt;&lt;/sup&gt;. The main problem is that memory traffic on the bus is done in units of &lt;em&gt;cache lines&lt;/em&gt;, which tend to be larger than 32 bytes. In order to write only 32 bytes, the cache must first &lt;em&gt;read&lt;/em&gt; the entire cache line from memory and then modify it. Unfortunately, this means that my program, which only writes values, will actually cause double the memory traffic I expect because it will cause reads of cache line! As you can see from the picture below, the bus traffic (the blue lines out of the processor) per cache line is a read and a write to memory:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Cache traffic for a partial cache line write" src="http://codearcana.com/images/cache_readwrite.png" title="Cache traffic for a partial cache line write"&gt;&lt;/p&gt;
 &lt;h1&gt;Non-temporal instructions&lt;/h1&gt;
 &lt;p&gt;So how do I solve this problem? The answer lies in a little known feature: non-temporal instructions. As described in Ulrich Drepper's 100 page &lt;a href="http://www.akkadia.org/drepper/cpumemory.pdf"&gt;&lt;em&gt;What every programmer should know about memory&lt;/em&gt;&lt;/a&gt;,&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;These non-temporal write operations do not read a cache line and then modify it; instead, the new content is directly written to memory. This might sound expensive but it does not have to be. The processor will try to use write-combining (see section 3.3.3) to ﬁll entire cache lines. If this succeeds no memory read operation is needed at all.&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;Aha! I can use these to avoid the reads and get our full bandwidth!&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;write_memory_nontemporal_avx&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;array&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;write_memory_nontemporal_avx&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;array&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
   &lt;span class="n"&gt;__m256i&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;varray&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;__m256i&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;array&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 
   &lt;span class="n"&gt;__m256i&lt;/span&gt; &lt;span class="n"&gt;vals&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;_mm256_set1_epi32&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
@@ -295,21 +674,21 @@ for the love of all that is holy, don't write performant programs in &lt;code&gt
 
 
 &lt;p&gt;I run our new program and am disappointed again:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./memory_profiler
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./memory_profiler
 &lt;span class="go"&gt;    write_memory_nontemporal_avx: 12.65 GiB/s&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;At this point I'm getting really frustrated. Am I on the right track? I quickly compare our benchmarks to &lt;code&gt;memset&lt;/code&gt;:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./memory_profiler
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./memory_profiler
 &lt;span class="go"&gt;             write_memory_memset: 12.84 GiB/s&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;and see that while I am far from the theoretical bandwidth, I'm at least on the same scale as &lt;code&gt;memset&lt;/code&gt;. So now the question is: is it even &lt;em&gt;possible&lt;/em&gt; to get the full bandwidth?&lt;/p&gt;
 &lt;h1&gt;Repeated string instructions&lt;/h1&gt;
-&lt;p&gt;At this point, I got some advice: Dillon Sharlet had a key suggestion here to use the repeated string instructions. The &lt;a href="http://web.itu.edu.tr/kesgin/mul06/intel/instr/rep.html"&gt;&lt;code&gt;rep&lt;/code&gt;&lt;/a&gt; instruction prefix repeats a special string instruction. For example, &lt;code&gt;rep stosq&lt;/code&gt; will repeatedly store a word into an array - exactly what I want. For relatively recent processors&lt;sup id="fnref:7"&gt;&lt;a class="footnote-ref" href="#fn:7" rel="footnote"&gt;7&lt;/a&gt;&lt;/sup&gt;, this works well. After looking up the hideous syntax for inline assembly&lt;sup id="fnref:8"&gt;&lt;a class="footnote-ref" href="#fn:8" rel="footnote"&gt;8&lt;/a&gt;&lt;/sup&gt;, I get our function:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;write_memory_rep_stosq&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+&lt;p&gt;At this point, I got some advice: Dillon Sharlet had a key suggestion here to use the repeated string instructions. The &lt;a href="http://web.itu.edu.tr/kesgin/mul06/intel/instr/rep.html"&gt;&lt;code&gt;rep&lt;/code&gt;&lt;/a&gt; instruction prefix repeats a special string instruction. For example, &lt;code&gt;rep stosq&lt;/code&gt; will repeatedly store a word into an array - exactly what I want. For relatively recent processors&lt;sup id="fnref-7"&gt;&lt;a class="footnote-ref" href="#fn-7"&gt;7&lt;/a&gt;&lt;/sup&gt;, this works well. After looking up the hideous syntax for inline assembly&lt;sup id="fnref-8"&gt;&lt;a class="footnote-ref" href="#fn-8"&gt;8&lt;/a&gt;&lt;/sup&gt;, I get our function:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;write_memory_rep_stosq&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
   &lt;span class="n"&gt;asm&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;cld&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&lt;/span&gt;
       &lt;span class="s"&gt;&amp;quot;rep stosq&amp;quot;&lt;/span&gt;
       &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;D&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;c&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;a&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
@@ -318,7 +697,7 @@ for the love of all that is holy, don't write performant programs in &lt;code&gt
 
 
 &lt;p&gt;And when I run, I get results that are really close to the peak bandwidth:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./memory_profiler
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ./memory_profiler
 &lt;span class="go"&gt;          write_memory_rep_stosq: 20.60 GiB/s&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -326,7 +705,7 @@ for the love of all that is holy, don't write performant programs in &lt;code&gt
 &lt;p&gt;Now the plot thickens. It turns out that it is &lt;em&gt;indeed&lt;/em&gt; possible to get the full memory bandwidth, but I can't get close with my non-temporal AVX instructions. So what is up?&lt;/p&gt;
 &lt;h1&gt;Multiple cores&lt;/h1&gt;
 &lt;p&gt;Again, Dillon Sharlet provided an important insight: the goal of saturating the entire bandwidth with a single core was perhaps a bit extreme. In order to use the full bandwidth, I would need to use multiple cores. I used OpenMP to run the function over multiple cores. To avoid counting the OpenMP overhead, I computed the timings only after all threads are ready and after all threads are done. To do this, I put barriers before the timing code:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#pragma omp parallel  &lt;/span&gt;&lt;span class="c1"&gt;// Set OMP_NUM_THREADS to the number of physical cores.&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cp"&gt;#pragma omp parallel  &lt;/span&gt;&lt;span class="c1"&gt;// Set OMP_NUM_THREADS to the number of physical cores.&lt;/span&gt;
 &lt;span class="p"&gt;{&lt;/span&gt;
 &lt;span class="cp"&gt;#pragma omp barrier  &lt;/span&gt;&lt;span class="c1"&gt;// Wait for all threads to be ready before starting the timer.&lt;/span&gt;
 
@@ -344,7 +723,7 @@ for the love of all that is holy, don't write performant programs in &lt;code&gt
 
 
 &lt;p&gt;When I run, I get very reasonable output (remember, the goal is 23.8 GiB/s):&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; &lt;span class="nv"&gt;OMP_NUM_THREADS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;4 ./memory_profiler  &lt;span class="c"&gt;# I only have 4 physical cores.&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; &lt;span class="nv"&gt;OMP_NUM_THREADS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;4&lt;/span&gt; ./memory_profiler  &lt;span class="c1"&gt;# I only have 4 physical cores.&lt;/span&gt;
 &lt;span class="go"&gt;            write_memory_avx_omp:  9.68 GiB/s&lt;/span&gt;
 &lt;span class="go"&gt;write_memory_nontemporal_avx_omp: 22.15 GiB/s&lt;/span&gt;
 &lt;span class="go"&gt;         write_memory_memset_omp: 22.15 GiB/s&lt;/span&gt;
@@ -363,34 +742,34 @@ for the love of all that is holy, don't write performant programs in &lt;code&gt
 &lt;li&gt;Why doesn't &lt;code&gt;rep scansq&lt;/code&gt; or &lt;code&gt;rep lodsq&lt;/code&gt; get the same bandwidth as &lt;code&gt;rep stosq&lt;/code&gt;?&lt;/li&gt;
 &lt;/ul&gt;
 &lt;div class="footnote"&gt;
-&lt;hr /&gt;
+&lt;hr&gt;
 &lt;ol&gt;
-&lt;li id="fn:1"&gt;
-&lt;p&gt;&lt;a href="http://15418.courses.cs.cmu.edu/15418_spr13/index.php/lecture/basicarch/slide_039"&gt;This lecture&lt;/a&gt; from the course is very good at illustrating some of these concepts.&amp;#160;&lt;a class="footnote-backref" href="#fnref:1" rev="footnote" title="Jump back to footnote 1 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;li id="fn-1"&gt;
+&lt;p&gt;&lt;a href="http://15418.courses.cs.cmu.edu/15418_spr13/index.php/lecture/basicarch/slide_039"&gt;This lecture&lt;/a&gt; from the course is very good at illustrating some of these concepts.&amp;#160;&lt;a class="footnote-backref" href="#fnref-1" title="Jump back to footnote 1 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
 &lt;/li&gt;
-&lt;li id="fn:4"&gt;
-&lt;p&gt;I'm not completely convinced this math is correct, but this number lines up with &lt;a href="http://ark.intel.com/products/64891/Intel-Core-i7-3720QM-Processor-6M-Cache-up-to-3_60-GHz"&gt;the specs provided by Intel&lt;/a&gt; for my processor as well.&amp;#160;&lt;a class="footnote-backref" href="#fnref:4" rev="footnote" title="Jump back to footnote 2 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;li id="fn-4"&gt;
+&lt;p&gt;I'm not completely convinced this math is correct, but this number lines up with &lt;a href="http://ark.intel.com/products/64891/Intel-Core-i7-3720QM-Processor-6M-Cache-up-to-3_60-GHz"&gt;the specs provided by Intel&lt;/a&gt; for my processor as well.&amp;#160;&lt;a class="footnote-backref" href="#fnref-4" title="Jump back to footnote 2 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
 &lt;/li&gt;
-&lt;li id="fn:2"&gt;
-&lt;p&gt;It should be too large to fit in cache since I want to test memory throughput, not cache throughput.&amp;#160;&lt;a class="footnote-backref" href="#fnref:2" rev="footnote" title="Jump back to footnote 3 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;li id="fn-2"&gt;
+&lt;p&gt;It should be too large to fit in cache since I want to test memory throughput, not cache throughput.&amp;#160;&lt;a class="footnote-backref" href="#fnref-2" title="Jump back to footnote 3 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
 &lt;/li&gt;
-&lt;li id="fn:3"&gt;
-&lt;p&gt;Use a &lt;a href="http://codearcana.com/posts/2013/05/15/a-cross-platform-monotonic-timer.html"&gt;monotonic timer&lt;/a&gt; to avoid errors caused by the system clock.&amp;#160;&lt;a class="footnote-backref" href="#fnref:3" rev="footnote" title="Jump back to footnote 4 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;li id="fn-3"&gt;
+&lt;p&gt;Use a &lt;a href="http://codearcana.com/posts/2013/05/15/a-cross-platform-monotonic-timer.html"&gt;monotonic timer&lt;/a&gt; to avoid errors caused by the system clock.&amp;#160;&lt;a class="footnote-backref" href="#fnref-3" title="Jump back to footnote 4 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
 &lt;/li&gt;
-&lt;li id="fn:6"&gt;
-&lt;p&gt;For future work, I'll probably write a kernel module in the style of &lt;a href="http://download.intel.com/embedded/software/IA/324264.pdf"&gt;this excellent Intel white paper&lt;/a&gt;.&amp;#160;&lt;a class="footnote-backref" href="#fnref:6" rev="footnote" title="Jump back to footnote 5 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;li id="fn-6"&gt;
+&lt;p&gt;For future work, I'll probably write a kernel module in the style of &lt;a href="http://download.intel.com/embedded/software/IA/324264.pdf"&gt;this excellent Intel white paper&lt;/a&gt;.&amp;#160;&lt;a class="footnote-backref" href="#fnref-6" title="Jump back to footnote 5 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
 &lt;/li&gt;
-&lt;li id="fn:5"&gt;
-&lt;p&gt;Ok, the answer is actually fairly complicated and I'm going to lie just a little bit to simplify things. If you're curious how a modern cache works, you should read through the &lt;a href="http://15418.courses.cs.cmu.edu/15418_spr13/index.php/lecture/cachecoherence1"&gt;lectures&lt;/a&gt; on it.&amp;#160;&lt;a class="footnote-backref" href="#fnref:5" rev="footnote" title="Jump back to footnote 6 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;li id="fn-5"&gt;
+&lt;p&gt;Ok, the answer is actually fairly complicated and I'm going to lie just a little bit to simplify things. If you're curious how a modern cache works, you should read through the &lt;a href="http://15418.courses.cs.cmu.edu/15418_spr13/index.php/lecture/cachecoherence1"&gt;lectures&lt;/a&gt; on it.&amp;#160;&lt;a class="footnote-backref" href="#fnref-5" title="Jump back to footnote 6 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
 &lt;/li&gt;
-&lt;li id="fn:7"&gt;
-&lt;p&gt;Apparently, this wasn't always the case: &lt;a href="http://stackoverflow.com/a/8429084/447288"&gt;http://stackoverflow.com/a/8429084/447288&lt;/a&gt;. In addition, my benchmarking seems to indicate that neither &lt;code&gt;rep lodsq&lt;/code&gt; or &lt;code&gt;rep scansq&lt;/code&gt; benefit from the same degree of optimization that &lt;code&gt;rep stosq&lt;/code&gt; received. I don't fully understand what all is going on.&amp;#160;&lt;a class="footnote-backref" href="#fnref:7" rev="footnote" title="Jump back to footnote 7 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;li id="fn-7"&gt;
+&lt;p&gt;Apparently, this wasn't always the case: &lt;a href="http://stackoverflow.com/a/8429084/447288"&gt;http://stackoverflow.com/a/8429084/447288&lt;/a&gt;. In addition, my benchmarking seems to indicate that neither &lt;code&gt;rep lodsq&lt;/code&gt; or &lt;code&gt;rep scansq&lt;/code&gt; benefit from the same degree of optimization that &lt;code&gt;rep stosq&lt;/code&gt; received. I don't fully understand what all is going on.&amp;#160;&lt;a class="footnote-backref" href="#fnref-7" title="Jump back to footnote 7 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
 &lt;/li&gt;
-&lt;li id="fn:8"&gt;
-&lt;p&gt;The inline assembly wasn't strictly necessary here (I could have and should have written it directly in an assembly file), but I've had difficulties exporting function names in assembly portably.&amp;#160;&lt;a class="footnote-backref" href="#fnref:8" rev="footnote" title="Jump back to footnote 8 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;li id="fn-8"&gt;
+&lt;p&gt;The inline assembly wasn't strictly necessary here (I could have and should have written it directly in an assembly file), but I've had difficulties exporting function names in assembly portably.&amp;#160;&lt;a class="footnote-backref" href="#fnref-8" title="Jump back to footnote 8 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ol&gt;
-&lt;/div&gt;</summary><category term="profiling"></category></entry><entry><title>A cross-platform monotonic timer</title><link href="http://codearcana.com/posts/2013/05/15/a-cross-platform-monotonic-timer.html" rel="alternate"></link><updated>2013-05-15T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-05-15:posts/2013/05/15/a-cross-platform-monotonic-timer.html</id><summary type="html">&lt;p&gt;I've been working on writing a memory bandwidth benchmark for a while and
+&lt;/div&gt;</content><category term="profiling"></category></entry><entry><title>A cross-platform monotonic timer</title><link href="http://codearcana.com/posts/2013/05/15/a-cross-platform-monotonic-timer.html" rel="alternate"></link><published>2013-05-15T00:00:00-07:00</published><updated>2013-05-15T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-05-15:/posts/2013/05/15/a-cross-platform-monotonic-timer.html</id><summary type="html">&lt;p&gt;I've been working on writing a memory bandwidth benchmark for a while and needed to use a monotonic timer to compute accurate timings. I have since learned that this is more challenging to do that I initially expected and each platform has a different way of doing it.&lt;/p&gt;</summary><content type="html">&lt;p&gt;I've been working on writing a memory bandwidth benchmark for a while and
 needed to use a monotonic timer to compute accurate timings. I have since
 learned that this is more challenging to do that I initially expected and each
 platform has a different way of doing it.&lt;/p&gt;
@@ -398,7 +777,7 @@ platform has a different way of doing it.&lt;/p&gt;
 &lt;p&gt;I was trying to determine the run time of a function and wanted the most
 precise and accurate information possible.
 First, I started by using &lt;code&gt;gettimeofday&lt;/code&gt;:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;timeval&lt;/span&gt; &lt;span class="n"&gt;before&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;after&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;timeval&lt;/span&gt; &lt;span class="n"&gt;before&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;after&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 
 &lt;span class="n"&gt;gettimeofday&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;before&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;span class="n"&gt;function&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
@@ -409,7 +788,7 @@ First, I started by using &lt;code&gt;gettimeofday&lt;/code&gt;:&lt;/p&gt;
 &lt;p&gt;Unfortunately, this will not always work since it is dependent on the system clock. If some other process changes the system time between the two calls to &lt;code&gt;gettimeofday&lt;/code&gt;, it could report inaccurate results. We need a function that returns a monotonically increasing value.&lt;/p&gt;
 &lt;h1&gt;A solution?&lt;/h1&gt;
 &lt;p&gt;Luckily, such a function exists on Linux. We can use &lt;code&gt;clock_gettime&lt;/code&gt; with &lt;code&gt;CLOCK_MONOTONIC&lt;/code&gt;:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;timespec&lt;/span&gt; &lt;span class="n"&gt;before&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;after&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;total&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;timespec&lt;/span&gt; &lt;span class="n"&gt;before&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;after&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;total&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 
 &lt;span class="n"&gt;clock_gettime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;CLOCK_MONOTONIC&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;before&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;span class="n"&gt;function&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
@@ -425,23 +804,23 @@ and on Windows we use
 &lt;a href="http://msdn.microsoft.com/en-us/library/windows/desktop/ms644904(v=vs.85).aspx"&gt;&lt;code&gt;QueryPerformanceCounter&lt;/code&gt;&lt;/a&gt;. &lt;/p&gt;
 &lt;h2&gt;&lt;code&gt;rdtsc&lt;/code&gt;&lt;/h2&gt;
 &lt;p&gt;On x86 machines where none of these are available, we can resort directly to &lt;code&gt;rdtsc&lt;/code&gt;. This is a special instruction that returns the &lt;a href="https://en.wikipedia.org/wiki/Time_Stamp_Counter"&gt;Time Stamp Counter&lt;/a&gt;, the number of cycles since reset. Unfortunately, we have to be &lt;em&gt;very&lt;/em&gt; careful when using this instruction. &lt;a href="http://download.intel.com/embedded/software/IA/324264.pdf"&gt;This white paper&lt;/a&gt; offers a lot of good advice on how to use it, but in short we have to take care to prevent instruction reordering. In the following code, the reordering of the &lt;code&gt;fdiv&lt;/code&gt; after the &lt;code&gt;rdtsc&lt;/code&gt; would lead to inaccurate timing results:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nf"&gt;rdtsc&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nf"&gt;rdtsc&lt;/span&gt;
 &lt;span class="nf"&gt;fdiv&lt;/span&gt; &lt;span class="c"&gt;# Or another slow instruction&lt;/span&gt;
 &lt;span class="nf"&gt;rdtsc&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;The instruction &lt;code&gt;rdtscp&lt;/code&gt; prevents instructions that occur before the &lt;code&gt;rdtsc&lt;/code&gt; from being reordered afterwards. Unfortunately, instructions that occur after the &lt;code&gt;rdtscp&lt;/code&gt; can still be reordered before it. The following code could have &lt;code&gt;fdiv&lt;/code&gt; reordered before the &lt;code&gt;rdtscp&lt;/code&gt;, leading to inaccurate results:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nf"&gt;rdtscp&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nf"&gt;rdtscp&lt;/span&gt;
 &lt;span class="nf"&gt;call&lt;/span&gt; &lt;span class="no"&gt;function&lt;/span&gt;
 &lt;span class="nf"&gt;rdtscp&lt;/span&gt;
 &lt;span class="nf"&gt;fdiv&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;The suggested way to avoid the reordering is to use the &lt;code&gt;cpuid&lt;/code&gt; instruction, which has the effect of preventing all instruction reordering around it. While this is a slow instruction, we can be a bit clever and ensure that we never have to execute it while between the times when we query the counter.&lt;br /&gt;
+&lt;p&gt;The suggested way to avoid the reordering is to use the &lt;code&gt;cpuid&lt;/code&gt; instruction, which has the effect of preventing all instruction reordering around it. While this is a slow instruction, we can be a bit clever and ensure that we never have to execute it while between the times when we query the counter.&lt;br&gt;
 The ideal timing code looks something like this:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nf"&gt;cpuid&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nf"&gt;cpuid&lt;/span&gt;
 &lt;span class="nf"&gt;rtdsc&lt;/span&gt;
 &lt;span class="c"&gt;# Save %edx and %eax (the output of rtdsc).&lt;/span&gt;
 &lt;span class="nf"&gt;call&lt;/span&gt; &lt;span class="no"&gt;function&lt;/span&gt;
@@ -452,14 +831,14 @@ The ideal timing code looks something like this:&lt;/p&gt;
 
 
 &lt;h1&gt;A cross platform timer&lt;/h1&gt;
-&lt;p&gt;Assembling all this information, I attempted to write a cross-platform utility for fine grained timing. A few late nights and a file full of &lt;code&gt;#ifdef&lt;/code&gt;s later, I have the start of such a utility. Currently, it supports the function &lt;code&gt;monotonic_seconds&lt;/code&gt; which returns the seconds from some unspecified start point as a double precision floating point number. In the future, I'll add support for &lt;code&gt;monotonic_cycles&lt;/code&gt; as a static inline function in the header and &lt;code&gt;cycles_to_seconds&lt;/code&gt; as a way to convert cycles to seconds. Check it out &lt;a href="https://github.com/awreece/monotonic_timer/blob/master/monotonic_timer.c"&gt;here&lt;/a&gt;!&lt;/p&gt;</summary><category term="profiling"></category></entry><entry><title>Why is omp_get_num_procs so slow?</title><link href="http://codearcana.com/posts/2013/05/10/why-is-omp_get_num_procs-so-slow.html" rel="alternate"></link><updated>2013-05-10T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-05-10:posts/2013/05/10/why-is-omp_get_num_procs-so-slow.html</id><summary type="html">&lt;p&gt;I was advising some students in
+&lt;p&gt;Assembling all this information, I attempted to write a cross-platform utility for fine grained timing. A few late nights and a file full of &lt;code&gt;#ifdef&lt;/code&gt;s later, I have the start of such a utility. Currently, it supports the function &lt;code&gt;monotonic_seconds&lt;/code&gt; which returns the seconds from some unspecified start point as a double precision floating point number. In the future, I'll add support for &lt;code&gt;monotonic_cycles&lt;/code&gt; as a static inline function in the header and &lt;code&gt;cycles_to_seconds&lt;/code&gt; as a way to convert cycles to seconds. Check it out &lt;a href="https://github.com/awreece/monotonic_timer/blob/master/monotonic_timer.c"&gt;here&lt;/a&gt;!&lt;/p&gt;</content><category term="profiling"></category></entry><entry><title>Why is omp_get_num_procs so slow?</title><link href="http://codearcana.com/posts/2013/05/10/why-is-omp_get_num_procs-so-slow.html" rel="alternate"></link><published>2013-05-10T00:00:00-07:00</published><updated>2013-05-10T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-05-10:/posts/2013/05/10/why-is-omp_get_num_procs-so-slow.html</id><summary type="html">&lt;p&gt;Some students had some difficulty profiling their code because &lt;code&gt;omp_get_num_procs&lt;/code&gt; was dominating the profiling traces. I tracked it down and found that the profiling tools emitted misleading results when the library didn't have symbols.&lt;/p&gt;</summary><content type="html">&lt;p&gt;I was advising some students in
 &lt;a href="http://15418.courses.cs.cmu.edu/15418_spr13/"&gt;15-418&lt;/a&gt;, a parallel computer
 architecture and programming course at CMU. They were attempting to make a
 multithreaded puzzle solver using OpenMP and had some difficulty using the CPU
 profiler from &lt;a href="https://code.google.com/p/gperftools/"&gt;Google &lt;code&gt;perftools&lt;/code&gt;&lt;/a&gt;.
 Basically, the profiler kept reporting that &lt;code&gt;omp_get_num_procs&lt;/code&gt; was taking a
 huge portion of the program:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt;  pprof --text solver out.prof 
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt;  pprof --text solver out.prof 
 &lt;span class="go"&gt;Using local file solver.&lt;/span&gt;
 &lt;span class="go"&gt;Using local file out.prof.&lt;/span&gt;
 &lt;span class="go"&gt;Removing _L_unlock_16 from all stack traces.&lt;/span&gt;
@@ -489,14 +868,14 @@ huge portion of the program:&lt;/p&gt;
 &lt;p&gt;This was clearly not right, so I spent some time digging around. If we look at 
 the callgraph to find which functions call &lt;code&gt;omp_get_num_procs&lt;/code&gt;, we see that the 
 culprit is &lt;code&gt;GOMP_taskwait&lt;/code&gt;: &lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; pprof --gv --focus&lt;span class="o"&gt;=&lt;/span&gt;omp_get_num_procs solver out.prof
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; pprof --gv --focus&lt;span class="o"&gt;=&lt;/span&gt;omp_get_num_procs solver out.prof
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;&lt;img alt="omp_get_num_procs call graph" src="http://codearcana.com/images/omp_get_num_procs.png" title="omp_get_num_procs call graph" /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="omp_get_num_procs call graph" src="http://codearcana.com/images/omp_get_num_procs.png" title="omp_get_num_procs call graph"&gt;&lt;/p&gt;
 &lt;p&gt;We cannot view annotated source for this function (since we don't have source),
 but we &lt;em&gt;can&lt;/em&gt; look at the annotated disassembly. &lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; pprof --disas&lt;span class="o"&gt;=&lt;/span&gt;GOMP_taskwait solver out.prof 
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; pprof --disas&lt;span class="o"&gt;=&lt;/span&gt;GOMP_taskwait solver out.prof 
 &lt;span class="go"&gt;ROUTINE ====================== GOMP_taskwait&lt;/span&gt;
 &lt;span class="go"&gt;     1   1330 samples (flat, cumulative) 96.2% of total&lt;/span&gt;
 &lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
@@ -514,7 +893,7 @@ but we &lt;em&gt;can&lt;/em&gt; look at the annotated disassembly. &lt;/p&gt;
 
 
 &lt;p&gt;Aha! The functions are being poorly identified, so it appears that &lt;em&gt;all&lt;/em&gt; calls to OpenMP library functions are being understood as calls to &lt;code&gt;omp_get_num_procs&lt;/code&gt;. Unfortunately, there is nothing we can do about it - that library does not export any symbols:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ldd solver | grep gomp
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ldd solver &lt;span class="p"&gt;|&lt;/span&gt; grep gomp
 &lt;span class="go"&gt;    libgomp.so.1 =&amp;gt; /usr/lib64/libgomp.so.1 (0x00007f19e9109000)&lt;/span&gt;
 &lt;span class="gp"&gt;$&lt;/span&gt; nm /usr/lib64/libgomp.so.1
 &lt;span class="go"&gt;nm: /usr/lib64/libgomp.so.1: no symbols&lt;/span&gt;
@@ -524,7 +903,7 @@ but we &lt;em&gt;can&lt;/em&gt; look at the annotated disassembly. &lt;/p&gt;
 &lt;p&gt;At least now why &lt;code&gt;omp_get_num_threads&lt;/code&gt; is reported so much! We probably need to count all calls to &lt;code&gt;omp_get_num_threads&lt;/code&gt; as 'overhead from OpenMP' but otherwise not trust the specific counts.
 In my opinion, the profiler should emit function addresses 
 for functions that don't map to some symbol, but I understand that is hard. For now, we will get more meaningful profiling data about our code if we do:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;$&lt;/span&gt; pprof --text --ignore&lt;span class="o"&gt;=&lt;/span&gt;omp_get_num_procs solver out.prof 
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;$&lt;/span&gt; pprof --text --ignore&lt;span class="o"&gt;=&lt;/span&gt;omp_get_num_procs solver out.prof 
 &lt;span class="go"&gt;Using local file solver.&lt;/span&gt;
 &lt;span class="go"&gt;Using local file out.prof.&lt;/span&gt;
 &lt;span class="go"&gt;Removing _L_unlock_16 from all stack traces.&lt;/span&gt;
@@ -546,22 +925,22 @@ for functions that don't map to some symbol, but I understand that is hard. For 
 &lt;span class="go"&gt;       0   0.0% 100.0%       55   7.3% main&lt;/span&gt;
 &lt;span class="go"&gt;       0   0.0% 100.0%       55   7.3% solve&lt;/span&gt;
 &lt;span class="go"&gt;       0   0.0% 100.0%      694  92.7% start_thread  &lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;</summary><category term="profiling"></category></entry><entry><title>Introduction to Using Profiling Tools</title><link href="http://codearcana.com/posts/2013/02/26/introduction-to-using-profiling-tools.html" rel="alternate"></link><updated>2013-02-26T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-02-26:posts/2013/02/26/introduction-to-using-profiling-tools.html</id><summary type="html">&lt;h2&gt;Performance tools&lt;/h2&gt;
+&lt;/pre&gt;&lt;/div&gt;</content><category term="profiling"></category></entry><entry><title>Introduction to Using Profiling Tools</title><link href="http://codearcana.com/posts/2013/02/26/introduction-to-using-profiling-tools.html" rel="alternate"></link><published>2013-02-26T00:00:00-08:00</published><updated>2013-02-26T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-02-26:/posts/2013/02/26/introduction-to-using-profiling-tools.html</id><summary type="html">&lt;p&gt;In this article, you will see several performance tools used to identify bottlenecks in a simple program.&lt;/p&gt;</summary><content type="html">&lt;h2&gt;Performance tools&lt;/h2&gt;
 &lt;p&gt;Frequently, we need to identify slow portions of our programs so we can improve performance. There are a number of tools available to profile programs and identify how much time is spent where. The most common of these tools sample the program periodically, recording information to be later analyzed. Typically, they involve a phase spent recording data and a later phase for analyzing it. We will use two common tools to analyze a simple program: Google &lt;code&gt;pprof&lt;/code&gt; and Linux &lt;code&gt;perf&lt;/code&gt;.&lt;/p&gt;
 &lt;h3&gt;Google &lt;code&gt;pprof&lt;/code&gt;&lt;/h3&gt;
 &lt;p&gt;Google &lt;code&gt;pprof&lt;/code&gt; is a tool available as part of the Google &lt;a href="https://code.google.com/p/gperftools/"&gt;&lt;code&gt;perftools&lt;/code&gt;&lt;/a&gt; package. It is is used with
 &lt;code&gt;libprofiler&lt;/code&gt;, a sampling based profiler that is linked into your binary. There are 3 steps for using &lt;code&gt;pprof&lt;/code&gt;: linking it into the binary, generating profile output, and analyzing the output. The following links a binary with &lt;code&gt;libprofiler&lt;/code&gt;:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; gcc main.c -lprofiler
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;%&lt;/span&gt; gcc main.c -lprofiler
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;For any profile linked with &lt;code&gt;libprofiler&lt;/code&gt;, setting the environment variable &lt;code&gt;CPUPROFILE&lt;/code&gt; enables profiling and specifies the output file. The following command runs &lt;code&gt;./a.out&lt;/code&gt; and prints profiling data to &lt;code&gt;out.prof&lt;/code&gt;:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; &lt;span class="nv"&gt;CPUPROFILE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;out.prof ./a.out
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;%&lt;/span&gt; &lt;span class="nv"&gt;CPUPROFILE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;out.prof ./a.out
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;We can now analyze this file using &lt;code&gt;pprof&lt;/code&gt;. Below, we output the sample counts for all the functions in &lt;code&gt;a.out&lt;/code&gt;:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; pprof --text ./a.out out.prof
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;%&lt;/span&gt; pprof --text ./a.out out.prof
 &lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
 &lt;span class="go"&gt;Total: 311 samples&lt;/span&gt;
 &lt;span class="go"&gt;  144  46.3%  46.3%      144  46.3% bar&lt;/span&gt;
@@ -577,7 +956,7 @@ for functions that don't map to some symbol, but I understand that is hard. For 
 &lt;h3&gt;Linux &lt;code&gt;perf&lt;/code&gt;&lt;/h3&gt;
 &lt;p&gt;On Linux, the &lt;code&gt;perf&lt;/code&gt; system is a powerful tool for analyzing program / system performance. It provides some nice abstractions over tracking hardware counters on different CPUs. It defines a number of events to be tracked and recorded. Run &lt;code&gt;perf list&lt;/code&gt; to see a list of the events allowed on your system. &lt;/p&gt;
 &lt;p&gt;To use &lt;code&gt;perf&lt;/code&gt;, you run: &lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf stat ./a.out
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf stat ./a.out
 &lt;span class="go"&gt; Performance counter stats for &amp;#39;./a.out&amp;#39;:&lt;/span&gt;
 
 &lt;span class="go"&gt;    3121.725439 task-clock                #    0.997 CPUs utilized          &lt;/span&gt;
@@ -588,7 +967,7 @@ for functions that don't map to some symbol, but I understand that is hard. For 
 &lt;span class="go"&gt;  5,213,187,548 stalled-cycles-frontend   #   57.15% frontend cycles idle    [83.32%]&lt;/span&gt;
 &lt;span class="go"&gt;    292,952,401 stalled-cycles-backend    #    3.21% backend  cycles idle    [66.68%]&lt;/span&gt;
 &lt;span class="go"&gt;  5,215,556,086 instructions              #    0.57  insns per cycle        &lt;/span&gt;
-&lt;span class="go"&gt;                                          #    1.00  stalled cycles per insn [83.35%]&lt;/span&gt;
+&lt;span class="gp"&gt;                                          #&lt;/span&gt;    1.00  stalled cycles per insn &lt;span class="o"&gt;[&lt;/span&gt;83.35%&lt;span class="o"&gt;]&lt;/span&gt;
 &lt;span class="go"&gt;  1,303,060,483 branches                  #  417.417 M/sec                   [83.35%]&lt;/span&gt;
 &lt;span class="go"&gt;         66,559 branch-misses             #    0.01% of all branches         [83.33%]&lt;/span&gt;
 
@@ -597,7 +976,7 @@ for functions that don't map to some symbol, but I understand that is hard. For 
 
 
 &lt;p&gt;In addition to &lt;code&gt;perf stat&lt;/code&gt;, there quite a few other ways to use perf. Run &lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -607,14 +986,14 @@ for functions that don't map to some symbol, but I understand that is hard. For 
 &lt;p&gt;We compile the program with &lt;code&gt;-lprofiler&lt;/code&gt; so we can generate output to examine. &lt;code&gt;try_perf.c&lt;/code&gt; is a C program that counts the number of even values
 in an array of random numbers. We run with 8 threads that all increment a global
 counter every time they see an even number.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; gcc try_perf.c -g -lprofiler -lpthread
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;%&lt;/span&gt; gcc try_perf.c -g -lprofiler -lpthread
 &lt;span class="gp"&gt;%&lt;/span&gt; &lt;span class="nv"&gt;CPUPROFILE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;a.out.prof ./a.out --num_threads&lt;span class="o"&gt;=&lt;/span&gt;8
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;We run pprof and get the source code annotated with the number of probes that 
 hit that instruction during the trace (result below trimmed for brevity).&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; pprof --list&lt;span class="o"&gt;=&lt;/span&gt;thread_scan a.out a.out.prof
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;%&lt;/span&gt; pprof --list&lt;span class="o"&gt;=&lt;/span&gt;thread_scan a.out a.out.prof
 &lt;span class="go"&gt; ... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
 &lt;span class="go"&gt;   .      .   60: void* thread_scan(void* void_arg) {&lt;/span&gt;
 &lt;span class="go"&gt;   .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.&lt;/span&gt;
@@ -632,7 +1011,7 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 
 
 &lt;p&gt;The output above is actually misleading: if you look at the assembly (shown below), the instruction immediately after the atomic instruction (the &lt;code&gt;addq   $0x1,-0x8(%rbp)&lt;/code&gt; after the &lt;code&gt;lock addq $0x1,(%rax)&lt;/code&gt;) gets excess hits that count towards the for loop when they should probably count towards the atomic instruction.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; pprof --disas&lt;span class="o"&gt;=&lt;/span&gt;thread_scan a.out a.out.prof
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;%&lt;/span&gt; pprof --disas&lt;span class="o"&gt;=&lt;/span&gt;thread_scan a.out a.out.prof
 &lt;span class="go"&gt; ... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
 &lt;span class="go"&gt;  9    300    68: __sync_fetch_and_add(arg-&amp;gt;num_evens, 1);&lt;/span&gt;
 &lt;span class="go"&gt;  4      5      4008a4: mov    -0x10(%rbp),%rax&lt;/span&gt;
@@ -646,7 +1025,7 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 
 &lt;p&gt;Hrm. Why are we spending a lot of time in &lt;code&gt;lock addq $0x1,(%rax)&lt;/code&gt;?&lt;/p&gt;
 &lt;p&gt;To understand this, we will use &lt;code&gt;perf&lt;/code&gt;. Run: &lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf stat ./a.out
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf stat ./a.out
 &lt;span class="go"&gt; Performance counter stats for &amp;#39;./a.out&amp;#39;:&lt;/span&gt;
 
 &lt;span class="go"&gt;    5793.307952 task-clock                #    2.157 CPUs utilized          &lt;/span&gt;
@@ -657,7 +1036,7 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 &lt;span class="go"&gt; 10,407,719,950 stalled-cycles-frontend   #   63.54% frontend cycles idle    [83.38%]&lt;/span&gt;
 &lt;span class="go"&gt;  8,213,634,448 stalled-cycles-backend    #   50.15% backend  cycles idle    [66.65%]&lt;/span&gt;
 &lt;span class="go"&gt; 12,070,323,273 instructions              #    0.74  insns per cycle        &lt;/span&gt;
-&lt;span class="go"&gt;                                          #    0.86  stalled cycles per insn [83.32%]&lt;/span&gt;
+&lt;span class="gp"&gt;                                          #&lt;/span&gt;    0.86  stalled cycles per insn &lt;span class="o"&gt;[&lt;/span&gt;83.32%&lt;span class="o"&gt;]&lt;/span&gt;
 &lt;span class="go"&gt;  2,428,236,441 branches                  #  419.145 M/sec                   [83.31%]&lt;/span&gt;
 &lt;span class="go"&gt;     67,558,697 branch-misses             #    2.78% of all branches         [83.35%]&lt;/span&gt;
 
@@ -666,7 +1045,7 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 
 
 &lt;p&gt;Wow, thats a lot of stalled instructions! The 8 threads are sharing the same counter, generating a lot of memory traffic. We modify the program so they all use their own counter, and then we aggregate at the end (if we do this, we don't need to use the atomic instruction).&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;counts&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;nthreads&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;counts&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;nthreads&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
 &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;num_evens&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 
 &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;nthreads&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
@@ -684,7 +1063,7 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 
 
 &lt;p&gt;But that didn't seem to help at all! We still spend most of our time on the increment, even though we aren't using an atomic instruction: &lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; pprof --list&lt;span class="o"&gt;=&lt;/span&gt;thread_scan a.out out.prof
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;%&lt;/span&gt; pprof --list&lt;span class="o"&gt;=&lt;/span&gt;thread_scan a.out out.prof
 &lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
 &lt;span class="go"&gt;  .      .   60: void* thread_scan(void* void_arg) {&lt;/span&gt;
 &lt;span class="go"&gt;  .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.&lt;/span&gt;
@@ -702,7 +1081,7 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 
 
 &lt;p&gt;Why could this be? Lets run &lt;code&gt;perf stat&lt;/code&gt; again and see:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf stat ./a.out
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf stat ./a.out
 &lt;span class="go"&gt; Performance counter stats for &amp;#39;./a.out&amp;#39;:&lt;/span&gt;
 
 &lt;span class="go"&gt;      4372.474270 task-clock                #    1.882 CPUs utilized          &lt;/span&gt;
@@ -713,7 +1092,7 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 &lt;span class="go"&gt;    6,270,257,100 stalled-cycles-frontend   #   50.52% frontend cycles idle    [83.33%]&lt;/span&gt;
 &lt;span class="go"&gt;    4,291,405,838 stalled-cycles-backend    #   34.58% backend  cycles idle    [66.78%]&lt;/span&gt;
 &lt;span class="go"&gt;   12,306,996,386 instructions              #    0.99  insns per cycle        &lt;/span&gt;
-&lt;span class="go"&gt;                                            #    0.51  stalled cycles per insn [83.39%]&lt;/span&gt;
+&lt;span class="gp"&gt;                                            #&lt;/span&gt;    0.51  stalled cycles per insn &lt;span class="o"&gt;[&lt;/span&gt;83.39%&lt;span class="o"&gt;]&lt;/span&gt;
 &lt;span class="go"&gt;    2,420,224,187 branches                  #  553.514 M/sec                   [83.40%]&lt;/span&gt;
 &lt;span class="go"&gt;       69,182,448 branch-misses             #    2.86% of all branches         [83.30%]&lt;/span&gt;
 
@@ -722,13 +1101,13 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 
 
 &lt;p&gt;What is going on now? We &lt;em&gt;still&lt;/em&gt; have a lot of stalled instructions, but all those counters are different. See?&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;counts&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;nthreads&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;counts&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;nthreads&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;Oh, they are all on the same cache line - we're experiencing false sharing. Let us use a thread local counter thats on a different cache line for each thread:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nf"&gt;thread_scan&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;void_arg&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-  &lt;span class="kt"&gt;thread_arg_t&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;args&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;thread_arg_t&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;void_arg&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nf"&gt;thread_scan&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;void_arg&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="n"&gt;thread_arg_t&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;args&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;thread_arg_t&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;void_arg&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
   &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
   &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;num_evens&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 
@@ -752,7 +1131,7 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 
 
 &lt;p&gt;And then look at the profile:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; pprof --list&lt;span class="o"&gt;=&lt;/span&gt;thread_scan a.out out.prof
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;%&lt;/span&gt; pprof --list&lt;span class="o"&gt;=&lt;/span&gt;thread_scan a.out out.prof
 &lt;span class="go"&gt;... &amp;lt;snip&amp;gt; ...&lt;/span&gt;
 &lt;span class="go"&gt;  .      .   60: void* thread_scan(void* void_arg) {&lt;/span&gt;
 &lt;span class="go"&gt;  .      .   61:    // TODO(awreece) Copy locally so dont interfere with each other.&lt;/span&gt;
@@ -772,7 +1151,7 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 
 
 &lt;p&gt;Good, our increment doesn't dominate the function anymore. We look at &lt;code&gt;perf stat&lt;/code&gt; and see:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf stat ./a.out
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gp"&gt;%&lt;/span&gt; perf stat ./a.out
 &lt;span class="go"&gt; Performance counter stats for &amp;#39;./a.out&amp;#39;:&lt;/span&gt;
 
 &lt;span class="go"&gt;    2977.781539 task-clock                #    1.472 CPUs utilized          &lt;/span&gt;
@@ -783,7 +1162,7 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 &lt;span class="go"&gt;  2,057,253,537 stalled-cycles-frontend   #   24.14% frontend cycles idle    [83.26%]&lt;/span&gt;
 &lt;span class="go"&gt;    919,272,160 stalled-cycles-backend    #   10.79% backend  cycles idle    [66.70%]&lt;/span&gt;
 &lt;span class="go"&gt; 12,067,358,492 instructions              #    1.42  insns per cycle        &lt;/span&gt;
-&lt;span class="go"&gt;                                          #    0.17  stalled cycles per insn [83.42%]&lt;/span&gt;
+&lt;span class="gp"&gt;                                          #&lt;/span&gt;    0.17  stalled cycles per insn &lt;span class="o"&gt;[&lt;/span&gt;83.42%&lt;span class="o"&gt;]&lt;/span&gt;
 &lt;span class="go"&gt;  2,454,951,795 branches                  #  824.423 M/sec                   [83.42%]&lt;/span&gt;
 &lt;span class="go"&gt;     67,544,262 branch-misses             #    2.75% of all branches         [83.42%]&lt;/span&gt;
 
@@ -791,7 +1170,7 @@ hit that instruction during the trace (result below trimmed for brevity).&lt;/p&
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Ah, perfect! 30% faster than our original solution and significantly fewer stalled instructions.&lt;/p&gt;</summary><category term="profiling"></category></entry><entry><title>Analysis of a Parallel Memory Allocator</title><link href="http://codearcana.com/posts/2012/05/11/analysis-of-a-parallel-memory-allocator.html" rel="alternate"></link><updated>2012-05-11T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2012-05-11:posts/2012/05/11/analysis-of-a-parallel-memory-allocator.html</id><summary type="html">&lt;h1&gt;Background&lt;/h1&gt;
+&lt;p&gt;Ah, perfect! 30% faster than our original solution and significantly fewer stalled instructions.&lt;/p&gt;</content><category term="profiling"></category></entry><entry><title>Analysis of a Parallel Memory Allocator</title><link href="http://codearcana.com/posts/2012/05/11/analysis-of-a-parallel-memory-allocator.html" rel="alternate"></link><published>2012-05-11T00:00:00-07:00</published><updated>2012-05-11T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2012-05-11:/posts/2012/05/11/analysis-of-a-parallel-memory-allocator.html</id><summary type="html">&lt;p&gt;I implemented and tested different configurations of a modern parallel memory allocator.&lt;/p&gt;</summary><content type="html">&lt;h1&gt;Background&lt;/h1&gt;
 &lt;h2&gt;Problem&lt;/h2&gt;
 &lt;p&gt;Many modern programs frequently use dynamic memory allocation. However, modern
 programs increasingly are multithreaded and parallel to take advantage of
@@ -884,7 +1263,7 @@ We compared the performance of &lt;tt&gt;ar_malloc&lt;/tt&gt;, &lt;tt&gt;ar_mall
 and the libc malloc on the test described in the previous section.
 &lt;/p&gt;
 &lt;figure&gt;
-&lt;img alt="Run time vs Number of threads" src="https://docs.google.com/spreadsheet/oimg?key=0AjzaNgu-PE5_dDJJUnRCaXZueks1UTlQVXBxYlFsSXc&amp;amp;oid=4&amp;amp;zx=1aneio5en2km" /&gt;
+&lt;img alt="Run time vs Number of threads" src="https://docs.google.com/spreadsheet/oimg?key=0AjzaNgu-PE5_dDJJUnRCaXZueks1UTlQVXBxYlFsSXc&amp;amp;oid=4&amp;amp;zx=1aneio5en2km"&gt;
 &lt;figcaption&gt;This is chart of test run time vs number of threads for a global locked malloc, &lt;tt&gt;ar_malloc&lt;/tt&gt;, and libc malloc. As 
     you can see, the global lock solution is really bad.&lt;/figcaption&gt;
 &lt;/figure&gt;&lt;/p&gt;
@@ -949,4 +1328,4 @@ or to investigate the actual memory distribution of a general program.
 &lt;p&gt;This investigation only examined the effect of different number of arenas.
 A further exploration could examine the effect of thread local caches and fine
 grained locking on the performance of &lt;tt&gt;ar_malloc&lt;/tt&gt;.
-&lt;/p&gt;&lt;/p&gt;</summary><category term="malloc"></category></entry></feed>
+&lt;/p&gt;&lt;/p&gt;</content><category term="malloc"></category></entry></feed>
