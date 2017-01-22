@@ -11,7 +11,9 @@ the …&lt;/p&gt;</summary><content type="html">&lt;p&gt;I got frustrated follow
 because of the implied magic. How does it actually work? Where does it fit
 into a html page? &lt;em&gt;How do I run React locally?&lt;/em&gt;&lt;/p&gt;
 &lt;p&gt;The "Hello, World" has a 4 line example that does not actually work: &lt;em&gt;this&lt;/em&gt; is
-the minimal react "Hello, World":&lt;/p&gt;
+the minimal react "Hello, World". If you save this to a file (e.g.
+&lt;code&gt;hello_world.html&lt;/code&gt;), you will be able to open it with your favorite web
+browser:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cp"&gt;&amp;lt;!DOCTYPE html&amp;gt;&lt;/span&gt;
 &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nt"&gt;html&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
         &lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nt"&gt;head&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt;
