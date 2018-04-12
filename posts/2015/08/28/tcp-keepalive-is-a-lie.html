@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <title>TCP Keepalive is a lie</title>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="http://codearcana.com/theme/css/main.css" type="text/css" />
+        <link href="http://codearcana.com/" type="application/atom+xml" rel="alternate" title="Code Arcana ATOM Feed" />
+
+
+        <!--[if IE]>
+                <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+        <!--[if lte IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://codearcana.com/css/ie.css"/>
+                <script src="http://codearcana.com/js/IE8.js" type="text/javascript"></script><![endif]-->
+
+        <!--[if lt IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://codearcana.com/css/ie6.css"/><![endif]-->
+
+                <script type="text/javascript" async
+                        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML">
+                </script>
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="http://codearcana.com/index.html">Code Arcana </a></h1>
+                <nav><ul>
+                    <li><a href="http://codearcana.com">Blog</a></li>
+                    <li><a href="http://codearcana.com/archives.html">Archives</a></li>
+                </ul></nav>
+        </header><!-- /#banner -->
+
+<section id="content" class="body">
+<article>
+        <header> <h1 class="entry-title"><a href="posts/2015/08/28/tcp-keepalive-is-a-lie.html"
+        rel="bookmark" title="Permalink to TCP Keepalive is a lie">TCP Keepalive is a lie</a></h1> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="awreece">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
+ </header>
+<footer class="post-info">
+        <abbr class="published" title="2015-08-28T00:00:00-07:00">
+                Fri 28 August 2015
+        </abbr>
+
+        <address class="vcard author">
+                By <a class="url fn" href="http://codearcana.com/author/alex-reece.html">Alex Reece</a>
+        </address>
+<p>In <a href="http://codearcana.com/category/performance.html">performance</a>. </p>
+<p>tags: <a href="http://codearcana.com/tag/tcp.html">tcp</a><a href="http://codearcana.com/tag/linux.html">linux</a><a href="http://codearcana.com/tag/networking.html">networking</a><a href="http://codearcana.com/tag/perf_events.html">perf_events</a></p></footer><!-- /.post-info --><!-- /.post-info -->
+        <div class="entry-content">
+        <p>In the past few months, I’ve had to debug some gnarly issues related to TCP_KEEPALIVE. Through these issues, I’ve learned that it is harder than one might think to ensure that your sockets fail after a short time when the network is disconnected. This blog post is intended to serve as a cautionary tale.</p>
+<h2>What is TCP_KEEPALIVE and how are we using it?</h2>
+<p>TCP_KEEPALIVE is an optional TCP socket option (disabled by default) intended to prevent servers from (RFC1122, p102):</p>
+<blockquote>
+<p>[hanging] indefinitely and [consuming] resources unnecessarily if a client crashes or aborts a connection during a network failures</p>
+</blockquote>
+<p>When a socket has the option enabled, it will send an empty TCP packet with the ACK bit set after it has been idle for a time period to probe the connection. If that probe is not acknowledged in a short amount of time, additional probes will be sent until one is acknowledged or the connection is determined to be disconnected. TCP_KEEPALIVE is disabled by default and configured with <a href="http://tldp.org/HOWTO/TCP-Keepalive-HOWTO/usingkeepalive.html">3 parameters in Linux</a>:</p>
+<ul>
+<li><code>tcp_keepalive_time</code>, the time in before the first probe is sent (default 2 hours)</li>
+<li><code>tcp_keepalive_intvl</code>, the time between probes / how long to wait for a response (default 75 seconds)</li>
+<li><code>tcp_keepalive_probes</code>, the number of additional probes to send before failing the connection (default 9)</li>
+</ul>
+<p>We enable TCP_KEEPALIVE on our replication sockets because we want to stop replicating when a leaf is unresponsive. Our replication sockets are bi-directional: the master sends the slave new log records every time a transaction is committed and the slave tells the master when it has also committed them. It is important to quickly detect a failed node because we delay transactions on the master if the slave is too far behind. Elsewhere in memsql, we detect failed leaves with a heartbeat that pings every leaf every 10s and fails them if they have not responded after 3 attempts (i.e. after 30 seconds). We configured replication sockets to behave similarly by setting <code>tcp_keepalive_time</code> and <code>tcp_keepalive_intvl</code> to 10 seconds <code>tcp_keepalive_probes</code> to 2 probes (i.e. disconnect after 30 seconds)</p>
+<h2>Why isn't TCP_KEEPALIVE working?</h2>
+<p>The first issue I investigated was that our replication sockets were not disconnecting properly during network failures. I induced a network failure using an <code>iptables</code> firewall that dropped all packets between the master and a slave. Surprisingly, the master did not fail the slave, even after several minutes had passed. The reason for this was confusing -- the replication socket was still active!</p>
+<p>This behavior was very strange to me, as I would have expected TCP_KEEPALIVE to have disconnected the socket. I dug a little deeper using netstat and saw that the sockets weren't even in the keepalive state.</p>
+<p>At this point, I suspected a programmer bug and installed a <a href="https://github.com/veithen/knetstat">custom kernel module</a> to check the socket options on the socket. Sure enough, TCP_KEEPALIVE was enabled.</p>
+<p>I decided to monitor the state of the the socket immediately after I triggered the network failure and I noticed something peculiar: it actually entered the keepalive state after 10 seconds but switched back to the "on" state shortly after.</p>
+<p>What could cause a socket to leave keepalive? Some despondent googling eventually lead me to an an answer: a socket can only be in the keepalive state if it is idle. If there is outstanding data, the socket will be in the on state as it transmits/retransmits the data. A thread on the master was managing to commit a transaction and send a log record to the replication socket, knocking it out of the state keepalive as it tried (unsuccessfully) to retransmit the data to the slave. How long will the socket remain open as we send our packets into the void? Thats controlled by the <code>tcp_retries2</code> tunable in Linux:</p>
+<div class="highlight"><pre><span></span><span class="nt">tcp_retries2</span> <span class="o">(</span><span class="nt">integer</span><span class="o">;</span> <span class="nt">default</span><span class="o">:</span> <span class="nt">15</span><span class="o">;</span> <span class="nt">since</span> <span class="nt">Linux</span> <span class="nt">2</span><span class="nc">.2</span><span class="o">)</span>
+          <span class="nt">The</span> <span class="nt">maximum</span> <span class="nt">number</span> <span class="nt">of</span> <span class="nt">times</span> <span class="nt">a</span> <span class="nt">TCP</span> <span class="nt">packet</span> <span class="nt">is</span> <span class="nt">retransmitted</span> <span class="nt">in</span>
+          <span class="nt">established</span> <span class="nt">state</span> <span class="nt">before</span> <span class="nt">giving</span> <span class="nt">up</span><span class="o">.</span> <span class="nt">The</span> <span class="nt">default</span> <span class="nt">value</span> <span class="nt">is</span> <span class="nt">15</span><span class="o">,</span>
+          <span class="nt">which</span> <span class="nt">corresponds</span> <span class="nt">to</span> <span class="nt">a</span> <span class="nt">duration</span> <span class="nt">of</span> <span class="nt">approximately</span> <span class="nt">between</span> <span class="nt">13</span> <span class="nt">to</span>
+          <span class="nt">30</span> <span class="nt">minutes</span><span class="o">,</span> <span class="nt">depending</span> <span class="nt">on</span> <span class="nt">the</span> <span class="nt">retransmission</span> <span class="nt">timeout</span><span class="o">.</span> <span class="nt">The</span>
+          <span class="nt">RFC</span> <span class="nt">1122</span> <span class="nt">specified</span> <span class="nt">minimum</span> <span class="nt">limit</span> <span class="nt">of</span> <span class="nt">100</span> <span class="nt">seconds</span> <span class="nt">is</span> <span class="nt">typically</span>
+          <span class="nt">deemed</span> <span class="nt">too</span> <span class="nt">short</span><span class="o">.</span>
+</pre></div>
+
+
+<p>So our socket was stuck uselessly retransmitting packets and wasn't getting disconnected for half an hour! Unfortunately it <a href="http://stackoverflow.com/a/5907951/447288">appears</a> that it is not possible to set <code>tcp_retries2</code> on a per socket basis, but we can use a different socket option. If the TCP_USERTIMEOUT option is set on a socket, the socket will automatically disconnect if transmitted data is not acknowledged within that many seconds. We set it to 30 seconds to match the our heartbeat logic.</p>
+<h2>TCP_KEEPALIVE is super effective!</h2>
+<p>Now that our sockets were properly terminating during network failures, we started noticing another perplexing issue. In some environments, we saw connections time out after -1 seconds (i.e. with an infinite timeout set). </p>
+<blockquote>
+<p>Leaf error: timed out from socket after -1 seconds</p>
+</blockquote>
+<p>We managed to set up a cluster on EC2 that could reproduce the issue by performing 100 simultaneous full table scans, each of which took over a minute to iterate over a many gigabyte linked list. Our logs showed that a non-blocking <code>recv</code> syscall was failing with ETIMEDOUT. This type of failure can only occur if a socket fails due to a timeout (e.g. TCP_KEEPALIVE or a retransmission timeout).</p>
+<p>I took a quick stock of our system, following Brendan Gregg’s <a href="http://www.brendangregg.com/usemethod.html">USE method</a>. Each leaf had many gigabytes of free memory and there was no disk activity. The CPUs on the leaves were 100% utilized running the full table scans and the load average was quite high (~2400) because each table scan used many CPU-bound threads. The network was very under-utilized (~5KB/s and ~10 packets/s according <code>nicstat</code>) and there were no TCP retransmissions during the connection failures.</p>
+<p>Since CPU was the only interesting resource, I focused on it. Could user processes somehow be starving the kernel of CPU and preventing it from responding to keepalive packets? I spent some time reading about how Linux handles interrupts after I saw the <code>ksoftirqd</code> process executing. Linux splits interrupts<sup id="fnref-1"><a class="footnote-ref" href="#fn-1">1</a></sup>into two parts: the hardware interrupt that does very little work and a “soft” interrupt that handles the interesting logic. Most of the time these “soft” interrupts are handled immediately before returning from the kernel after the hardware interrupt; however, Linux restricts the number of “soft” interrupts that can be processed at a time to prevent interrupts from starving user traffic. Remaining “soft” interrupts can be processed by the <code>ksoftirqd</code> process which runs at the same priority as the default user processes. Could user threads (e.g. <code>memsqld</code>) be starving <code>ksoftirqd</code>?</p>
+<p>The theory went like this: since the Linux scheduler<sup id="fnref-2"><a class="footnote-ref" href="#fn-2">2</a></sup> executes processes of the same priority in round robin fashion and uses a default time slice of 100ms, a run queue of 2400 constitutes a 10 second scheduler latency! If the ksoftirqd processes were only getting scheduled every 10s, then we wouldn’t be responding to the TCP keepalive requests in time. To confirm or deny this theory, I measured the scheduler latency of the <code>ksoftirqd</code> processes using <code>perf sched</code>. Unfortunately, their maximum scheduler latency was measured in <em>milliseconds</em>, firmly disproving the theory.</p>
+<p>I started using wireshark to examine the network traffic and noticed something fishy: <em>all</em> of the keepalive packet’s were getting sent at the same time. I had an eureka moment: enabling TCP_KEEPALIVE with static timers on all connections meant that all connections fired their keepalive timers at the same time, leading to momentary network congestion and packet drops. Once I understood the issue, it was easy to suggest some fixes: add some jitter to the timers and make sure the <code>tcp_keepalive_intvl</code> was relatively prime to <code>tcp_keepalive_time</code>. Both of these ensure that keep alive probes on multiple connections won't fire in lockstep.</p>
+<h2>Takeaways</h2>
+<p>TCP is a protocol that has a lot of features built into it, but resiliency to network partitions is not one of them. Properly tuning TCP to close connections in the face of network partitions is challenging and understanding what is going on is even harder.  Despite these challenges, TCP_KEEPALIVE can be configured to live up to its goal of aborting connections during network failures.</p>
+<div class="footnote">
+<hr>
+<ol>
+<li id="fn-1">
+<p>For more information on the networking stack, see the excellent packagecloud.io blog posts on the Linux networking stack for <a href="https://blog.packagecloud.io/eng/2017/02/06/monitoring-tuning-linux-networking-stack-sending-data/"><code>send</code></a> and <a href="https://blog.packagecloud.io/eng/2016/06/22/monitoring-tuning-linux-networking-stack-receiving-data/"><code>receive</code></a>.&#160;<a class="footnote-backref" href="#fnref-1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn-2">
+<p>For more information on the internals of the Linux scheduler, see <a href="https://tampub.uta.fi/bitstream/handle/10024/96864/GRADU-1428493916.pdf">this fantastic survey paper</a> by Nikita Ishkov.&#160;<a class="footnote-backref" href="#fnref-2" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+        </div><!-- /.entry-content -->
+        <div class="comments">
+        <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+               var disqus_identifier = "posts/2015/08/28/tcp-keepalive-is-a-lie.html";
+               (function() {
+               var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+               dsq.src = 'http://codearcana.disqus.com/embed.js';
+               (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+              })();
+            </script>
+        </div>
+
+</article>
+</section>
+
+        <aside id="sidebar">
+                <div class="widget">
+                        <h2>Categories</h2>
+                        <ul>
+                           <li class="active"><a href="http://codearcana.com/category/performance.html">performance</a></li>
+                           <li ><a href="http://codearcana.com/category/reviews.html">reviews</a></li>
+                           <li ><a href="http://codearcana.com/category/security.html">security</a></li>
+                           <li ><a href="http://codearcana.com/category/software-engineering.html">software engineering</a></li>
+                        </ul>
+		</div>
+		<div class="widget">
+		    <h2>Tags</h2>
+		    <ul class="cloud">
+		    </ul>
+		</div>
+
+
+                <div class="widget blogroll">
+                        <h2>Blogroll</h2>
+                        <ul>
+                            <li><a href="http://ppp.cylab.cmu.edu/wordpress/">PPP Blog</a></li>
+                            <li><a href="http://www.codinghorror.com/blog/">Coding Horror</a></li>
+                            <li><a href="http://blog.regehr.org/">Embedded in Academia</a></li>
+                            <li><a href="http://highscalability.com/">High Scalability</a></li>
+                            <li><a href="http://coderweekly.com/">Coder Weekly</a></li>
+                            <li><a href="http://www.phrack.org/">phrack</a></li>
+                            <li><a href="http://jbremer.org/">skier_'s blog</a></li>
+                            <li><a href="http://dtrace.org/blogs">dtrace blog</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="widget social">
+                        <h2>Social</h2>
+			<ul>
+                            <li><a href="http://codearcana.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate">atom feed</a></li>
+
+				<li><a href="https://twitter.com/awreece">twitter</a></li>
+				<li><a href="https://github.com/awreece">github</a></li>
+				<li><a href="https://plus.google.com/106589059588263736517/posts">google+</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </aside><!-- /#sidebar -->
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-40107691-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+</body>
+</html>
