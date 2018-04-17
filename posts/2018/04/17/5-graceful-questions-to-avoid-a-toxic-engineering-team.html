@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <title>5 graceful questions to avoid a toxic engineering team</title>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="http://codearcana.com/theme/css/main.css" type="text/css" />
+        <link href="http://codearcana.com/" type="application/atom+xml" rel="alternate" title="Code Arcana ATOM Feed" />
+
+
+        <!--[if IE]>
+                <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+        <!--[if lte IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://codearcana.com/css/ie.css"/>
+                <script src="http://codearcana.com/js/IE8.js" type="text/javascript"></script><![endif]-->
+
+        <!--[if lt IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://codearcana.com/css/ie6.css"/><![endif]-->
+
+                <script type="text/javascript" async
+                        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML">
+                </script>
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="http://codearcana.com/index.html">Code Arcana </a></h1>
+                <nav><ul>
+                    <li><a href="http://codearcana.com">Blog</a></li>
+                    <li><a href="http://codearcana.com/archives.html">Archives</a></li>
+                </ul></nav>
+        </header><!-- /#banner -->
+
+<section id="content" class="body">
+<article>
+        <header> <h1 class="entry-title"><a href="posts/2018/04/17/5-graceful-questions-to-avoid-a-toxic-engineering-team.html"
+        rel="bookmark" title="Permalink to 5 graceful questions to avoid a toxic engineering team">5 graceful questions to avoid a toxic engineering team</a></h1> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="awreece">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
+ </header>
+<footer class="post-info">
+        <abbr class="published" title="2018-04-17T00:00:00-07:00">
+                Tue 17 April 2018
+        </abbr>
+
+        <address class="vcard author">
+                By <a class="url fn" href="http://codearcana.com/author/alex-reece.html">Alex Reece</a>
+        </address>
+<p>In <a href="http://codearcana.com/category/software-engineering.html">software engineering</a>. </p>
+<p>tags: <a href="http://codearcana.com/tag/opinion.html">opinion</a></p></footer><!-- /.post-info --><!-- /.post-info -->
+        <div class="entry-content">
+        <p>While interviewing at a potential company, the engineer evaluating you asks the
+obligatory "Any questions for me?". What do you ask?</p>
+<p>Some might be tempted to follow a checklist like the
+<a href="https://www.joelonsoftware.com/2000/08/09/the-joel-test-12-steps-to-better-code/">Joel Test</a><sup id="fnref-1"><a class="footnote-ref" href="#fn-1">1</a></sup>,
+but I prefer to ask questions that allow me to be more diplomatic when probing
+a company's values:</p>
+<h2>Can you show me a non-trivial code review?</h2>
+<p>In my favorite opening question, I immediately seem innocent and
+curious while asking the engineer to show me something they are proud of. 
+I maintain this demeanor while asking all future questions -- the interviewer
+will be evaluating me on my questions, so I want to sound friendly with no
+ulterior motives.</p>
+<p>But this question jumps directly to the heart of the engineering culture:</p>
+<ul>
+<li>How are disputes settled, e.g. about code style? Does the "highest paid
+   person's opinion" win? Are people friendly or are does the company allow
+   <a href="http://www.brendangregg.com/blog/2017-11-13/brilliant-jerks.html">"brilliant jerks"</a>?</li>
+<li>How are the tests? Are they automated in a CI system? Are flaky tests tracked?
+   Does the review add more tests? Was it expected to? </li>
+<li>Does someone maintain the health of the build and test system?</li>
+</ul>
+<p>I normally like to ask this question of a junior engineer who is less likely to
+override the company culture with their own personality. I do need to be careful
+when asking follow up questions because I do not want to come off
+as critical.</p>
+<h2>How was your on-boarding?</h2>
+<p>In this question, I want to seem supportive and eager to start. I want to know:</p>
+<ul>
+<li>Were you thrown in the fire or was there a training process? Was there good
+   documentation and tools?</li>
+<li>How long were you mentored? What was the ongoing relationship between you
+   and your manager?</li>
+<li>Are there non-HR trainings available for senior people?</li>
+</ul>
+<p>Again, this question is most effective when you can ask a junior person who 
+recently was on-boarded. It is important to not come off as entitled when
+asking this question.</p>
+<h2>What is the weirdest bug that you have worked on in the past year?</h2>
+<p>In this question, my goal is to elicit a good war story so I can evaluate:</p>
+<ul>
+<li>How was it addressed in the short term? In the long term?</li>
+<li>Do people actually debug issues or do they just work around them?</li>
+<li>Do people root-cause non-reproducible issues?</li>
+</ul>
+<p>This question is better to ask of a senior person who is likely to have seen
+a spectrum of issues and the long-term consequences of fixes to them.</p>
+<h2>Can you talk about the last engineer who got promoted (not to management)?</h2>
+<p>The goal of this question is to understand what qualities the company actually
+values.</p>
+<ul>
+<li>Were they friendly and helpful when working with other engineers?</li>
+<li>How did they start working on their projects? Is project assignment political?</li>
+<li>Is there a culture of recognizing talented individual contributors?</li>
+</ul>
+<p>Again, I like to ask a senior engineer this question because they are more
+likely to have seen the history of the engineer in question. This question does
+not work with exceptionally small companies that have not promoted engineers.</p>
+<h2>Can you show me how you track the status of your next release?</h2>
+<p>Here I want to understand the health of the engineering organization.</p>
+<ul>
+<li>How do you measure the health of your engineering organization?</li>
+<li>How do you decide what projects to prioritize?</li>
+<li>How does the culture change near the end of the release?</li>
+</ul>
+<p>This question is most effective when asked of a senior engineer or even a
+manager who would be thinking about release health. Be careful when asking
+this question of exceptionally small companies -- they might not have a release
+dashboard and you do not want to shame them.</p>
+<h2>Key takeaways</h2>
+<p>Keep a friendly and playful spirit and under no circumstances allow 
+the interviewer to feel bad; remember they are evaluating you for culture
+fit too!</p>
+<p>The goal is answer important questions about the company culture without being 
+offensive. These questions allow you to gracefully probe the values of an
+engineering organization.</p>
+<div class="footnote">
+<hr>
+<ol>
+<li id="fn-1">
+<p>I have a preference for this <a href="https://myers.io/2017/04/04/the-joel-test-for-2017/">updated Joel Test</a>, but I still don't find it perfect (in particular, I think it assumes the organization is a certain size).&#160;<a class="footnote-backref" href="#fnref-1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+        </div><!-- /.entry-content -->
+        <div class="comments">
+        <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+               var disqus_identifier = "posts/2018/04/17/5-graceful-questions-to-avoid-a-toxic-engineering-team.html";
+               (function() {
+               var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+               dsq.src = 'http://codearcana.disqus.com/embed.js';
+               (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+              })();
+            </script>
+        </div>
+
+</article>
+</section>
+
+        <aside id="sidebar">
+                <div class="widget">
+                        <h2>Categories</h2>
+                        <ul>
+                           <li ><a href="http://codearcana.com/category/performance.html">performance</a></li>
+                           <li ><a href="http://codearcana.com/category/reviews.html">reviews</a></li>
+                           <li ><a href="http://codearcana.com/category/security.html">security</a></li>
+                           <li class="active"><a href="http://codearcana.com/category/software-engineering.html">software engineering</a></li>
+                        </ul>
+		</div>
+		<div class="widget">
+		    <h2>Tags</h2>
+		    <ul class="cloud">
+		    </ul>
+		</div>
+
+
+                <div class="widget blogroll">
+                        <h2>Blogroll</h2>
+                        <ul>
+                            <li><a href="http://ppp.cylab.cmu.edu/wordpress/">PPP Blog</a></li>
+                            <li><a href="http://www.codinghorror.com/blog/">Coding Horror</a></li>
+                            <li><a href="http://blog.regehr.org/">Embedded in Academia</a></li>
+                            <li><a href="http://highscalability.com/">High Scalability</a></li>
+                            <li><a href="http://coderweekly.com/">Coder Weekly</a></li>
+                            <li><a href="http://www.phrack.org/">phrack</a></li>
+                            <li><a href="http://jbremer.org/">skier_'s blog</a></li>
+                            <li><a href="http://dtrace.org/blogs">dtrace blog</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="widget social">
+                        <h2>Social</h2>
+			<ul>
+                            <li><a href="http://codearcana.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate">atom feed</a></li>
+
+				<li><a href="https://twitter.com/awreece">twitter</a></li>
+				<li><a href="https://github.com/awreece">github</a></li>
+				<li><a href="https://plus.google.com/106589059588263736517/posts">google+</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </aside><!-- /#sidebar -->
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-40107691-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+</body>
+</html>

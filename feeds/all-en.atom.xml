@@ -1,5 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/all-en.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2018-04-11T00:00:00-07:00</updated><entry><title>A review of Winning with Data</title><link href="http://codearcana.com/posts/2018/04/11/a-review-of-winning-with-data.html" rel="alternate"></link><published>2018-04-11T00:00:00-07:00</published><updated>2018-04-11T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2018-04-11:/posts/2018/04/11/a-review-of-winning-with-data.html</id><summary type="html">&lt;p&gt;On the advice of a former colleague, I recently read &lt;a href="https://smile.amazon.com/Winning-Data-Transform-Culture-Empower-ebook/dp/B01G9FLALC"&gt;Winning with Data: Transform Your Culture, Empower Your People, and Shape the Future&lt;/a&gt; by Tomasz Tunguz and Frank Bien.&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/all-en.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2018-04-17T00:00:00-07:00</updated><entry><title>5 graceful questions to avoid a toxic engineering team</title><link href="http://codearcana.com/posts/2018/04/17/5-graceful-questions-to-avoid-a-toxic-engineering-team.html" rel="alternate"></link><published>2018-04-17T00:00:00-07:00</published><updated>2018-04-17T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2018-04-17:/posts/2018/04/17/5-graceful-questions-to-avoid-a-toxic-engineering-team.html</id><summary type="html">&lt;p&gt;While interviewing at a potential company, the engineer evaluating you asks the
+obligatory "Any questions for me?". What do you ask?&lt;/p&gt;
+&lt;p&gt;Some might be tempted to follow a checklist like the
+&lt;a href="https://www.joelonsoftware.com/2000/08/09/the-joel-test-12-steps-to-better-code/"&gt;Joel Test&lt;/a&gt;&lt;sup id="fnref-1"&gt;&lt;a class="footnote-ref" href="#fn-1"&gt;1&lt;/a&gt;&lt;/sup&gt;,
+but I prefer to ask questions that allow me to be more diplomatic when probing
+a …&lt;/p&gt;</summary><content type="html">&lt;p&gt;While interviewing at a potential company, the engineer evaluating you asks the
+obligatory "Any questions for me?". What do you ask?&lt;/p&gt;
+&lt;p&gt;Some might be tempted to follow a checklist like the
+&lt;a href="https://www.joelonsoftware.com/2000/08/09/the-joel-test-12-steps-to-better-code/"&gt;Joel Test&lt;/a&gt;&lt;sup id="fnref-1"&gt;&lt;a class="footnote-ref" href="#fn-1"&gt;1&lt;/a&gt;&lt;/sup&gt;,
+but I prefer to ask questions that allow me to be more diplomatic when probing
+a company's values:&lt;/p&gt;
+&lt;h2&gt;Can you show me a non-trivial code review?&lt;/h2&gt;
+&lt;p&gt;In my favorite opening question, I immediately seem innocent and
+curious while asking the engineer to show me something they are proud of. 
+I maintain this demeanor while asking all future questions -- the interviewer
+will be evaluating me on my questions, so I want to sound friendly with no
+ulterior motives.&lt;/p&gt;
+&lt;p&gt;But this question jumps directly to the heart of the engineering culture:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;How are disputes settled, e.g. about code style? Does the "highest paid
+   person's opinion" win? Are people friendly or are does the company allow
+   &lt;a href="http://www.brendangregg.com/blog/2017-11-13/brilliant-jerks.html"&gt;"brilliant jerks"&lt;/a&gt;?&lt;/li&gt;
+&lt;li&gt;How are the tests? Are they automated in a CI system? Are flaky tests tracked?
+   Does the review add more tests? Was it expected to? &lt;/li&gt;
+&lt;li&gt;Does someone maintain the health of the build and test system?&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;I normally like to ask this question of a junior engineer who is less likely to
+override the company culture with their own personality. I do need to be careful
+when asking follow up questions because I do not want to come off
+as critical.&lt;/p&gt;
+&lt;h2&gt;How was your on-boarding?&lt;/h2&gt;
+&lt;p&gt;In this question, I want to seem supportive and eager to start. I want to know:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Were you thrown in the fire or was there a training process? Was there good
+   documentation and tools?&lt;/li&gt;
+&lt;li&gt;How long were you mentored? What was the ongoing relationship between you
+   and your manager?&lt;/li&gt;
+&lt;li&gt;Are there non-HR trainings available for senior people?&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Again, this question is most effective when you can ask a junior person who 
+recently was on-boarded. It is important to not come off as entitled when
+asking this question.&lt;/p&gt;
+&lt;h2&gt;What is the weirdest bug that you have worked on in the past year?&lt;/h2&gt;
+&lt;p&gt;In this question, my goal is to elicit a good war story so I can evaluate:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;How was it addressed in the short term? In the long term?&lt;/li&gt;
+&lt;li&gt;Do people actually debug issues or do they just work around them?&lt;/li&gt;
+&lt;li&gt;Do people root-cause non-reproducible issues?&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;This question is better to ask of a senior person who is likely to have seen
+a spectrum of issues and the long-term consequences of fixes to them.&lt;/p&gt;
+&lt;h2&gt;Can you talk about the last engineer who got promoted (not to management)?&lt;/h2&gt;
+&lt;p&gt;The goal of this question is to understand what qualities the company actually
+values.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Were they friendly and helpful when working with other engineers?&lt;/li&gt;
+&lt;li&gt;How did they start working on their projects? Is project assignment political?&lt;/li&gt;
+&lt;li&gt;Is there a culture of recognizing talented individual contributors?&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Again, I like to ask a senior engineer this question because they are more
+likely to have seen the history of the engineer in question. This question does
+not work with exceptionally small companies that have not promoted engineers.&lt;/p&gt;
+&lt;h2&gt;Can you show me how you track the status of your next release?&lt;/h2&gt;
+&lt;p&gt;Here I want to understand the health of the engineering organization.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;How do you measure the health of your engineering organization?&lt;/li&gt;
+&lt;li&gt;How do you decide what projects to prioritize?&lt;/li&gt;
+&lt;li&gt;How does the culture change near the end of the release?&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;This question is most effective when asked of a senior engineer or even a
+manager who would be thinking about release health. Be careful when asking
+this question of exceptionally small companies -- they might not have a release
+dashboard and you do not want to shame them.&lt;/p&gt;
+&lt;h2&gt;Key takeaways&lt;/h2&gt;
+&lt;p&gt;Keep a friendly and playful spirit and under no circumstances allow 
+the interviewer to feel bad; remember they are evaluating you for culture
+fit too!&lt;/p&gt;
+&lt;p&gt;The goal is answer important questions about the company culture without being 
+offensive. These questions allow you to gracefully probe the values of an
+engineering organization.&lt;/p&gt;
+&lt;div class="footnote"&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id="fn-1"&gt;
+&lt;p&gt;I have a preference for this &lt;a href="https://myers.io/2017/04/04/the-joel-test-for-2017/"&gt;updated Joel Test&lt;/a&gt;, but I still don't find it perfect (in particular, I think it assumes the organization is a certain size).&amp;#160;&lt;a class="footnote-backref" href="#fnref-1" title="Jump back to footnote 1 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;</content><category term="opinion"></category></entry><entry><title>A review of Winning with Data</title><link href="http://codearcana.com/posts/2018/04/11/a-review-of-winning-with-data.html" rel="alternate"></link><published>2018-04-11T00:00:00-07:00</published><updated>2018-04-11T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2018-04-11:/posts/2018/04/11/a-review-of-winning-with-data.html</id><summary type="html">&lt;p&gt;On the advice of a former colleague, I recently read &lt;a href="https://smile.amazon.com/Winning-Data-Transform-Culture-Empower-ebook/dp/B01G9FLALC"&gt;Winning with Data: Transform Your Culture, Empower Your People, and Shape the Future&lt;/a&gt; by Tomasz Tunguz and Frank Bien.&lt;/p&gt;
 &lt;p&gt;This book was a bunch of just-so stories about how companies used a data-driven methodology (via Looker) to improve their business …&lt;/p&gt;</summary><content type="html">&lt;p&gt;On the advice of a former colleague, I recently read &lt;a href="https://smile.amazon.com/Winning-Data-Transform-Culture-Empower-ebook/dp/B01G9FLALC"&gt;Winning with Data: Transform Your Culture, Empower Your People, and Shape the Future&lt;/a&gt; by Tomasz Tunguz and Frank Bien.&lt;/p&gt;
 &lt;p&gt;This book was a bunch of just-so stories about how companies used a data-driven methodology (via Looker) to improve their business. It also mixed in some unrelated stuff; e.g. how to do pitches. I found this quite underwhelming, but here were some interesting quotes.&lt;/p&gt;
 &lt;h2&gt;Quotes&lt;/h2&gt;
