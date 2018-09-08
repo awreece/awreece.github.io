@@ -4,7 +4,7 @@
 &lt;p&gt;This book is basically an extended doctoral thesis, written in 1996. It
 discusses how employees are motivated by measurement, in particular focussing
 on incentives that lead to disfunctional behavior.&lt;/p&gt;
-&lt;p&gt;The book is dense and a bit self-indulgent, but has a few fascinating points.&lt;/p&gt;
+&lt;p&gt;The book is dense and a bit self-indulgent&lt;sup id="fnref-1"&gt;&lt;a class="footnote-ref" href="#fn-1"&gt;1&lt;/a&gt;&lt;/sup&gt;, but has a few fascinating points.&lt;/p&gt;
 &lt;h3&gt;Types of measurements&lt;/h3&gt;
 &lt;p&gt;Austin first points out that there are two different types of measurements,
 &lt;em&gt;motivational&lt;/em&gt; and &lt;em&gt;informational&lt;/em&gt;:&lt;/p&gt;
@@ -15,13 +15,9 @@ on incentives that lead to disfunctional behavior.&lt;/p&gt;
 he very quickly points out that if human beings are aware of the fact that they
 are being measured, they will invariably change the motivations based on the
 numbers. That is to say, there is no such thing as informational measures for
-humans:&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;Unlike mechanisms and organisms, organizations have subcomponents that realize they are being measured&lt;/p&gt;
-&lt;/blockquote&gt;
+humans.&lt;/p&gt;
 &lt;p&gt;Worse, this leads to the compromise of the measures:&lt;/p&gt;
 &lt;blockquote&gt;
-&lt;p&gt;The desire to be viewed favorably provides an incentive for people being measured to tailor, supplement, repackage, and censor information that flows upward&lt;/p&gt;
 &lt;p&gt;The more any quantitative social indicator is used for social decision-making, the more subject it will be to corruption pressures and the more apt it will be to distort and corrupt the social processes it is intended to monitor&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;h3&gt;A model for employee motivation&lt;/h3&gt;
@@ -69,7 +65,15 @@ knowledge about the customer in a product management role. I think this
 assumption is a key reason why &lt;em&gt;all&lt;/em&gt; employees (e.g. engineers) should be
 expected to understand customer goals and information should be actively spread
 to them; in my opinion, the role of product should be to disseminate information
-so that all engineers can make good allocations.&lt;/p&gt;</content><category term="opinion"></category></entry><entry><title>5 graceful questions to avoid a toxic engineering team</title><link href="http://codearcana.com/posts/2018/04/17/5-graceful-questions-to-avoid-a-toxic-engineering-team.html" rel="alternate"></link><published>2018-04-17T00:00:00-07:00</published><updated>2018-04-17T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2018-04-17:/posts/2018/04/17/5-graceful-questions-to-avoid-a-toxic-engineering-team.html</id><summary type="html">&lt;p&gt;While interviewing at a potential company, the engineer evaluating you asks the
+so that all engineers can make good allocations.&lt;/p&gt;
+&lt;div class="footnote"&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id="fn-1"&gt;
+&lt;p&gt;Much like this blog post ...&amp;#160;&lt;a class="footnote-backref" href="#fnref-1" title="Jump back to footnote 1 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;</content><category term="opinion"></category></entry><entry><title>5 graceful questions to avoid a toxic engineering team</title><link href="http://codearcana.com/posts/2018/04/17/5-graceful-questions-to-avoid-a-toxic-engineering-team.html" rel="alternate"></link><published>2018-04-17T00:00:00-07:00</published><updated>2018-04-17T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2018-04-17:/posts/2018/04/17/5-graceful-questions-to-avoid-a-toxic-engineering-team.html</id><summary type="html">&lt;p&gt;While interviewing at a potential company, the engineer evaluating you asks the
 obligatory "Any questions for me?". What do you ask?&lt;/p&gt;
 &lt;p&gt;Some might be tempted to follow a checklist like the
 &lt;a href="https://www.joelonsoftware.com/2000/08/09/the-joel-test-12-steps-to-better-code/"&gt;Joel Test&lt;/a&gt;&lt;sup id="fnref-1"&gt;&lt;a class="footnote-ref" href="#fn-1"&gt;1&lt;/a&gt;&lt;/sup&gt;,
