@@ -1,5 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/all-en.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2018-04-17T00:00:00-07:00</updated><entry><title>5 graceful questions to avoid a toxic engineering team</title><link href="http://codearcana.com/posts/2018/04/17/5-graceful-questions-to-avoid-a-toxic-engineering-team.html" rel="alternate"></link><published>2018-04-17T00:00:00-07:00</published><updated>2018-04-17T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2018-04-17:/posts/2018/04/17/5-graceful-questions-to-avoid-a-toxic-engineering-team.html</id><summary type="html">&lt;p&gt;While interviewing at a potential company, the engineer evaluating you asks the
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="http://codearcana.com/" rel="alternate"></link><link href="http://codearcana.com/feeds/all-en.atom.xml" rel="self"></link><id>http://codearcana.com/</id><updated>2018-09-07T00:00:00-07:00</updated><entry><title>A review of Measuring and Managing Performance in Organizations</title><link href="http://codearcana.com/posts/2018/09/07/a-review-of-measuring-and-managing-performance-in-organizations.html" rel="alternate"></link><published>2018-09-07T00:00:00-07:00</published><updated>2018-09-07T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2018-09-07:/posts/2018/09/07/a-review-of-measuring-and-managing-performance-in-organizations.html</id><summary type="html">&lt;p&gt;The central thesis of this book is that measuring employees will necessarily incentivize their behavior and measurement systems are doomed to by dysfunctional if any critical dimension of an employees role is not measured.&lt;/p&gt;</summary><content type="html">&lt;p&gt;On the advice of another Boy Scout leader, I read &lt;a href="https://smile.amazon.com/dp/B00DY3KQX6"&gt;&lt;em&gt;Measuring and Managing Performance in Organizations&lt;/em&gt;&lt;/a&gt; by Robert Austin. &lt;/p&gt;
+&lt;h2&gt;An overview&lt;/h2&gt;
+&lt;p&gt;This book is basically an extended doctoral thesis, written in 1996. It
+discusses how employees are motivated by measurement, in particular focussing
+on incentives that lead to disfunctional behavior.&lt;/p&gt;
+&lt;p&gt;The book is dense and a bit self-indulgent, but has a few fascinating points.&lt;/p&gt;
+&lt;h3&gt;Types of measurements&lt;/h3&gt;
+&lt;p&gt;Austin first points out that there are two different types of measurements,
+&lt;em&gt;motivational&lt;/em&gt; and &lt;em&gt;informational&lt;/em&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Motivational measurement is, by definition, intended to cause reactions in the people being measured, while informational measurement should be careful not to change the actions of the people being measured.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;This distinction is only useful when talking about the intent of measurement;
+he very quickly points out that if human beings are aware of the fact that they
+are being measured, they will invariably change the motivations based on the
+numbers. That is to say, there is no such thing as informational measures for
+humans:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Unlike mechanisms and organisms, organizations have subcomponents that realize they are being measured&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Worse, this leads to the compromise of the measures:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;The desire to be viewed favorably provides an incentive for people being measured to tailor, supplement, repackage, and censor information that flows upward&lt;/p&gt;
+&lt;p&gt;The more any quantitative social indicator is used for social decision-making, the more subject it will be to corruption pressures and the more apt it will be to distort and corrupt the social processes it is intended to monitor&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3&gt;A model for employee motivation&lt;/h3&gt;
+&lt;p&gt;Austin lays out a model for motivation with 3 parties, a customer, a principal
+(or boss), and an agent (or employee). The agent has two types of tasks to work
+on (e.g. cooking and cleaning or quantity and quality, etc) and must allocate 
+time between them. The customer has a preference for the ratio of allocations 
+between the two tasks (e.g. 40% cooking and 60% cleaning). The boss is
+trying to figure out how to motivate the employee to do more work; 
+the motivation system is considered to be &lt;em&gt;dysfunctional&lt;/em&gt; if the 
+agent does not follow the customers preferred ratio.&lt;/p&gt;
+&lt;p&gt;This model is a great framework for making key observations:
+ - If the boss only incentivizes one of the two tasks, the employee will 
+   natually do primarily that task and little of the other, leading to 
+   dysfunction. &lt;em&gt;This is the key reason for dysfunction in organizations&lt;/em&gt;, 
+   when not all of the &lt;em&gt;critical tasks&lt;/em&gt; are incentivized. If a motivation
+   scheme misses a task important to a customer or if a dimension is hard to 
+   measure (e.g. measuring quality), the system is doomed to by dysfunctional.
+ - If you assume the employee is motivated by the desire to do a good job
+   by pleasing the customer &lt;em&gt;and&lt;/em&gt; knows what the customer wants,
+   then they will naturally seek out an allocation of time to tasks that 
+   makes the customer happy.&lt;/p&gt;
+&lt;h3&gt;Austin's Unsatisfying Conclusion&lt;/h3&gt;
+&lt;p&gt;Austin clearly suggests that the best way to motivate employees is via internal
+motivation, of doing a good job and supporting a team. He talks about a few
+cultures that do this well (e.g. Japanese manufacturing), but doesn't give a
+very compelling way to motivate employees to output more work -- increasing
+compensation as a function of measured output would do so, but he clearly
+indicates that he thinks it is impossible to measure output without
+dysfunction. Worse, he thinks that providing external motivation usually ruins
+an employee's internal motivation.&lt;/p&gt;
+&lt;p&gt;One last interesting quote:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Customers verbalize only the most direct of three categories of desires when asked (see, for example, Hauser and Clausing, 1988). Customers do not mention needs that they assume will be met by all products of the type in question. And they do not mention product qualities that they have not thought of but would like. They mention only qualities that they do not expect but know that they want.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3&gt;Opinion&lt;/h3&gt;
+&lt;p&gt;I think the key takeways of the book are the two insights derived from the models:
+ - Measuring output will necessarily be disfunctional if any important
+   dimension is not measured.
+ - Employees internal desire to do good work will cause them to natually choose
+   an ideal allocation of labor, assuming they have perfect knowledge of what
+   the customer wants.&lt;/p&gt;
+&lt;p&gt;I think this last assumption is critical -- most organizations try to silo
+knowledge about the customer in a product management role. I think this
+assumption is a key reason why &lt;em&gt;all&lt;/em&gt; employees (e.g. engineers) should be
+expected to understand customer goals and information should be actively spread
+to them; in my opinion, the role of product should be to disseminate information
+so that all engineers can make good allocations.&lt;/p&gt;</content><category term="opinion"></category></entry><entry><title>5 graceful questions to avoid a toxic engineering team</title><link href="http://codearcana.com/posts/2018/04/17/5-graceful-questions-to-avoid-a-toxic-engineering-team.html" rel="alternate"></link><published>2018-04-17T00:00:00-07:00</published><updated>2018-04-17T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2018-04-17:/posts/2018/04/17/5-graceful-questions-to-avoid-a-toxic-engineering-team.html</id><summary type="html">&lt;p&gt;While interviewing at a potential company, the engineer evaluating you asks the
 obligatory "Any questions for me?". What do you ask?&lt;/p&gt;
 &lt;p&gt;Some might be tempted to follow a checklist like the
 &lt;a href="https://www.joelonsoftware.com/2000/08/09/the-joel-test-12-steps-to-better-code/"&gt;Joel Test&lt;/a&gt;&lt;sup id="fnref-1"&gt;&lt;a class="footnote-ref" href="#fn-1"&gt;1&lt;/a&gt;&lt;/sup&gt;,
