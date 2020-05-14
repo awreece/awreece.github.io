@@ -86,7 +86,7 @@ engineering organization.&lt;/p&gt;
 &lt;p&gt;I have a preference for this &lt;a href="https://myers.io/2017/04/04/the-joel-test-for-2017/"&gt;updated Joel Test&lt;/a&gt;, but I still don't find it perfect (in particular, I think it assumes the organization is a certain size).&amp;#160;&lt;a class="footnote-backref" href="#fnref-1" title="Jump back to footnote 1 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ol&gt;
-&lt;/div&gt;</content><category term="opinion"></category></entry><entry><title>A real Hello World example for react</title><link href="http://codearcana.com/posts/2017/01/21/a-real-hello-world-example-for-react.html" rel="alternate"></link><published>2017-01-21T00:00:00-08:00</published><updated>2017-01-21T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2017-01-21:/posts/2017/01/21/a-real-hello-world-example-for-react.html</id><summary type="html">&lt;p&gt;I got frustrated following the React
+&lt;/div&gt;</content><category term="opinion"></category><category term="interviewing"></category></entry><entry><title>A real Hello World example for react</title><link href="http://codearcana.com/posts/2017/01/21/a-real-hello-world-example-for-react.html" rel="alternate"></link><published>2017-01-21T00:00:00-08:00</published><updated>2017-01-21T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2017-01-21:/posts/2017/01/21/a-real-hello-world-example-for-react.html</id><summary type="html">&lt;p&gt;I got frustrated following the React
 &lt;a href="https://facebook.github.io/react/docs/hello-world.html"&gt;"Hello, World"&lt;/a&gt; and 
 &lt;a href="https://facebook.github.io/react/tutorial/tutorial.html"&gt;tutorial&lt;/a&gt;
 because of the implied magic. How does it actually work? Where does it fit
@@ -598,7 +598,7 @@ people I'm still not sure about, I will look at two more pieces of information:&
 &lt;p&gt;Note this is the process I use for CMU resumes, where I know the courses intimately.&amp;#160;&lt;a class="footnote-backref" href="#fnref-1" title="Jump back to footnote 1 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ol&gt;
-&lt;/div&gt;</content><category term="opinion"></category></entry><entry><title>My zsh theme</title><link href="http://codearcana.com/posts/2013/06/11/my-zsh-theme.html" rel="alternate"></link><published>2013-06-11T00:00:00-07:00</published><updated>2013-06-11T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-06-11:/posts/2013/06/11/my-zsh-theme.html</id><summary type="html">&lt;p&gt;I spent some time this week switching from &lt;code&gt;bash&lt;/code&gt; to &lt;code&gt;zsh&lt;/code&gt; (I really enjoy
+&lt;/div&gt;</content><category term="opinion"></category><category term="management"></category><category term="interviewing"></category></entry><entry><title>My zsh theme</title><link href="http://codearcana.com/posts/2013/06/11/my-zsh-theme.html" rel="alternate"></link><published>2013-06-11T00:00:00-07:00</published><updated>2013-06-11T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-06-11:/posts/2013/06/11/my-zsh-theme.html</id><summary type="html">&lt;p&gt;I spent some time this week switching from &lt;code&gt;bash&lt;/code&gt; to &lt;code&gt;zsh&lt;/code&gt; (I really enjoy
 &lt;code&gt;zsh&lt;/code&gt; - I treat it as &lt;code&gt;bash&lt;/code&gt; with floating point arithmetic and other
 niceities)
 and making a theme for
