@@ -3,8 +3,8 @@
 <head>
         <title>Why are builds on HGFS so slow?</title>
         <meta charset="utf-8" />
-        <link rel="stylesheet" href="http://codearcana.com/theme/css/main.css" type="text/css" />
-        <link href="http://codearcana.com/" type="application/atom+xml" rel="alternate" title="Code Arcana ATOM Feed" />
+        <link rel="stylesheet" href="https://codearcana.com/theme/css/main.css" type="text/css" />
+        <link href="https://codearcana.com/" type="application/atom+xml" rel="alternate" title="Code Arcana ATOM Feed" />
 
         <script type="text/javascript" async
                 src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML">
@@ -13,14 +13,14 @@
 
 <body id="index" class="home">
         <header id="banner" class="body">
-                <h1><a href="http://codearcana.com/index.html">Code Arcana </a></h1>
+                <h1><a href="https://codearcana.com/index.html">Code Arcana </a></h1>
                 <nav><ul>
-                    <li><a href="http://codearcana.com/pages/about.html">About</a></li>
-                    <li><a href="http://codearcana.com">Blog</a></li>
-                    <li ><a href="http://codearcana.com/category/management.html">Management</a></li>
-                    <li class="active"><a href="http://codearcana.com/category/performance-engineering.html">Performance engineering</a></li>
-                    <li ><a href="http://codearcana.com/category/security.html">Security</a></li>
-                    <li ><a href="http://codearcana.com/category/software-engineering.html">Software engineering</a></li>
+                    <li><a href="https://codearcana.com/pages/about.html">About</a></li>
+                    <li><a href="https://codearcana.com">Blog</a></li>
+                    <li ><a href="https://codearcana.com/category/management.html">Management</a></li>
+                    <li class="active"><a href="https://codearcana.com/category/performance-engineering.html">Performance engineering</a></li>
+                    <li ><a href="https://codearcana.com/category/security.html">Security</a></li>
+                    <li ><a href="https://codearcana.com/category/software-engineering.html">Software engineering</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
 
@@ -33,8 +33,8 @@
         <abbr class="published" title="2015-12-04T00:00:00-08:00">
                 Fri 04 December 2015
         </abbr>
-<p>In <a href="http://codearcana.com/category/performance-engineering.html">performance engineering</a>. </p>
-<p>tags: <a href="http://codearcana.com/tag/profiling.html">profiling</a><a href="http://codearcana.com/tag/vmware.html">vmware</a><a href="http://codearcana.com/tag/make.html">make</a></p></footer><!-- /.post-info --><!-- /.post-info -->
+<p>In <a href="https://codearcana.com/category/performance-engineering.html">performance engineering</a>. </p>
+<p>tags: <a href="https://codearcana.com/tag/profiling.html">profiling</a><a href="https://codearcana.com/tag/vmware.html">vmware</a><a href="https://codearcana.com/tag/make.html">make</a></p></footer><!-- /.post-info --><!-- /.post-info -->
         <div class="entry-content">
         <h2>My configuration</h2>
 <p>I work at a company whose product builds and runs exclusively on Linux.
@@ -59,7 +59,7 @@ An incremental build in which <em>no</em> files were changed after a successful
 build took almost 10 seconds. I noticed my system had incredibly high
 CPU utilization and generated a
 <a href="http://www.brendangregg.com/flamegraphs.html">Flame Graph</a>:</p>
-<p><object data="http://codearcana.com/images/make_using_hgfs.svg" style="width:100%;"></object></p>
+<p><object data="https://codearcana.com/images/make_using_hgfs.svg" style="width:100%;"></object></p>
 <p>I was amazed -- all the HGFS stacks were spending time blocked in
 <code>mutex_spin_on_owner</code>. It looks like all file accesses have
 to go through a filesystem-wide global lock!</p>
@@ -92,7 +92,7 @@ VMWare HGFS anymore. I set up Mac OSX to share the directory over nfs:</p>
 
 
 <p>This cut my build times down to 1s, almost 10x faster. Here is the revised Flame Graph:</p>
-<p><object data="http://codearcana.com/images/make_using_nfs.svg" style="width:100%;"></object></p>
+<p><object data="https://codearcana.com/images/make_using_nfs.svg" style="width:100%;"></object></p>
         </div><!-- /.entry-content -->
         <div class="comments">
         <h2>Comments !</h2>

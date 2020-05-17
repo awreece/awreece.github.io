@@ -3,8 +3,8 @@
 <head>
         <title>Bash Performance Tricks</title>
         <meta charset="utf-8" />
-        <link rel="stylesheet" href="http://codearcana.com/theme/css/main.css" type="text/css" />
-        <link href="http://codearcana.com/" type="application/atom+xml" rel="alternate" title="Code Arcana ATOM Feed" />
+        <link rel="stylesheet" href="https://codearcana.com/theme/css/main.css" type="text/css" />
+        <link href="https://codearcana.com/" type="application/atom+xml" rel="alternate" title="Code Arcana ATOM Feed" />
 
         <script type="text/javascript" async
                 src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML">
@@ -13,14 +13,14 @@
 
 <body id="index" class="home">
         <header id="banner" class="body">
-                <h1><a href="http://codearcana.com/index.html">Code Arcana </a></h1>
+                <h1><a href="https://codearcana.com/index.html">Code Arcana </a></h1>
                 <nav><ul>
-                    <li><a href="http://codearcana.com/pages/about.html">About</a></li>
-                    <li><a href="http://codearcana.com">Blog</a></li>
-                    <li ><a href="http://codearcana.com/category/management.html">Management</a></li>
-                    <li class="active"><a href="http://codearcana.com/category/performance-engineering.html">Performance engineering</a></li>
-                    <li ><a href="http://codearcana.com/category/security.html">Security</a></li>
-                    <li ><a href="http://codearcana.com/category/software-engineering.html">Software engineering</a></li>
+                    <li><a href="https://codearcana.com/pages/about.html">About</a></li>
+                    <li><a href="https://codearcana.com">Blog</a></li>
+                    <li ><a href="https://codearcana.com/category/management.html">Management</a></li>
+                    <li class="active"><a href="https://codearcana.com/category/performance-engineering.html">Performance engineering</a></li>
+                    <li ><a href="https://codearcana.com/category/security.html">Security</a></li>
+                    <li ><a href="https://codearcana.com/category/software-engineering.html">Software engineering</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
 
@@ -33,8 +33,8 @@
         <abbr class="published" title="2013-08-06T00:00:00-07:00">
                 Tue 06 August 2013
         </abbr>
-<p>In <a href="http://codearcana.com/category/performance-engineering.html">performance engineering</a>. </p>
-<p>tags: <a href="http://codearcana.com/tag/bash.html">bash</a><a href="http://codearcana.com/tag/profiling.html">profiling</a></p></footer><!-- /.post-info --><!-- /.post-info -->
+<p>In <a href="https://codearcana.com/category/performance-engineering.html">performance engineering</a>. </p>
+<p>tags: <a href="https://codearcana.com/tag/bash.html">bash</a><a href="https://codearcana.com/tag/profiling.html">profiling</a></p></footer><!-- /.post-info --><!-- /.post-info -->
         <div class="entry-content">
         <p>My coworkers presented a silly programming interview style question to
 me the other day: given a list of words, find the largest set of words from
@@ -85,7 +85,7 @@ straightforward to finish the rest of the program:</p>
 other <code>bash</code> solutions by a fair margin, but I wanted to see if I could do better.
 I ran it under a profiler and saw that it was spending all its time in many
 nested layers of <code>execute_command</code>.</p>
-<p><img alt="bash profiling run" src="http://codearcana.com/images/bash_perf_stack_trace.png" title="hash.bash has many nested calls to execute_command"></p>
+<p><img alt="bash profiling run" src="https://codearcana.com/images/bash_perf_stack_trace.png" title="hash.bash has many nested calls to execute_command"></p>
 <p>This gave me the idea to try inlining the function call. Quickly prototyping a
 variation using an inlined function call, I run some trials (and collect statistics
 with my favorite tool, <code>histogram.py</code><sup id="fnref-2"><a class="footnote-ref" href="#fn-2">2</a></sup>):</p>
@@ -128,10 +128,10 @@ making our code compact:</p>
 first time the runtime of an <code>execute_command</code> call isn't dominated by another
 recursive call to <code>execute_command</code>, the function <code>eval_arith_for_expr</code> consumes
 a large portion of the time.</p>
-<p><img alt="optimized bash perf" src="http://codearcana.com/images/bash_perf_eval_arith.png" title="eval_arith_for_expr is a serious part of this function's runtime"></p>
+<p><img alt="optimized bash perf" src="https://codearcana.com/images/bash_perf_eval_arith.png" title="eval_arith_for_expr is a serious part of this function's runtime"></p>
 <p>Furthermore, we see that a large portion of the rest of the time is eventually spent
 in <code>expand_word_list_internal</code>:</p>
-<p><img alt="optimized bash perf" src="http://codearcana.com/images/bash_perf_expand_word.png" title="expand_word_list_internal is also a serious part of this function's runtime"></p>
+<p><img alt="optimized bash perf" src="https://codearcana.com/images/bash_perf_expand_word.png" title="expand_word_list_internal is also a serious part of this function's runtime"></p>
 <p>These observations lead us to another technique - we will use only one character
 variable names to try to optimize for these two functions. Running again with all of
 these optimizations, we get a huge performance improvement:</p>

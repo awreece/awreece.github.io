@@ -3,8 +3,8 @@
 <head>
         <title>Using off-cpu flame graphs on Linux</title>
         <meta charset="utf-8" />
-        <link rel="stylesheet" href="http://codearcana.com/theme/css/main.css" type="text/css" />
-        <link href="http://codearcana.com/" type="application/atom+xml" rel="alternate" title="Code Arcana ATOM Feed" />
+        <link rel="stylesheet" href="https://codearcana.com/theme/css/main.css" type="text/css" />
+        <link href="https://codearcana.com/" type="application/atom+xml" rel="alternate" title="Code Arcana ATOM Feed" />
 
         <script type="text/javascript" async
                 src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML">
@@ -13,14 +13,14 @@
 
 <body id="index" class="home">
         <header id="banner" class="body">
-                <h1><a href="http://codearcana.com/index.html">Code Arcana </a></h1>
+                <h1><a href="https://codearcana.com/index.html">Code Arcana </a></h1>
                 <nav><ul>
-                    <li><a href="http://codearcana.com/pages/about.html">About</a></li>
-                    <li><a href="http://codearcana.com">Blog</a></li>
-                    <li ><a href="http://codearcana.com/category/management.html">Management</a></li>
-                    <li class="active"><a href="http://codearcana.com/category/performance-engineering.html">Performance engineering</a></li>
-                    <li ><a href="http://codearcana.com/category/security.html">Security</a></li>
-                    <li ><a href="http://codearcana.com/category/software-engineering.html">Software engineering</a></li>
+                    <li><a href="https://codearcana.com/pages/about.html">About</a></li>
+                    <li><a href="https://codearcana.com">Blog</a></li>
+                    <li ><a href="https://codearcana.com/category/management.html">Management</a></li>
+                    <li class="active"><a href="https://codearcana.com/category/performance-engineering.html">Performance engineering</a></li>
+                    <li ><a href="https://codearcana.com/category/security.html">Security</a></li>
+                    <li ><a href="https://codearcana.com/category/software-engineering.html">Software engineering</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
 
@@ -33,8 +33,8 @@
         <abbr class="published" title="2015-12-20T00:00:00-08:00">
                 Sun 20 December 2015
         </abbr>
-<p>In <a href="http://codearcana.com/category/performance-engineering.html">performance engineering</a>. </p>
-<p>tags: <a href="http://codearcana.com/tag/linux.html">Linux</a><a href="http://codearcana.com/tag/perf_events.html">perf_events</a><a href="http://codearcana.com/tag/flamegraph.html">flamegraph</a></p></footer><!-- /.post-info --><!-- /.post-info -->
+<p>In <a href="https://codearcana.com/category/performance-engineering.html">performance engineering</a>. </p>
+<p>tags: <a href="https://codearcana.com/tag/linux.html">Linux</a><a href="https://codearcana.com/tag/perf_events.html">perf_events</a><a href="https://codearcana.com/tag/flamegraph.html">flamegraph</a></p></footer><!-- /.post-info --><!-- /.post-info -->
         <div class="entry-content">
         <h2>The setup</h2>
 <p>I recently got to debug a pretty strange performance issue in a test build
@@ -44,7 +44,7 @@ threads (one for each CPU core) each running a very simple query
 the table's 1 million rows. In theory, this would be a CPU bound operation
 since it would be reading from a file that was already in disk buffer cache.
 In practice, our cores were spending about 50% of their time idle:</p>
-<p><img alt="Each core is spending about half it's time idle." src="http://codearcana.com/images/low_cpu_usage.png" title="Each core is spending about half it's time idle."></p>
+<p><img alt="Each core is spending about half it's time idle." src="https://codearcana.com/images/low_cpu_usage.png" title="Each core is spending about half it's time idle."></p>
 <h2>What were our threads doing?</h2>
 <p>After confirming that our workload was indeed using 16 threads, etc, I took a
 look what state our various threads were in. In every refresh of my
@@ -88,7 +88,7 @@ I'd previously written:</p>
 
 
 <p><em>Note: recording scheduler events via <code>perf record</code> can have a very large overhead and should be used cautiously in production environments. This is why I wrap the <code>perf record</code> around a <code>sleep 1</code> to limit the duration.</em></p>
-<p><object data="http://codearcana.com/images/mmap_off_cpu.svg" style="width:100%;"></object></p>
+<p><object data="https://codearcana.com/images/mmap_off_cpu.svg" style="width:100%;"></object></p>
 <p>From the repeated calls to <code>rwsem_down_read_failed</code> and <code>rwsem_down_write_failed</code>, we see that culprit was <code>mmap</code>contending in the kernel on the <code>mm-&gt;mmap_sem</code> lock:</p>
 <div class="highlight"><pre><span></span><span class="n">down_write</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mm</span><span class="o">-&gt;</span><span class="n">mmap_sem</span><span class="p">);</span>
 <span class="n">ret</span> <span class="o">=</span> <span class="n">do_mmap_pgoff</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">addr</span><span class="p">,</span> <span class="n">len</span><span class="p">,</span> <span class="n">prot</span><span class="p">,</span> <span class="n">flag</span><span class="p">,</span> <span class="n">pgoff</span><span class="p">,</span>
@@ -115,7 +115,7 @@ I'd previously written:</p>
 <p>Fortunately, the fix was simple -- we switched from using <code>mmap</code> to using
 the traditional file <code>read</code> interface. After this change, we nearly doubled
 our throughput and became CPU bound as we expected:</p>
-<p><img alt="Almost 100% CPU utilization" src="http://codearcana.com/images/high_cpu_usage.png" title="Almost 100% CPU utilization"></p>
+<p><img alt="Almost 100% CPU utilization" src="https://codearcana.com/images/high_cpu_usage.png" title="Almost 100% CPU utilization"></p>
 <h2>Open questions</h2>
 <p>I'll buy a {root,}beer/beverage of choice for anyone who can help me with these
 questions:</p>
