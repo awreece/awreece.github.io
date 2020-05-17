@@ -1478,7 +1478,7 @@ didn't disconnect the socket). For our final exploit, we used the payload
 &lt;span class="go"&gt;Writing encrypted function pointer ...&lt;/span&gt;
 &lt;span class="go"&gt;The key is: lol, tagged unions for the WIN!&lt;/span&gt;
 &lt;span class="go"&gt;*** Connection closed by remote host ***&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;</content><category term="ctf"></category><category term="exploitation"></category></entry><entry><title>Reading resumes</title><link href="http://codearcana.com/posts/2013/09/25/reading-resumes.html" rel="alternate"></link><published>2013-09-25T00:00:00-07:00</published><updated>2013-09-25T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-09-25:/posts/2013/09/25/reading-resumes.html</id><summary type="html">&lt;p&gt;Tonight, I sat down and read through every resume in the 2013 SCS senior
+&lt;/pre&gt;&lt;/div&gt;</content><category term="ctf"></category><category term="exploitation"></category></entry><entry><title>Reading intern resumes</title><link href="http://codearcana.com/posts/2013/09/25/reading-intern-resumes.html" rel="alternate"></link><published>2013-09-25T00:00:00-07:00</published><updated>2013-09-25T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2013-09-25:/posts/2013/09/25/reading-intern-resumes.html</id><summary type="html">&lt;p&gt;Tonight, I sat down and read through every resume in the 2013 SCS senior
 resume book. Reading resumes for a company is really interesting, because
 I find myself looking at them very differently. As a student, I didn't
 really understand what sections of the resume are important. I thought
