@@ -2632,7 +2632,7 @@ line interface.&lt;/p&gt;
 &lt;p&gt;It should be too large to fit in cache since I want to test memory throughput, not cache throughput.&amp;#160;&lt;a class="footnote-backref" href="#fnref-2" title="Jump back to footnote 3 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
 &lt;/li&gt;
 &lt;li id="fn-3"&gt;
-&lt;p&gt;Use a &lt;a href="http://codearcana.com/posts/2013/05/15/a-cross-platform-monotonic-timer.html"&gt;monotonic timer&lt;/a&gt; to avoid errors caused by the system clock.&amp;#160;&lt;a class="footnote-backref" href="#fnref-3" title="Jump back to footnote 4 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Use a &lt;a href="|filename|/performance/monotonic_timer.md"&gt;monotonic timer&lt;/a&gt; to avoid errors caused by the system clock.&amp;#160;&lt;a class="footnote-backref" href="#fnref-3" title="Jump back to footnote 4 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
 &lt;/li&gt;
 &lt;li id="fn-6"&gt;
 &lt;p&gt;For future work, I'll probably write a kernel module in the style of &lt;a href="http://download.intel.com/embedded/software/IA/324264.pdf"&gt;this excellent Intel white paper&lt;/a&gt;.&amp;#160;&lt;a class="footnote-backref" href="#fnref-6" title="Jump back to footnote 5 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
