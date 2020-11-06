@@ -1,5 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="https://codearcana.com/" rel="alternate"></link><link href="https://codearcana.com/feeds/all.atom.xml" rel="self"></link><id>https://codearcana.com/</id><updated>2020-05-29T00:00:00-07:00</updated><entry><title>Coaching conversations: leadership micro-vacuums</title><link href="https://codearcana.com/posts/2020/05/29/coaching-conversations-leadership-micro-vacuums.html" rel="alternate"></link><published>2020-05-29T00:00:00-07:00</published><updated>2020-05-29T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2020-05-29:/posts/2020/05/29/coaching-conversations-leadership-micro-vacuums.html</id><summary type="html">&lt;p&gt;I have tried a script like this for the past year for engineers at around the Senior engineer level. I have been really happy with the results so far: the idea of "leadership mini-vacuums" makes growth here fairly approachable. The steps are small and people can choose to start with the step with which they are most comfortable.&lt;/p&gt;</summary><content type="html">&lt;p&gt;I have tried a script like this for the past year for engineers at around the Senior engineer level. I have been really happy with the results so far: the idea of "leadership mini-vacuums" makes growth here fairly approachable. The steps are small and people can choose to start with the step with which they are most comfortable.&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="https://codearcana.com/" rel="alternate"></link><link href="https://codearcana.com/feeds/all.atom.xml" rel="self"></link><id>https://codearcana.com/</id><updated>2020-11-06T00:00:00-08:00</updated><entry><title>Giving feedback thats easy to listen to</title><link href="https://codearcana.com/posts/2020/11/06/giving-feedback-thats-easy-to-listen-to.html" rel="alternate"></link><published>2020-11-06T00:00:00-08:00</published><updated>2020-11-06T00:00:00-08:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2020-11-06:/posts/2020/11/06/giving-feedback-thats-easy-to-listen-to.html</id><summary type="html">&lt;p&gt;The whole point of feedback is to change someone’s behavior in the future. That only works if you can give it in a form that they can listen to. This is a template I got from the wonderful Manager Tools on how to give feedback in a way that …&lt;/p&gt;</summary><content type="html">&lt;p&gt;The whole point of feedback is to change someone’s behavior in the future. That only works if you can give it in a form that they can listen to. This is a template I got from the wonderful Manager Tools on how to give feedback in a way that maximizes the chance that your feedback will be heard.&lt;/p&gt;
+&lt;h2&gt;Use the "When you {verb}ed ... what happened was ..." model&lt;/h2&gt;
+&lt;h3&gt;"When you"&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Identify the externally visible past behavior, not mindset or intent.&lt;/li&gt;
+&lt;li&gt;You should be so descriptive (or so recent to the event) that they can identify a specific instance of them exhibiting the behavior&lt;/li&gt;
+&lt;li&gt;Deliberately force yourself to give feedback about only specific instances and not patterns – it will force you to give feedback that is easier to listen to.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;"What happened was"&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Identify impact in the context of the event&lt;/li&gt;
+&lt;li&gt;Great feedback uses impact that resonates with the listener, e.g. "the project delivered late" vs "Tim was sad" are valued differently by different people on the team.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Examples&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;"&lt;em&gt;&lt;strong&gt;When you&lt;/strong&gt;&lt;/em&gt; added an emoji to my slack message, &lt;em&gt;&lt;strong&gt;what happened was&lt;/strong&gt;&lt;/em&gt; I felt I was part of a team"&lt;/li&gt;
+&lt;li&gt;"&lt;em&gt;&lt;strong&gt;When you&lt;/strong&gt;&lt;/em&gt; interrupted me when I was talking about API design in the team meeting, &lt;em&gt;&lt;strong&gt;what happened was&lt;/strong&gt;&lt;/em&gt; I stopped offering my perspective during the discussion"&lt;/li&gt;
+&lt;li&gt;"&lt;em&gt;&lt;strong&gt;When you&lt;/strong&gt;&lt;/em&gt; provided an alternative doc comment in my code review, &lt;em&gt;&lt;strong&gt;what happened was&lt;/strong&gt;&lt;/em&gt; it was easy for me to incorporate the change"&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Subtle failure modes&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;"You come off as mean; for example, you interrupted me"&lt;/em&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Providing feedback of the form "pattern example" is especially dangerous, since it can create a story that is hard to recover from. (If the person stops interrupting, are they still mean?).&lt;/li&gt;
+&lt;li&gt;Instead, prefer the form "instance consequence", so it is more clear that changing the behavior will change the effect: &lt;em&gt;"When you interrupted me, you came off as an asshole"&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;"When you started speaking while I was speaking, what happened was I felt insulted"&lt;/em&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Impact on your emotions is ok, but some words can accidentally ascribe intent (did the person intend to insult you?).&lt;/li&gt;
+&lt;li&gt;Instead, prefer words that describe your emotional state (for examples, check out &lt;a href="https://www.cnvc.org/training/resource/feelings-inventory"&gt;this list&lt;/a&gt;): &lt;em&gt;"When you started speaking while I was speaking, what happened was I felt angry"&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;"When you interrupt me, what happens is I stop speaking"&lt;/em&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Giving feedback in present tense usually is about a pattern and is generally less credible; its easy for someone to say "I didn't do that" or "I stopped doing that" or "you only notice bad things", etc.&lt;/li&gt;
+&lt;li&gt;Instead, use past tense and prefer feedback about specific examples: &lt;em&gt;"When you interrupted me in the team meeting, what happened is I stopped speaking"&lt;/em&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Get the right context&lt;/h2&gt;
+&lt;p&gt;Manager Tools warns (rightly) that it is very dangerous to give feedback when
+you can't be sure the other person knows its coming from a place of love:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Wait until you have a strong relationship to give feedback.&lt;/li&gt;
+&lt;li&gt;Avoid doing it when angry.&lt;/li&gt;
+&lt;li&gt;Aim to do it with a laugh and a wry smile on your face.&lt;/li&gt;
+&lt;li&gt;Avoid doing it in writing, where people have to infer emotions.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Further reading&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://www.manager-tools.com/"&gt;Manager Tools&lt;/a&gt; is chock-full of great advice
+  on feedback (and other management duties). I highly recommend starting from
+  &lt;a href="https://www.manager-tools.com/manager-tools-basics"&gt;the basics&lt;/a&gt; and checking out podcasts like
+  &lt;a href="https://www.manager-tools.com/2005/07/giving-effective-feedback"&gt;The Feedback Model&lt;/a&gt; or
+  &lt;a href="https://www.manager-tools.com/2006/02/improve-your-feedback"&gt;Improve your feedback with DISC&lt;/a&gt; or
+  &lt;a href="https://www.manager-tools.com/2019/09/event-based-peer-feedback-part-1"&gt;Event Based Peer Feedback&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://www.amazon.com/Nonviolent-Communication-Language-Marshall-Rosenberg/dp/1892005034"&gt;Nonviolent Communication: A Language of Life&lt;/a&gt;, by Marshall B. Rosenberg is a fantastic overview of communicating effectively about emotions.&lt;/li&gt;
+&lt;/ul&gt;</content><category term="management"></category><category term="communication"></category></entry><entry><title>Coaching conversations: leadership micro-vacuums</title><link href="https://codearcana.com/posts/2020/05/29/coaching-conversations-leadership-micro-vacuums.html" rel="alternate"></link><published>2020-05-29T00:00:00-07:00</published><updated>2020-05-29T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2020-05-29:/posts/2020/05/29/coaching-conversations-leadership-micro-vacuums.html</id><summary type="html">&lt;p&gt;I have tried a script like this for the past year for engineers at around the Senior engineer level. I have been really happy with the results so far: the idea of "leadership mini-vacuums" makes growth here fairly approachable. The steps are small and people can choose to start with the step with which they are most comfortable.&lt;/p&gt;</summary><content type="html">&lt;p&gt;I have tried a script like this for the past year for engineers at around the Senior engineer level. I have been really happy with the results so far: the idea of "leadership mini-vacuums" makes growth here fairly approachable. The steps are small and people can choose to start with the step with which they are most comfortable.&lt;/p&gt;
 &lt;hr&gt;
 &lt;p&gt;&lt;strong&gt;EM&lt;/strong&gt;: "Think about the best run project you've ever seen. What was the name of that project?"&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;IC&lt;/strong&gt;: &lt;em&gt;"Probably it would be the Foo project."&lt;/em&gt;&lt;/p&gt;
