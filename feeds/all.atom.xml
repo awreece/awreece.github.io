@@ -2,11 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="https://codearcana.com/" rel="alternate"></link><link href="https://codearcana.com/feeds/all.atom.xml" rel="self"></link><id>https://codearcana.com/</id><updated>2022-03-23T00:00:00-07:00</updated><entry><title>An Ideal Platform Experience</title><link href="https://codearcana.com/posts/2022/03/23/an-ideal-platform-experience.html" rel="alternate"></link><published>2022-03-23T00:00:00-07:00</published><updated>2022-03-23T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2022-03-23:/posts/2022/03/23/an-ideal-platform-experience.html</id><summary type="html">&lt;p&gt;I've thought a while about the vision for Platform orgs. In short, my opinion
 is that 
 Platform orgs should prioritize making an incredible user experience &lt;em&gt;that does not require special domain expertise to use&lt;/em&gt; and allows Product teams to focus
-all their energy on the business..
+all their energy on the business.
 Unfortunately, Platform teams frequently …&lt;/p&gt;</summary><content type="html">&lt;p&gt;I've thought a while about the vision for Platform orgs. In short, my opinion
 is that 
 Platform orgs should prioritize making an incredible user experience &lt;em&gt;that does not require special domain expertise to use&lt;/em&gt; and allows Product teams to focus
-all their energy on the business..
+all their energy on the business.
 Unfortunately, Platform teams frequently target making a very customizable experience at
 the expense of making a simple one  -- they target making AWS when they
 could make something easier to understand than Heroku. &lt;/p&gt;
