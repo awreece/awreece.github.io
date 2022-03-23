@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="https://codearcana.com/" rel="alternate"></link><link href="https://codearcana.com/feeds/all.atom.xml" rel="self"></link><id>https://codearcana.com/</id><updated>2022-03-23T00:00:00-07:00</updated><entry><title>Ideal Platform Experience</title><link href="https://codearcana.com/posts/2022/03/23/ideal-platform-experience.html" rel="alternate"></link><published>2022-03-23T00:00:00-07:00</published><updated>2022-03-23T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2022-03-23:/posts/2022/03/23/ideal-platform-experience.html</id><summary type="html">&lt;p&gt;I've thought a while about the vision for Platform orgs. In short, I think
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Code Arcana</title><link href="https://codearcana.com/" rel="alternate"></link><link href="https://codearcana.com/feeds/all.atom.xml" rel="self"></link><id>https://codearcana.com/</id><updated>2022-03-23T00:00:00-07:00</updated><entry><title>An Ideal Platform Experience</title><link href="https://codearcana.com/posts/2022/03/23/an-ideal-platform-experience.html" rel="alternate"></link><published>2022-03-23T00:00:00-07:00</published><updated>2022-03-23T00:00:00-07:00</updated><author><name>Alex Reece</name></author><id>tag:codearcana.com,2022-03-23:/posts/2022/03/23/an-ideal-platform-experience.html</id><summary type="html">&lt;p&gt;I've thought a while about the vision for Platform orgs. In short, my opinion
+is that 
 Platform orgs should prioritize making an incredible user experience.
 Unfortunately, they frequently target making a very customizable experience at
 the expense of making an enjoyable one -- they target making AWS when they
-should make something easier …&lt;/p&gt;</summary><content type="html">&lt;p&gt;I've thought a while about the vision for Platform orgs. In short, I think
+should make …&lt;/p&gt;</summary><content type="html">&lt;p&gt;I've thought a while about the vision for Platform orgs. In short, my opinion
+is that 
 Platform orgs should prioritize making an incredible user experience.
 Unfortunately, they frequently target making a very customizable experience at
 the expense of making an enjoyable one -- they target making AWS when they
-should make something easier than Heroku. Below is one potential vision for how
+should make something easier than Heroku. The net result of this focus is that
+sometimes product engineers find themselves needing and missing the 
+domain expertise to configure and deploy their code, leading to frustration and 
+difficulty working (and eventually, SRE).&lt;/p&gt;
+&lt;p&gt;Below is an alternative potential vision for how
 to make a great platform experience.&lt;/p&gt;
 &lt;h2&gt;Edit code&lt;/h2&gt;
 &lt;p&gt;Ernie the Engineer picks up a new issue from the ticket tracking system to work on. &lt;/p&gt;
