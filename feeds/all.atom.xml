@@ -12,7 +12,7 @@ the expense of making an enjoyable one -- they target making AWS when they
 should make something easier than Heroku. The net result of this focus is that
 sometimes product engineers find themselves needing and missing the 
 domain expertise to configure and deploy their code, leading to frustration and 
-difficulty working (and eventually, SRE).&lt;/p&gt;
+difficulty working (and eventually, hires devops engineers to act as a professional services org and fill the gap between product engineers and tools that are too difficult to use).&lt;/p&gt;
 &lt;p&gt;Below is an alternative potential vision for how
 to make a great platform experience.&lt;/p&gt;
 &lt;h2&gt;Edit code&lt;/h2&gt;
